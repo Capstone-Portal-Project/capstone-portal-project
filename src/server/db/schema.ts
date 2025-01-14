@@ -18,11 +18,11 @@ import {
  */
 export const createTable = pgTableCreator((name) => `capstone-portal-project_${name}`);
 
-export const posts = createTable(
-  "post",
+export const projects = createTable(
+  "project",
   {
     id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-    name: varchar("name", { length: 256 }),
+    name: varchar("name", { length: 256 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
