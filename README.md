@@ -1,4 +1,12 @@
-# Create T3 App
+# Capstone Portal Project
+
+## Notes for the Capstone Team
+- `npm run dev` - starts the project in dev mode
+- `npm run start` - starts the project in production mode
+- `npm run db:push` - pushes updates to the schema (This can temporarily break prod)
+- `npm run db:studio` - opens drizzle studio
+
+Watch [this video](https://www.youtube.com/watch?v=d5x0JCZbAJs&t=6s) to see how the setup was done and get a crash course of how to develop in this environment.
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
@@ -24,6 +32,5 @@ To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the fo
 
 You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
 
-## How do I deploy this?
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+
