@@ -10,8 +10,8 @@ async function Projects() {
   });
   return (
     <div className="flex flex-wrap gap-4">
-      {[...projects].map((project, index) => (
-        <div key={project.id + "-" + index} className="flex w-48 flex-col">
+      {projects.map((project) => (
+        <div key={project.id} className="flex w-48 flex-col">
           <img src={project.url} />
           <div>{project.name}</div>
         </div>
