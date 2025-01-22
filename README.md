@@ -1,4 +1,4 @@
-# Capstone Portal Project
+# Capstone Portal Project 
 
 ## Notes for the Capstone Team
 - `npm run dev` - starts the project in dev mode
