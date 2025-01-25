@@ -22,6 +22,10 @@
   "dependencies": {
     "@clerk/nextjs": "^6.10.2",
     "@t3-oss/env-nextjs": "^0.10.1",
+    "@trpc/client": "^10.45.2",
+    "@trpc/next": "^10.45.2",
+    "@trpc/react-query": "^10.45.2",
+    "@trpc/server": "^10.45.2",
     "@uploadthing/react": "^7.1.5",
     "@vercel/postgres": "^0.10.0",
     "drizzle-orm": "^0.33.0",
