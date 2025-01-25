@@ -23,7 +23,7 @@ export const createTable = pgTableCreator((name) => `capstone-portal-project_${n
 export const users = createTable(
   "users",
   {
-    u_id: integer("ui_id").primaryKey().generatedByDefaultAsIdentity(),
+    u_id: integer("u_id").primaryKey().generatedByDefaultAsIdentity(),
     u_name: varchar("u_name", { length: 256 }).notNull(),
     email: varchar("email", { length: 256 }).notNull(),
   }
@@ -32,10 +32,10 @@ export const users = createTable(
 export const courses = createTable(
   "course",
   {
-    course_id: varchar("course_id", { length: 256 }).primaryKey(),
+    course_id: integer("course_id").primaryKey().generatedByDefaultAsIdentity(),
     u_id: integer("u_id").references(() => users.u_id).notNull(),
     term: varchar("term", { length: 256 }).notNull(),
-    course_description: text("course_description").notNull(),
+    course_description: text("course_description"),
     is_archived: boolean("is_archived").notNull(),
   }
 );
@@ -54,10 +54,10 @@ export const capstoneProjects = createTable(
   {
     cp_id: integer("cp_id").primaryKey().generatedByDefaultAsIdentity(),
     course_id: integer("course_id").references(() => courses.course_id).notNull(),
-    track_id: integer("track_id").references(() => projectTracks.track_id).notNull(),
+    track_id: integer("track_id").references(() => projectTracks.track_id),
     cp_title: varchar("cp_title", { length: 256 }).notNull(),
-    cp_description: text("cp_description").notNull(),
-    cp_objectives: text("cp_objectives").notNull(),
+    cp_description: text("cp_description"),
+    cp_objectives: text("cp_objectives"),
     cp_date_created: timestamp("cp_date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     cp_date_updated: timestamp("cp_date_updated", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     cp_archived: boolean("cp_archived").notNull(),
@@ -79,9 +79,9 @@ export const reviews = createTable(
   {
     review_id: integer("review_id").primaryKey().generatedByDefaultAsIdentity(),
     u_id: integer("u_id").references(() => users.u_id).notNull(),
-    track_id: integer("track_id").references(() => projectTracks.track_id).notNull(),
+    track_id: integer("track_id").references(() => projectTracks.track_id),
     rating: real("rating").notNull(),
-    comments: text("comments").notNull(),
+    comments: text("comments"),
     date_created: timestamp("date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   }
 );
