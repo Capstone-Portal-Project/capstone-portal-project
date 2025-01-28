@@ -1,48 +1,41 @@
 import { auth } from "@clerk/nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { UploadThingError } from "uploadthing/server";
 import { db } from "~/server/db";
-import { projects } from "~/server/db/schema";
+import { project } from "~/server/db/schema";
+import { users } from "~/server/db/schema";
 
-const f = createUploadthing();
+/**
+ * Middleware to check if the user is authenticated.
+ * 
+ * This middleware runs on your server before processing the request.
+ * If the user is not authenticated, it throws an error.
+ * 
+ * @param req - The incoming request object.
+ * @returns The user ID if authenticated.
+ */
+export const checkAuth = async (req: Request) => {
+  const user = auth();
 
-// FileRouter for your app, can contain multiple FileRoutes
-export const ourFileRouter = {
-  // Define as many FileRoutes as you like, each with a unique routeSlug
-  imageUploader: f({
-    image: {
-      /**
-       * For full list of options and defaults, see the File Route API reference
-       * @see https://docs.uploadthing.com/file-routes#route-config
-       */
-      maxFileSize: "4MB",
-      maxFileCount: 1,
-    },
-  })
-    // Set permissions and file types for this FileRoute
-    .middleware(async ({ req }) => {
-      // This code runs on your server before upload
-      const user = auth();
+  // If the user is not authenticated, throw an error
+  if (!(await user).userId) throw new Error("Unauthorized");
 
-      // If you throw, the user will not be able to upload
-      if (!(await user).userId) throw new UploadThingError("Unauthorized");
+  // Return the user ID
+  return { userId: (await user).userId };
+};
 
-      // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: (await user).userId };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
+/**
+ * Example function to handle a request after authentication.
+ * 
+ * This function runs on your server after the user is authenticated.
+ * It can be used to perform any server-side logic, such as fetching user data.
+ * 
+ * @param userId - The authenticated user ID.
+ * @returns The user data.
+ */
+export const handleRequest = async (userId: string) => {
+  // Fetch user data from the database
+  const user = await db.select().from(users).where(users.u_id.eq(userId)).first();
 
-      await db.insert(projects).values({
-        name: file.name,
-        url: file.url,
-        userId: metadata.userId!,
-      })
-
-      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId };
-    }),
-} satisfies FileRouter;
-
-export type OurFileRouter = typeof ourFileRouter;
+  // Return the user data
+  return user;
+};

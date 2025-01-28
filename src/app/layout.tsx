@@ -7,7 +7,7 @@ import { type Metadata } from "next";
 import { TopNav } from "./_components/topnav";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
-import { ourFileRouter } from "./api/uploadthing/core";
+
 
 export const metadata: Metadata = {
   title: "Capstone Project Portal",
@@ -23,27 +23,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <NextSSRPlugin
-          routerConfig={extractRouterConfig(ourFileRouter)}
-        />
-        <body className={`bg-white text-black font-sans ${GeistSans.variable} flex`}>
-          {}
-          <div className="w-48 bg-[#27272A] text-white h-screen p-4 flex flex-col items-center">
-            {}
-            <img
-              src="oregonStateLogo.png"
-              alt="Oregon State Logo"
-              className="w-24 h-auto mb-4" 
-            />
-            {}
-            <h2>Sidebar</h2>
-          </div>
-
-          {}
-          <div className="flex-1 flex flex-col gap-4">
-            <TopNav />
-            {children}
-          </div>
+        <body className={`font-sans ${GeistSans.variable} flex flex-col gap-4`}>
+          <TopNav />
+          {children}
         </body>
       </html>
     </ClerkProvider>
