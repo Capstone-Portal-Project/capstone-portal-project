@@ -15,7 +15,6 @@ import { reviewRouter } from "./routers/review";
 export const appRouter = createTRPCRouter({
   users: userRouter,
   courses: courseRouter,
-  projectTracks: projectTrackRouter,
   capstoneProjects: capstoneProjectRouter,
   savedProjects: savedProjectRouter,
   reviews: reviewRouter,
