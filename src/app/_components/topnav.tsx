@@ -43,7 +43,7 @@ export function TopNav() {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/submit" legacyBehavior passHref>
+            <Link href="/projectPartner/projectSubmission" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Submit a Project
               </NavigationMenuLink>
