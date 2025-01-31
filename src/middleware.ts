@@ -5,7 +5,7 @@ const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
   // Restrict admin route to users with specific role
-  if (isAdminRoute(req)) await auth.protect({ role: 'org:admin' })
+  // if (isAdminRoute(req)) await auth.protect({ role: 'org:admin' }) // Disabling this for now - Dani
 
   // Restrict dashboard routes to signed in users
   if (isDashboardRoute(req)) await auth.protect()
