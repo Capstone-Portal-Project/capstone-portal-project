@@ -17,6 +17,8 @@ import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { api } from "~/trpc/query-client";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { UploadButton } from "../utils/uploadthing";
 
 const formSchema = z.object({
   cp_title: z.string().min(2, {
@@ -30,11 +32,15 @@ const formSchema = z.object({
   cp_objectives: z.string().min(10, {
     message: "Objectives must be at least 10 characters."
   }),
-  course_id: z.number(),
+  course_ids: z.array(z.number()).min(1, {
+    message: "Please select at least one course"
+  }),
+  cp_image: z.string(),
 });
 
 export default function SubmitProjectForm() {
   const router = useRouter();
+  const [courses, setCourses] = useState<any[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,17 +48,21 @@ export default function SubmitProjectForm() {
       cp_title: "",
       cp_description: "",
       cp_objectives: "",
-      course_id: 1,
+      course_ids: [],
+      cp_image: "",
     },
+  });
+
+  const { data: coursesData } = api.courses.getAll.useQuery(undefined, {
+    onSuccess: (data) => {
+      setCourses(data);
+    }
   });
 
   const { mutate } = api.capstoneProjects.create.useMutation({
     onSuccess: () => {
       router.push("/browse");
     },
-    onError: (error) => {
-      console.error("Mutation error:", error);
-    }
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -61,6 +71,11 @@ export default function SubmitProjectForm() {
       cp_archived: false,
     });
   }
+
+  const handleCourseSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions).map(option => Number(option.value));
+    form.setValue('course_ids', selectedOptions);
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -74,14 +89,8 @@ export default function SubmitProjectForm() {
               <FormItem>
                 <FormLabel>Project Title</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Enter your project title" 
-                    {...field} 
-                  />
+                  <Input placeholder="Enter project title" {...field} />
                 </FormControl>
-                <FormDescription>
-                  Give your project a clear, descriptive title that reflects its purpose.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -94,15 +103,8 @@ export default function SubmitProjectForm() {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Describe your project in detail"
-                    className="min-h-[120px]"
-                    {...field}
-                  />
+                  <Textarea placeholder="Enter project description" {...field} />
                 </FormControl>
-                <FormDescription>
-                  Provide a comprehensive description of your project.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -113,25 +115,76 @@ export default function SubmitProjectForm() {
             name="cp_objectives"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Project Objectives</FormLabel>
+                <FormLabel>Objectives</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="List your project objectives"
-                    className="min-h-[120px]"
-                    {...field}
-                  />
+                  <Textarea placeholder="Enter project objectives" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="cp_image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Project Image</FormLabel>
+                <FormControl>
+                  <div className="flex flex-col gap-4">
+                    <UploadButton
+                      endpoint="imageUploader"
+                      onClientUploadComplete={(res) => {
+                        if (res?.[0]) {
+                          field.onChange(res[0].url);
+                        }
+                      }}
+                    />
+                    {field.value && (
+                      <div className="mt-4">
+                        <img 
+                          src={field.value} 
+                          alt="Project preview" 
+                          className="max-w-xs rounded-lg shadow-md" 
+                        />
+                      </div>
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="course_ids"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Associated Courses</FormLabel>
+                <FormControl>
+                  <select
+                    multiple
+                    className="w-full rounded-md border p-2"
+                    onChange={handleCourseSelection}
+                    value={field.value.map(String)}
+                  >
+                    {courses.map((course) => (
+                      <option key={course.course_id} value={course.course_id}>
+                        {course.name} - {course.term}
+                      </option>
+                    ))}
+                  </select>
                 </FormControl>
                 <FormDescription>
-                  Outline the main goals and objectives of your project.
+                  Hold Ctrl/Cmd to select multiple courses
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" className="w-full sm:w-auto">
-            Submit Project
-          </Button>
+          <Button type="submit">Submit Project</Button>
         </form>
       </Form>
     </div>

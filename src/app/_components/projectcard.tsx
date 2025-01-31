@@ -17,6 +17,7 @@ type ProjectCardProps = {
         cp_description: string | null;
         cp_date_created: Date;
         cp_archived: boolean;
+        cp_image?: string;
     };
     onSave?: (projectId: number) => void;
 }
@@ -33,6 +34,15 @@ export function ProjectCard({ project, onSave }: ProjectCardProps) {
                 </CardDescription>
             </CardHeader>
             <CardContent>
+                {project.cp_image && (
+                    <div className="mb-4">
+                        <img 
+                            src={project.cp_image} 
+                            alt={project.cp_title} 
+                            className="w-full rounded-lg object-cover h-48"
+                        />
+                    </div>
+                )}
                 <p className="text-muted-foreground">
                     {project.cp_description || "No description available"}
                 </p>

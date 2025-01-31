@@ -49,9 +49,18 @@ export const capstoneProjects = createTable(
     cp_title: varchar("cp_title", { length: 256 }).notNull(),
     cp_description: text("cp_description"),
     cp_objectives: text("cp_objectives"),
+    cp_image: varchar("cp_image", { length: 512 }).default(""),
     cp_date_created: timestamp("cp_date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     cp_date_updated: timestamp("cp_date_updated", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     cp_archived: boolean("cp_archived").notNull(),
+  }
+);
+
+export const capstoneProjectCourses = createTable(
+  "capstone_project_courses",
+  {
+    cp_id: integer("cp_id").references(() => capstoneProjects.cp_id).notNull(),
+    course_id: integer("course_id").references(() => courses.course_id).notNull(),
   }
 );
 
