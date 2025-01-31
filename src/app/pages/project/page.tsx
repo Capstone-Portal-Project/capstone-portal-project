@@ -2,8 +2,11 @@
 import Detail from "./components/detail";
 import Hero from "./components/hero";
 import Content from "./components/content";
+import getProjectProps from "./utils/getProjectProps";
 
 export default async function ProjectPage() {
+  const project = getProjectProps();
+
   return (
     <main className="w-full h-full bg-white-off grid grid-rows-[100vh]">
         <Hero />
