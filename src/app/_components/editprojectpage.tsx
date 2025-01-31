@@ -25,7 +25,7 @@ import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 
 
-// See capstone-portal-project_capstone_project db table for details
+// Adjust this zod object
 const formSchema = z.object({
   course_id: z.number().int().nonnegative(), // INTEGER NOT NULL
   track_id: z.number().int().nonnegative().optional(), // INTEGER (nullable in the DB, so optional here)
@@ -39,6 +39,7 @@ const formSchema = z.object({
   cp_archived: z.boolean(), // BOOLEAN NOT NULL
 });
 
+// This is dummy data to be inputted later
 const courseOptions: Record<string, string> = {
   "1": "CS",
   "2": "EE",
@@ -71,140 +72,138 @@ export function ProjectPageEditForm() {
 
     function onSubmit(values: z.infer<typeof formSchema>) {
         // Get the values from the form
-        // Dont change the create date
+        // Dont change the create date, just fetch from current data
         // Update the date updated to current time
         console.log(values)
     }
     
       return (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="course_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Course</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+        <div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="course_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Course</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                      <FormControl>
+                      <SelectValue placeholder="Select a course">
+                        {field.value ? courseOptions[String(field.value)] : "Select a course"}
+                      </SelectValue>
+                      </FormControl>
+                      <SelectContent> {/* TODO : Get names for the coruses dynamically */}
+                        <SelectItem value="1">CS</SelectItem>
+                        <SelectItem value="2">EE</SelectItem>
+                        <SelectItem value="3">Online CS</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription></FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="track_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Track ID</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                      <FormControl>
+                      <SelectValue placeholder="Select a track">
+                        {field.value ? trackOptions[String(field.value)] : "Select a track"}
+                      </SelectValue>
+                      </FormControl>
+                      <SelectContent> {/* TODO : Get names for the coruses dynamically */}
+                        <SelectItem value="1">CS</SelectItem>
+                        <SelectItem value="2">EE</SelectItem>
+                        <SelectItem value="3">Online CS</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Optional: Provide the ID of the track.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cp_title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
                     <FormControl>
-                    <SelectValue placeholder="Select a course">
-                      {field.value ? courseOptions[String(field.value)] : "Select a course"}
-                    </SelectValue>
+                      <Input
+                        type="text"
+                        placeholder="Enter a title for the course"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent> {/* TODO : Get names for the coruses dynamically */}
-                      <SelectItem value="1">CS</SelectItem>
-                      <SelectItem value="2">EE</SelectItem>
-                      <SelectItem value="3">Online CS</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription></FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="track_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Track ID</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                    <FormDescription>Provide a title for the course (max 256 characters).</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cp_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
-                    <SelectValue placeholder="Select a track">
-                      {field.value ? trackOptions[String(field.value)] : "Select a track"}
-                    </SelectValue>
-                    </FormControl>
-                    <SelectContent> {/* TODO : Get names for the coruses dynamically */}
-                      <SelectItem value="1">CS</SelectItem>
-                      <SelectItem value="2">EE</SelectItem>
-                      <SelectItem value="3">Online CS</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>Optional: Provide the ID of the track.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cp_title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      placeholder="Enter a title for the course"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>Provide a title for the course (max 256 characters).</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-      
-            <FormField
-              control={form.control}
-              name="cp_description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Description" 
-                      className="resize-none"
-                      {...field}
-                    /> {/* Dynamically get this value */}
-                  </FormControl>
-                  <FormDescription>Optional: Provide a description for the course.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-      
-            <FormField
-              control={form.control}
-              name="cp_objectives"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Objectives</FormLabel>
-                  <FormControl>
-                    <Textarea
+                      <Textarea
                         placeholder="Description" 
                         className="resize-none"
                         {...field}
                       /> {/* Dynamically get this value */}
-                  </FormControl>
-                  <FormDescription>Optional: Specify the objectives of the course.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-      
-            <FormField
-              control={form.control}
-              name="cp_archived"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Archived</FormLabel>
-                  <FormControl>
-                    <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                  </FormControl>
-                  <FormDescription>
-                    Mark if the course is archived.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit">Submit</Button>
-          </form>
-        </Form>
+                    </FormControl>
+                    <FormDescription>Optional: Provide a description for the course.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cp_objectives"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Objectives</FormLabel>
+                    <FormControl>
+                      <Textarea
+                          placeholder="Description" 
+                          className="resize-none"
+                          {...field}
+                        /> {/* Dynamically get this value */}
+                    </FormControl>
+                    <FormDescription>Optional: Specify the objectives of the course.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cp_archived"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Archived</FormLabel>
+                    <FormControl>
+                      <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                    </FormControl>
+                    <FormDescription>
+                      Mark if the course is archived.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Submit</Button>
+            </form>
+          </Form>
+        </div>
       );
       
   }
