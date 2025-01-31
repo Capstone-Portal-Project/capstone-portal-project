@@ -35,7 +35,7 @@ const formSchema = z.object({
   course_ids: z.array(z.number()).min(1, {
     message: "Please select at least one course"
   }),
-  cp_image: z.string(),
+  cp_image: z.string().optional(),
 });
 
 export default function SubmitProjectForm() {
@@ -151,6 +151,9 @@ export default function SubmitProjectForm() {
                     )}
                   </div>
                 </FormControl>
+                <FormDescription>
+                  Upload a project image (max 4MB)
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
