@@ -1,0 +1,46 @@
+Table users {
+  u_id integer [primary key, increment]
+  u_name varchar(256) [not null]
+  email varchar(256) [not null]
+}
+
+Table courses {
+  course_id integer [primary key, increment]
+  u_id integer [not null, ref: > users.u_id]
+  name varchar(256) [not null]
+  term varchar(256) [not null]
+  course_description text
+  is_archived boolean [not null]
+}
+
+Table capstone_project {
+  cp_id integer [primary key, increment]
+  course_id integer [not null, ref: > courses.course_id]
+  cp_title varchar(256) [not null]
+  cp_description text
+  cp_objectives text
+  cp_image varchar(512) [default: '']
+  cp_date_created timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  cp_date_updated timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  cp_archived boolean [not null]
+}
+
+Table capstone_project_courses {
+  cp_id integer [not null, ref: > capstone_project.cp_id]
+  course_id integer [not null, ref: > courses.course_id]
+}
+
+Table saved_project {
+  save_id integer [primary key, increment]
+  u_id integer [not null, ref: > users.u_id]
+  cp_id integer [not null, ref: > capstone_project.cp_id]
+  date_saved timestamp [default: `CURRENT_TIMESTAMP`, not null]
+}
+
+Table review {
+  review_id integer [primary key, increment]
+  u_id integer [not null, ref: > users.u_id]
+  rating real [not null]
+  comments text
+  date_created timestamp [default: `CURRENT_TIMESTAMP`, not null]
+}
