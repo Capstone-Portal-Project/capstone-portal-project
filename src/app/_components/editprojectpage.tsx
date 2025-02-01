@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -19,6 +19,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from "../../components/ui/select"
 import { Textarea } from "../../components/ui/textarea"
@@ -52,9 +53,16 @@ const trackOptions: Record<string, string> = {
   "3": "Online CS",
 };
 
+export default function ProjectEditSidebarPopout() {
 
+  return (
+    <div>
+      <ProjectEditForm />
+    </div>
+  );
+}
 
-export function ProjectPageEditForm() {
+export function ProjectEditForm() {
 
     // TODO : Set default values to values of current project page
     const form = useForm<z.infer<typeof formSchema>>({
@@ -78,48 +86,52 @@ export function ProjectPageEditForm() {
     }
     
       return (
-        <div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
               <FormField
                 control={form.control}
                 name="course_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Course</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                    <FormLabel>Select Course</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={field.value?.toString()}>
                       <FormControl>
-                      <SelectValue placeholder="Select a course">
-                        {field.value ? courseOptions[String(field.value)] : "Select a course"}
-                      </SelectValue>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a course" />
+                        </SelectTrigger>
                       </FormControl>
-                      <SelectContent> {/* TODO : Get names for the coruses dynamically */}
-                        <SelectItem value="1">CS</SelectItem>
-                        <SelectItem value="2">EE</SelectItem>
-                        <SelectItem value="3">Online CS</SelectItem>
+                      <SelectContent>
+                        {Object.entries(courseOptions).map(([key, value]) => (
+                          <SelectItem key={key} value={key}>
+                            {value}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription></FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="track_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Track ID</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                    <FormLabel>Select Track</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={field.value?.toString()}>
                       <FormControl>
-                      <SelectValue placeholder="Select a track">
-                        {field.value ? trackOptions[String(field.value)] : "Select a track"}
-                      </SelectValue>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a track" />
+                        </SelectTrigger>
                       </FormControl>
-                      <SelectContent> {/* TODO : Get names for the coruses dynamically */}
-                        <SelectItem value="1">CS</SelectItem>
-                        <SelectItem value="2">EE</SelectItem>
-                        <SelectItem value="3">Online CS</SelectItem>
+                      <SelectContent>
+                        {Object.entries(trackOptions).map(([key, value]) => (
+                          <SelectItem key={key} value={key}>
+                            {value}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormDescription>Optional: Provide the ID of the track.</FormDescription>
@@ -127,6 +139,7 @@ export function ProjectPageEditForm() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="cp_title"
@@ -135,7 +148,7 @@ export function ProjectPageEditForm() {
                     <FormLabel>Title</FormLabel>
                     <FormControl>
                       <Input
-                        type="text"
+                        type=""
                         placeholder="Enter a title for the course"
                         {...field}
                       />
@@ -145,6 +158,7 @@ export function ProjectPageEditForm() {
                   </FormItem>
                 )}
               />
+                
               <FormField
                 control={form.control}
                 name="cp_description"
@@ -156,13 +170,14 @@ export function ProjectPageEditForm() {
                         placeholder="Description" 
                         className="resize-none"
                         {...field}
-                      /> {/* Dynamically get this value */}
+                      />
                     </FormControl>
                     <FormDescription>Optional: Provide a description for the course.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="cp_objectives"
@@ -174,36 +189,37 @@ export function ProjectPageEditForm() {
                           placeholder="Description" 
                           className="resize-none"
                           {...field}
-                        /> {/* Dynamically get this value */}
+                        />
                     </FormControl>
                     <FormDescription>Optional: Specify the objectives of the course.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="cp_archived"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Archived</FormLabel>
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel>Archive Project</FormLabel>
+                      <FormDescription>Archive this project when viewing it in &quot;Browse Projects&quot; page</FormDescription>
+                    </div>
                     <FormControl>
                       <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-readonly
+                      />
                     </FormControl>
-                    <FormDescription>
-                      Mark if the course is archived.
-                    </FormDescription>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
+              
               <Button type="submit">Submit</Button>
             </form>
           </Form>
-        </div>
       );
       
   }
