@@ -9,13 +9,13 @@ export default async function ProjectPage() {
 
   return (
     <main className="w-full h-full bg-white-off grid grid-rows-[100vh]">
-        <Hero />
+        <Hero {...project.hero} />
         <div className="px-16 py-4">
           <div className="grid grid-cols-2">
-            <Content />
+            <Content {...project.content} />
             <div className="flex justify-self-end">
               <span className="shrink-0 bg-border h-full w-[1px] block bg-copy"></span>
-              <Detail />
+              <Detail {...project.infoCard} />
             </div>            
           </div>
         </div>
