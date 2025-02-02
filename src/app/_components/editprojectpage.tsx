@@ -29,16 +29,26 @@ import { useState, useEffect } from 'react';
 // Adjust this zod object
 const formSchema = z.object({
   course_id: z.number().int().nonnegative(), // INTEGER NOT NULL
-  track_id: z.number().int().nonnegative().optional(), // INTEGER (nullable in the DB, so optional here)
   cp_title: z.string().max(256, {
     message: "Title must be at most 256 characters.",
   }), // VARCHAR(256) NOT NULL
   cp_description: z.string().optional(), // TEXT (nullable, so optional)
   cp_objectives: z.string().optional(), // TEXT (nullable, so optional)
-  cp_date_created: z.string().datetime().optional(), // TIMESTAMP WITH TIME ZONE, auto-set
-  cp_date_updated: z.string().datetime().optional(), // TIMESTAMP WITH TIME ZONE, auto-set
   cp_archived: z.boolean(), // BOOLEAN NOT NULL
+  cp_image: z.string().max(512).optional(), // VARCHAR(512) (nullable, so optional)
 });
+
+interface Project {
+  cp_id: number; // Primary Key, auto-generated
+  course_id: number; // NOT NULL
+  cp_title: string; // NOT NULL, max length 256
+  cp_description?: string; // TEXT, nullable
+  cp_objectives?: string; // TEXT, nullable
+  cp_date_created: string; // TIMESTAMP WITH TIME ZONE, default CURRENT_TIMESTAMP
+  cp_date_updated: string; // TIMESTAMP WITH TIME ZONE, default CURRENT_TIMESTAMP
+  cp_archived: boolean; // NOT NULL
+  cp_image?: string; // VARCHAR(512), default empty string
+}
 
 // This is dummy data to be inputted later
 const courseOptions: Record<string, string> = {
@@ -47,96 +57,88 @@ const courseOptions: Record<string, string> = {
   "3": "Online CS",
 };
 
-const trackOptions: Record<string, string> = {
-  "1": "CS",
-  "2": "EE",
-  "3": "Online CS",
-};
-
-export default function ProjectEditSidebarPopout() {
-
+export default function ProjectEditSidebarPopout( project : Project) {
   const [sidebarWidth, setSidebarWidth] = useState(320); // Initial sidebar width
-      const [isResizing, setIsResizing] = useState(false);
-  
-      // Constants for sidebar structure
-      const SIDEBAR_PADDING = 20; // Total padding (left + right)
-      const HANDLE_WIDTH = 8; // Width of the draggable handle
-      const MIN_WIDTH = 200; // Minimum sidebar width
-      const MAX_WIDTH = 1000; // Maximum sidebar width
-  
-      useEffect(() => {
-          if (isResizing) {
-              document.addEventListener("mousemove", handleMouseMove);
-              document.addEventListener("mouseup", handleMouseUp);
-          } else {
-              document.removeEventListener("mousemove", handleMouseMove);
-              document.removeEventListener("mouseup", handleMouseUp);
-          }
-  
-          return () => {
-              document.removeEventListener("mousemove", handleMouseMove);
-              document.removeEventListener("mouseup", handleMouseUp);
-          };
-      }, [isResizing]);
-  
-      const handleMouseDown = () => {
-          setIsResizing(true);
-      };
-  
-      const handleMouseMove = (e: MouseEvent) => {
-          if (isResizing) {
-              // Calculate width relative to the right edge, adjusting for padding and handle width
-              const newWidth = Math.max(
-                  MIN_WIDTH, 
-                  Math.min(
-                      MAX_WIDTH, 
-                      window.innerWidth - e.clientX - HANDLE_WIDTH - SIDEBAR_PADDING
-                  )
-              );
-              setSidebarWidth(newWidth);
-          }
-      };
-  
-      const handleMouseUp = () => {
-          setIsResizing(false);
-      };
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Constants for sidebar structure
+  const SIDEBAR_PADDING = 20; // Total padding (left + right)
+  const HANDLE_WIDTH = 8; // Width of the draggable handle
+  const MIN_WIDTH = 200; // Minimum sidebar width
+  const MAX_WIDTH = 1000; // Maximum sidebar width
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isResizing) {
+      // Calculate width relative to the right edge, adjusting for padding and handle width
+      const newWidth = Math.max(
+        MIN_WIDTH, 
+        Math.min(
+          MAX_WIDTH, 
+          window.innerWidth - e.clientX - HANDLE_WIDTH - SIDEBAR_PADDING
+        )
+      );
+      setSidebarWidth(newWidth);
+    }
+  };
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    } else {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [handleMouseMove, isResizing]);
+
+  const handleMouseDown = () => {
+    setIsResizing(true);
+  };
+
+  const handleMouseUp = () => {
+    setIsResizing(false);
+  };
 
   return (
-    <div className="flex flex-row h-full">
-      {/* Resizable Handle */}
+    <div className="flex flex-row h-screen">
+      {/* Resizing Handle */}
       <div
-          className="cursor-ew-resize"
-          style={{ width: HANDLE_WIDTH }}
-          onMouseDown={handleMouseDown}
+        className="cursor-ew-resize"
+        style={{ width: HANDLE_WIDTH }}
+        onMouseDown={handleMouseDown}
       />
 
-      {/* Sidebar Content */}
+      {/* Sidebar Container: fixed height with scrolling */}
       <div
-          className="bg-gray-100 border-l border-gray-300 px-5 py-5 overflow-y-auto"
-          style={{ width: sidebarWidth }}
+        className="bg-gray-100 border-l border-gray-300 px-5 py-5 h-screen overflow-y-auto"
+        style={{ width: sidebarWidth }}
       >
-          <div className="w-full">
-            <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
-            <ProjectEditForm />
-          </div>
+        <div className="w-full">
+          <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
+          <ProjectEditForm {...project} />
+        </div>
       </div>
     </div>
   );
 }
 
-export function ProjectEditForm() {
+export function ProjectEditForm(project : Project) {
 
     // TODO : Set default values to values of current project page
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-          course_id: 0, // Default for a required integer
-          track_id: 0, // Optional integer (nullable)
-          cp_title: "", // Required string, default empty
-          cp_description: "", // Optional string, empty by default
-          cp_objectives: "", // Optional string, empty by default
-          cp_date_updated: undefined, // Optional datetime, undefined by default (auto-set in DB)
+          course_id: project.course_id, // Default for a required integer
+          cp_title: project.cp_title, // Required string, default empty
+          cp_description: project.cp_description, // Optional string, empty by default
+          cp_objectives: project.cp_objectives, // Optional string, empty by default
           cp_archived: false, // Required boolean, default to `false`
+          cp_image: project.cp_image, // Optional string, empty by default
         },
       });
 
@@ -171,32 +173,6 @@ export function ProjectEditForm() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="track_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Select Track</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={field.value?.toString()}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a track" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(trackOptions).map(([key, value]) => (
-                          <SelectItem key={key} value={key}>
-                            {value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>Optional: Provide the ID of the track.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -271,6 +247,25 @@ export function ProjectEditForm() {
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} aria-readonly />
                     </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cp_image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Image</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        placeholder="Image"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>Upload an image</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
