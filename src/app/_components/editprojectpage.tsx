@@ -16,12 +16,13 @@ import {
 } from "../../components/ui/form"
 import { Input } from "../../components/ui/input"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select"
+  MultiSelector,
+  MultiSelectorContent,
+  MultiSelectorInput,
+  MultiSelectorItem,
+  MultiSelectorList,
+  MultiSelectorTrigger,
+} from "../../components/ui/extension/multi-select";
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 import { useState, useEffect, useCallback } from 'react';
@@ -29,7 +30,9 @@ import { updateProjectById } from "~/server/api/routers/capstoneProject";
 
 // Adjust this zod object
 const formSchema = z.object({
-  course_id: z.number().int().nonnegative(), // INTEGER NOT NULL
+  course_id: z.array(z.string()).min(1, {
+    message: "Please select at least one course.",
+  }), // INTEGER NOT NULL
   cp_title: z.string().max(256, {
     message: "Title must be at most 256 characters.",
   }).min(2, {
@@ -47,7 +50,7 @@ const formSchema = z.object({
 
 interface Project {
   cp_id: number; // Primary Key, auto-generated
-  course_id: number; // NOT NULL
+  course_id: number[]; // NOT NULL
   cp_title: string; // NOT NULL, max length 256
   cp_description?: string; // TEXT, nullable
   cp_objectives?: string; // TEXT, nullable
@@ -58,11 +61,18 @@ interface Project {
 }
 
 // This is dummy data to be inputted later
-const courseOptions: Record<string, string> = {
-  "0": "Placeholder",
-  "1": "CS",
-  "2": "EE",
-  "3": "Online CS",
+const courseOptions: Record<number, string> = {
+  0 : "Placeholder",
+  1 : "CS",
+  2 : "EE",
+  3 : "Online CS",
+};
+
+const courseOptionsReversed: Record<string, number> = {
+  "Placeholder": 0,
+  "CS": 1,
+  "EE": 2,
+  "Online CS": 3,
 };
 
 export default function ProjectEditSidebarPopout( project : Project) {
@@ -141,12 +151,12 @@ export function ProjectEditForm(project : Project) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-          course_id: project.course_id, // Default for a required integer
-          cp_title: project.cp_title, // Required string, default empty
-          cp_description: project.cp_description, // Optional string, empty by default
-          cp_objectives: project.cp_objectives, // Optional string, empty by default
-          cp_archived: false, // Required boolean, default to `false`
-          cp_image: project.cp_image, // Optional string, empty by default
+          course_id: project.course_id?.map((id: number) => courseOptions[id] ?? ""),
+          cp_title: project.cp_title,
+          cp_description: project.cp_description,
+          cp_objectives: project.cp_objectives,
+          cp_archived: false,
+          cp_image: project.cp_image,
         },
       });
 
@@ -154,7 +164,7 @@ export function ProjectEditForm(project : Project) {
         
         // Get values from the form
         const submittedValues = { 
-          course_id: values.course_id,
+          course_ids: values.course_id.map((x: string) => courseOptionsReversed[x]),
           cp_title: values.cp_title,
           cp_description: values.cp_description,
           cp_objectives: values.cp_objectives,
@@ -165,7 +175,7 @@ export function ProjectEditForm(project : Project) {
         console.log(submittedValues)
 
         updateProjectById(project.cp_id, {
-          course_ids: [submittedValues.course_id],
+          course_ids: submittedValues.course_ids.filter((id): id is number => id !== undefined),
           cp_title: submittedValues.cp_title,
           cp_description: submittedValues.cp_description,
           cp_objectives: submittedValues.cp_objectives,
@@ -188,20 +198,30 @@ export function ProjectEditForm(project : Project) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Select Course</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={field.value?.toString()}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a course" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(courseOptions).map(([key, value]) => (
-                          <SelectItem key={key} value={key}>
-                            {value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <MultiSelector
+                      onValuesChange={(value) => {
+                        console.log(value)
+                        field.onChange(value); 
+                      }}
+                      defaultValue={field.value.join(", ")} // Ensure values are strings
+                      values={field.value}
+                    >                      
+                      <MultiSelectorTrigger>
+                        <MultiSelectorInput placeholder={field.value.length > 0 ? null : "Select courses"} />
+                      </MultiSelectorTrigger>
+                      <MultiSelectorContent>
+                        <MultiSelectorList>
+                          {Object.entries(courseOptions).map(([key, value]) => (
+                            <MultiSelectorItem key={value} value={value}>
+                              <span>{value}</span>
+                            </MultiSelectorItem>
+                          ))}
+                        </MultiSelectorList>
+                      </MultiSelectorContent>
+                    </MultiSelector>
+                    <FormDescription>
+                      Select courses to assign this project to.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

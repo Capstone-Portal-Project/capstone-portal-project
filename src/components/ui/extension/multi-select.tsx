@@ -1,13 +1,13 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "../badge";
 import {
   Command,
   CommandItem,
   CommandEmpty,
   CommandList,
-} from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+} from "../command";
+import { cn } from "../../../lib/utils";
 import { Command as CommandPrimitive } from "cmdk";
 import { X as RemoveIcon, Check } from "lucide-react";
 import React, {
