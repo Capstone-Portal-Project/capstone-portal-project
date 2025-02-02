@@ -52,6 +52,7 @@ interface Project {
 
 // This is dummy data to be inputted later
 const courseOptions: Record<string, string> = {
+  "0": "Placeholder",
   "1": "CS",
   "2": "EE",
   "3": "Online CS",
