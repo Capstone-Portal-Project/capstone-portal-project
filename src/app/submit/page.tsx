@@ -15,10 +15,11 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { api } from "~/trpc/query-client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UploadButton } from "../utils/uploadthing";
+import { createProject } from "~/server/api/routers/capstoneProject";
+import { getActiveCourses } from "~/server/api/routers/course";
 
 const formSchema = z.object({
   cp_title: z.string().min(2, {
@@ -53,28 +54,26 @@ export default function SubmitProjectForm() {
     },
   });
 
-  const { data: coursesData } = api.courses.getAll.useQuery(undefined, {
-    onSuccess: (data) => {
-      setCourses(data);
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const result = await getActiveCourses();
+      if (!result.error) {
+        setCourses(result.courses);
+      } else {
+        console.error(result.message);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const result = await createProject(values);
+    if (!result.error) {
+      router.push('/browse');
+    } else {
+      console.error(result.message);
     }
-  });
-
-  const { mutate } = api.capstoneProjects.create.useMutation({
-    onSuccess: () => {
-      router.push("/browse");
-    },
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    mutate({
-      ...values,
-      cp_archived: false,
-    });
-  }
-
-  const handleCourseSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions).map(option => Number(option.value));
-    form.setValue('course_ids', selectedOptions);
   };
 
   return (
@@ -169,7 +168,10 @@ export default function SubmitProjectForm() {
                   <select
                     multiple
                     className="w-full rounded-md border p-2"
-                    onChange={handleCourseSelection}
+                    onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions).map(option => Number(option.value));
+                      form.setValue('course_ids', selectedOptions);
+                    }}
                     value={field.value.map(String)}
                   >
                     {courses.map((course) => (

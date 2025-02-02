@@ -1,84 +1,67 @@
-import { createTRPCRouter, publicProcedure } from "~/trpc/trpc";
-import { z } from "zod";
-import { db } from "~/server/db";
-import { users } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+"use server"
 
-type UserInput = z.infer<typeof userInput>;
-type UserUpdateInput = z.infer<typeof userUpdateInput>;
+import { db } from "~/server/db"
+import { users } from "~/server/db/schema"
+import { z } from "zod"
+import { eq } from "drizzle-orm"
 
-const userInput = z.object({
-  u_name: z.string().min(1),
-  email: z.string().email(),
-});
+const userFormSchema = z.object({
+ u_name: z.string().min(2).max(100),
+ email: z.string().email()
+})
 
-const userUpdateInput = z.object({
-  u_id: z.number(),
-  u_name: z.string().min(1).optional(),
-  email: z.string().email().optional(),
-});
+export async function createUser(
+ unsafeData: z.infer<typeof userFormSchema>
+): Promise<{ error: boolean; message?: string }> {
+ const { success, data } = userFormSchema.safeParse(unsafeData)
 
-/**
- * Router for user-related operations.
- * 
- * This router handles CRUD operations for users, including fetching all users,
- * fetching a user by ID, creating a new user, updating an existing user, and deleting a user.
- */
-export const userRouter = createTRPCRouter({
-  /**
-   * Fetch all users.
-   */
-  getAll: publicProcedure.query(async () => {
-    return db.select().from(users);
-  }),
+ if (!success) {
+   return { error: true, message: "Invalid data" }
+ }
 
-  /**
-   * Fetch a user by ID.
-   */
-  getById: publicProcedure
-    .input(z.number())
-    .query(async ({ input }: { input: number }) => {
-      const result = await db.select()
-        .from(users)
-        .where(eq(users.u_id, input));
-      return result[0];
-    }),
+ try {
+   await db.insert(users).values({
+     u_name: data.u_name,
+     email: data.email,
+   }).execute()
 
-  /**
-   * Create a new user.
-   */
-  create: publicProcedure
-    .input(userInput)
-    .mutation(async ({ input }: { input: UserInput }) => {
-      const result = await db.insert(users)
-        .values(input)
-        .returning();
-      return result[0];
-    }),
+   return { error: false }
+ } catch (error) {
+   return { error: true, message: "Failed to create user" }
+ }
+}
 
-  /**
-   * Update an existing user.
-   */
-  update: publicProcedure
-    .input(userUpdateInput)
-    .mutation(async ({ input }: { input: UserUpdateInput }) => {
-      const { u_id, ...updateData } = input;
-      const result = await db.update(users)
-        .set(updateData)
-        .where(eq(users.u_id, u_id))
-        .returning();
-      return result[0];
-    }),
+export async function getAllUsers() {
+ try {
+   const allUsers = await db.select().from(users)
+   return { users: allUsers, error: false }
+ } catch (error) {
+   return { users: [], error: true, message: "Failed to fetch users" }
+ }
+}
 
-  /**
-   * Delete a user by ID.
-   */
-  delete: publicProcedure
-    .input(z.number())
-    .mutation(async ({ input }: { input: number }) => {
-      const result = await db.delete(users)
-        .where(eq(users.u_id, input))
-        .returning();
-      return result[0];
-    }),
-});
+export async function getUserByEmail(email: string) {
+ try {
+   const user = await db
+     .select()
+     .from(users)
+     .where(eq(users.email, email))
+     .limit(1)
+   return { user: user[0], error: false }
+ } catch (error) {
+   return { user: null, error: true, message: "Failed to fetch user" }
+ }
+}
+
+export async function getUserById(userId: number) {
+ try {
+   const user = await db
+     .select()
+     .from(users)
+     .where(eq(users.u_id, userId))
+     .limit(1)
+   return { user: user[0], error: false }
+ } catch (error) {
+   return { user: null, error: true, message: "Failed to fetch user" }
+ }
+}
