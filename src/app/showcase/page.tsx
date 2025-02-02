@@ -1,18 +1,24 @@
-"use client";
+"use client"
 
-import { api } from "~/trpc/query-client";
-import { ProjectCard } from "../_components/projectcard";
-import { useState } from "react";
+import { ProjectCard } from "../_components/projectcard"
+import { useEffect, useState } from "react"
+import { getArchivedProjects } from "~/server/api/routers/capstoneProject"
 
 export default function ShowcaseProjects() {
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([])
 
-  const { data: projectsData } = api.capstoneProjects.getAll.useQuery(undefined, {
-    onSuccess: (data) => {
-      const archivedProjects = data.filter(p => p.cp_archived); //To-Do: Design a more effective way to retrieve archieved projects
-      setProjects(archivedProjects);
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const result = await getArchivedProjects()
+      if (!result.error) {
+        setProjects(result.projects)
+      } else {
+        console.error(result.message)
+      }
     }
-  });
+
+    fetchProjects()
+  }, [])
 
   return (
     <div className="container mx-auto p-6">
@@ -26,5 +32,5 @@ export default function ShowcaseProjects() {
         ))}
       </div>
     </div>
-  );
+  )
 }

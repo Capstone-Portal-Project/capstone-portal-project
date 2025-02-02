@@ -1,48 +1,41 @@
-import { createTRPCRouter, publicProcedure } from "~/trpc/trpc";
-import { z } from "zod";
-import { db } from "~/server/db";
-import { savedProjects } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+"use server"
 
-/**
- * Router for saved project-related operations.
- * 
- * This router handles CRUD operations for saved projects, including fetching all saved projects,
- * fetching a saved project by ID, creating a new saved project, and deleting a saved project.
- */
-export const savedProjectRouter = createTRPCRouter({
-  /**
-   * Fetch all saved projects.
-   */
-  getAll: publicProcedure.query(async () => {
-    return db.select().from(savedProjects);
-  }),
+import { db } from "~/server/db"
+import { savedProjects } from "~/server/db/schema"
+import { z } from "zod"
+import { eq } from "drizzle-orm"
 
-  /**
-   * Fetch a saved project by ID.
-   */
-  getById: publicProcedure.input(z.number()).query(async ({ input }) => {
-    return db.select().from(savedProjects).where(savedProjects.save_id.eq(input)).first();
-  }),
+const savedProjectSchema = z.object({
+ u_id: z.number(),
+ cp_id: z.number()
+})
 
-  /**
-   * Create a new saved project.
-   */
-  create: publicProcedure.input(z.object({
-    u_id: z.number(),
-    cp_id: z.number(),
-  })).mutation(async ({ input }) => {
-    return db.insert(savedProjects).values(input).returning("*").first();
-  }),
+export async function createSavedProject(
+ unsafeData: z.infer<typeof savedProjectSchema>
+): Promise<{ error: boolean; message?: string }> {
+ const { success, data } = savedProjectSchema.safeParse(unsafeData)
 
-  /**
-   * Delete a saved project by ID.
-   */
-  delete: publicProcedure
-    .input(z.number())
-    .mutation(async ({ input }) => {
-      return db.delete(savedProjects)
-        .where(eq(savedProjects.save_id, input))
-        .returning();
-    }),
-});
+ if (!success) {
+   return { error: true, message: "Invalid data" }
+ }
+
+ try {
+   await db.insert(savedProjects).values({
+     u_id: data.u_id,
+     cp_id: data.cp_id,
+   }).execute()
+
+   return { error: false }
+ } catch (error) {
+   return { error: true, message: "Failed to save project" }
+ }
+}
+
+export async function getAllSavedProjects() {
+ try {
+   const projects = await db.select().from(savedProjects)
+   return { projects, error: false }
+ } catch (error) {
+   return { projects: [], error: true, message: "Failed to fetch saved projects" }
+ }
+}

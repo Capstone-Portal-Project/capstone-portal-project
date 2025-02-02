@@ -1,33 +1,30 @@
-'use client';
+"use client";
 
-import { api } from "~/trpc/query-client";
 import { ProjectCard } from "../_components/projectcard";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getActiveProjects } from "~/server/api/routers/capstoneProject";
 
 export default function BrowseProjects() {
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
 
-  const { data: projectsData } = api.capstoneProjects.getAll.useQuery(undefined, {
-    onSuccess: (data) => {
-      const activeProjects = data.filter(p => !p.cp_archived); // To-Do: Design a more effective way to retrieve active projects
-      setProjects(activeProjects);
-    }
-  });
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const result = await getActiveProjects();
+      if (!result.error) {
+        setProjects(result.projects);
+      } else {
+        console.error(result.message);
+      }
+    };
 
-  const { mutate } = api.savedProjects.create.useMutation();
+    fetchProjects();
+  }, []);
 
-  const handleSaveProject = async (projectId: number) => {
-    try {
-      await mutate({
-        cp_id: projectId,
-        u_id: 1 // Replace with actual user ID from auth
-      });
-    } catch (error) {
-      console.error("Error saving project:", error);
-    }
-  };
+  function handleSaveProject(projectId: number): void {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <div className="container mx-auto p-6">

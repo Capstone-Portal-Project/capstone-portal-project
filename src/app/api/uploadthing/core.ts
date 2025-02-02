@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { db } from "~/server/db";
-import { project } from "~/server/db/schema";
 import { users } from "~/server/db/schema";
 
 /**
