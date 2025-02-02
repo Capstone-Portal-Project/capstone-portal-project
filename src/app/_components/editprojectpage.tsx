@@ -54,9 +54,9 @@ const trackOptions: Record<string, string> = {
 };
 
 export default function ProjectEditSidebarPopout() {
-
   return (
-    <div>
+    <div className="w-full">
+      <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
       <ProjectEditForm />
     </div>
   );
@@ -202,21 +202,17 @@ export function ProjectEditForm() {
                 name="cp_archived"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5 mr-10">
                       <FormLabel>Archive Project</FormLabel>
-                      <FormDescription>Archive this project when viewing it in &quot;Browse Projects&quot; page</FormDescription>
+                      <FormDescription>Archive this project in &quot;Browse Projects&quot; page</FormDescription>
                     </div>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        aria-readonly
-                      />
+                      <Switch checked={field.value} onCheckedChange={field.onChange} aria-readonly />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              
+
               <Button type="submit">Submit</Button>
             </form>
           </Form>
