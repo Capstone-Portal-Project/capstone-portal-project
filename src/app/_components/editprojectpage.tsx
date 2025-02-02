@@ -25,15 +25,22 @@ import {
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 import { useState, useEffect, useCallback } from 'react';
+import { updateProjectById } from "~/server/api/routers/capstoneProject";
 
 // Adjust this zod object
 const formSchema = z.object({
   course_id: z.number().int().nonnegative(), // INTEGER NOT NULL
   cp_title: z.string().max(256, {
     message: "Title must be at most 256 characters.",
+  }).min(2, {
+    message: "Title must be larger than 2 characters",
   }), // VARCHAR(256) NOT NULL
-  cp_description: z.string().optional(), // TEXT (nullable, so optional)
-  cp_objectives: z.string().optional(), // TEXT (nullable, so optional)
+  cp_description: z.string().min(10, {
+    message: "Description must be at least 10 characters.",
+  }), // TEXT
+  cp_objectives: z.string().min(10, {
+    message: "Objectives must be at least 10 characters.",
+  }), // TEXT
   cp_archived: z.boolean(), // BOOLEAN NOT NULL
   cp_image: z.string().max(512).optional(), // VARCHAR(512) (nullable, so optional)
 });
@@ -147,18 +154,28 @@ export function ProjectEditForm(project : Project) {
         
         // Get values from the form
         const submittedValues = { 
-          cp_id: project.cp_id,
           course_id: values.course_id,
           cp_title: values.cp_title,
           cp_description: values.cp_description,
           cp_objectives: values.cp_objectives,
-          cp_date_created: project.cp_date_created,
-          cp_date_updated: new Date().toISOString(),
           cp_archived: values.cp_archived,
-          cp_image: (values.cp_image ? values.cp_image : project.cp_image),
+          cp_image: (values.cp_image ? values.cp_image : undefined),
         }
 
         console.log(submittedValues)
+
+        updateProjectById(project.cp_id, {
+          course_ids: [submittedValues.course_id],
+          cp_title: submittedValues.cp_title,
+          cp_description: submittedValues.cp_description,
+          cp_objectives: submittedValues.cp_objectives,
+          cp_image: submittedValues.cp_image,
+          cp_archived: submittedValues.cp_archived,
+        }).then(({ message }) => {
+          console.log(message); // Show a success message
+        }).catch((error) => {
+          console.error(error); // Show an error message
+        });
     }
     
       return (
