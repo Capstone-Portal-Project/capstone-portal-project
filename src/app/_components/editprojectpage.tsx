@@ -24,7 +24,7 @@ import {
 } from "../../components/ui/select"
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
-
+import { useState, useEffect } from 'react';
 
 // Adjust this zod object
 const formSchema = z.object({
@@ -54,10 +54,72 @@ const trackOptions: Record<string, string> = {
 };
 
 export default function ProjectEditSidebarPopout() {
+
+  const [sidebarWidth, setSidebarWidth] = useState(320); // Initial sidebar width
+      const [isResizing, setIsResizing] = useState(false);
+  
+      // Constants for sidebar structure
+      const SIDEBAR_PADDING = 20; // Total padding (left + right)
+      const HANDLE_WIDTH = 8; // Width of the draggable handle
+      const MIN_WIDTH = 200; // Minimum sidebar width
+      const MAX_WIDTH = 1000; // Maximum sidebar width
+  
+      useEffect(() => {
+          if (isResizing) {
+              document.addEventListener("mousemove", handleMouseMove);
+              document.addEventListener("mouseup", handleMouseUp);
+          } else {
+              document.removeEventListener("mousemove", handleMouseMove);
+              document.removeEventListener("mouseup", handleMouseUp);
+          }
+  
+          return () => {
+              document.removeEventListener("mousemove", handleMouseMove);
+              document.removeEventListener("mouseup", handleMouseUp);
+          };
+      }, [isResizing]);
+  
+      const handleMouseDown = () => {
+          setIsResizing(true);
+      };
+  
+      const handleMouseMove = (e: MouseEvent) => {
+          if (isResizing) {
+              // Calculate width relative to the right edge, adjusting for padding and handle width
+              const newWidth = Math.max(
+                  MIN_WIDTH, 
+                  Math.min(
+                      MAX_WIDTH, 
+                      window.innerWidth - e.clientX - HANDLE_WIDTH - SIDEBAR_PADDING
+                  )
+              );
+              setSidebarWidth(newWidth);
+          }
+      };
+  
+      const handleMouseUp = () => {
+          setIsResizing(false);
+      };
+
   return (
-    <div className="w-full">
-      <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
-      <ProjectEditForm />
+    <div className="flex flex-row h-full">
+      {/* Resizable Handle */}
+      <div
+          className="cursor-ew-resize"
+          style={{ width: HANDLE_WIDTH }}
+          onMouseDown={handleMouseDown}
+      />
+
+      {/* Sidebar Content */}
+      <div
+          className="bg-gray-100 border-l border-gray-300 px-5 py-5 overflow-y-auto"
+          style={{ width: sidebarWidth }}
+      >
+          <div className="w-full">
+            <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
+            <ProjectEditForm />
+          </div>
+      </div>
     </div>
   );
 }
