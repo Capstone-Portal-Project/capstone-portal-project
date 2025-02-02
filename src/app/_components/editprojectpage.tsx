@@ -207,7 +207,7 @@ export function ProjectEditForm(project : Project) {
                       values={field.value}
                     >                      
                       <MultiSelectorTrigger>
-                        <MultiSelectorInput placeholder={field.value.length > 0 ? null : "Select courses"} />
+                        <MultiSelectorInput placeholder={field.value.length > 0 ? undefined : "Select courses"} />
                       </MultiSelectorTrigger>
                       <MultiSelectorContent>
                         <MultiSelectorList>
