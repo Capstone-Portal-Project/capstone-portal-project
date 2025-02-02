@@ -24,7 +24,7 @@ import {
 } from "../../components/ui/select"
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // Adjust this zod object
 const formSchema = z.object({
@@ -68,7 +68,7 @@ export default function ProjectEditSidebarPopout( project : Project) {
   const MIN_WIDTH = 200; // Minimum sidebar width
   const MAX_WIDTH = 1000; // Maximum sidebar width
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isResizing) {
       // Calculate width relative to the right edge, adjusting for padding and handle width
       const newWidth = Math.max(
@@ -80,7 +80,7 @@ export default function ProjectEditSidebarPopout( project : Project) {
       );
       setSidebarWidth(newWidth);
     }
-  };
+  }, [isResizing]);
 
   useEffect(() => {
     if (isResizing) {
@@ -144,10 +144,21 @@ export function ProjectEditForm(project : Project) {
       });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        // Get the values from the form
-        // Dont change the create date, just fetch from current data
-        // Update the date updated to current time
-        console.log(values)
+        
+        // Get values from the form
+        const submittedValues = { 
+          cp_id: project.cp_id,
+          course_id: values.course_id,
+          cp_title: values.cp_title,
+          cp_description: values.cp_description,
+          cp_objectives: values.cp_objectives,
+          cp_date_created: project.cp_date_created,
+          cp_date_updated: new Date().toISOString(),
+          cp_archived: values.cp_archived,
+          cp_image: (values.cp_image ? values.cp_image : project.cp_image),
+        }
+
+        console.log(submittedValues)
     }
     
       return (
