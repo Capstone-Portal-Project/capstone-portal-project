@@ -1,46 +1,43 @@
-import { createTRPCRouter, publicProcedure } from "~/trpc/trpc";
-import { z } from "zod";
-import { db } from "~/server/db";
-import { reviews } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+"use server"
 
-/**
- * Router for review-related operations.
- * 
- * This router handles CRUD operations for reviews, including fetching all reviews,
- * fetching a review by ID, creating a new review, and deleting a review.
- */
-export const reviewRouter = createTRPCRouter({
-  /**
-   * Fetch all reviews.
-   */
-  getAll: publicProcedure.query(async () => {
-    return db.select().from(reviews);
-  }),
+import { db } from "~/server/db"
+import { reviews } from "~/server/db/schema"
+import { z } from "zod"
+import { eq } from "drizzle-orm"
 
-  /**
-   * Fetch a review by ID.
-   */
-  getById: publicProcedure.input(z.number()).query(async ({ input }) => {
-    return db.select().from(reviews).where(reviews.review_id.eq(input)).first();
-  }),
+const reviewFormSchema = z.object({
+  u_id: z.number(),
+  rating: z.number().min(1).max(5),
+  comments: z.string().min(1),
+})
 
-  /**
-   * Create a new review.
-   */
-  create: publicProcedure.input(z.object({
-    u_id: z.number(),
-    track_id: z.number(),
-    rating: z.number(),
-    comments: z.string(),
-  })).mutation(async ({ input }) => {
-    return db.insert(reviews).values(input).returning("*").first();
-  }),
+export async function createReview(
+  unsafeData: z.infer<typeof reviewFormSchema>
+): Promise<{ error: boolean; message?: string }> {
+  const { success, data } = reviewFormSchema.safeParse(unsafeData)
 
-  /**
-   * Delete a review by ID.
-   */
-  delete: publicProcedure.input(z.number()).mutation(async ({ input }) => {
-    return db.delete(reviews).where(eq(reviews.review_id, input)).returning("*").first();
-  }),
-});
+  if (!success) {
+    return { error: true, message: "Invalid data" }
+  }
+
+  try {
+    await db.insert(reviews).values({
+      u_id: data.u_id,
+      rating: data.rating,
+      comments: data.comments,
+    }).execute()
+
+    return { error: false }
+  } catch (error) {
+    return { error: true, message: "Failed to create review" }
+  }
+}
+
+export async function getAllReviews() {
+  try {
+    const allReviews = await db.select().from(reviews)
+    return { reviews: allReviews, error: false }
+  } catch (error) {
+    return { reviews: [], error: true, message: "Failed to fetch reviews" }
+  }
+}

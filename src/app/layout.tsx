@@ -8,9 +8,9 @@ import { TopNav } from "./_components/topnav";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { Inter } from "next/font/google";
-import { TRPCProvider } from './providers';
-const inter = Inter({ subsets: ["latin"] });
+import { Provider } from "./providers";
 
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Capstone Project Portal",
@@ -27,10 +27,8 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={inter.className}>
-          <TRPCProvider>
-            <TopNav />
-            {children}
-          </TRPCProvider>
+          <TopNav />
+          <Provider>{children}</Provider>
         </body>
       </html>
     </ClerkProvider>

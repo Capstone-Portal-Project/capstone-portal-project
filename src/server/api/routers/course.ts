@@ -1,39 +1,59 @@
-import { createTRPCRouter, publicProcedure } from "~/trpc/trpc";
-import { z } from "zod";
-import { db } from "~/server/db";
-import { courses } from "~/server/db/schema";
+"use server"
 
-/**
- * Router for course-related operations.
- * 
- * This router handles CRUD operations for courses, including fetching all courses,
- * fetching a course by ID, and creating a new course.
- */
-export const courseRouter = createTRPCRouter({
-  /**
-   * Fetch all courses.
-   */
-  getAll: publicProcedure.query(async () => {
-    return db.select().from(courses);
-  }),
+import { db } from "~/server/db"
+import { courses } from "~/server/db/schema"
+import { z } from "zod"
+import { eq } from "drizzle-orm"
 
-  /**
-   * Fetch a course by ID.
-   */
-  getById: publicProcedure.input(z.string()).query(async ({ input }) => {
-    return db.select().from(courses).where(courses.course_id.eq(input)).first();
-  }),
+const courseFormSchema = z.object({
+  u_id: z.number(),
+  name: z.string(),
+  term: z.string(),
+  course_description: z.string(),
+  is_archived: z.boolean().default(false),
+})
 
-  /**
-   * Create a new course.
-   */
-  create: publicProcedure.input(z.object({
-    course_id: z.string(),
-    u_id: z.number(),
-    term: z.string(),
-    course_description: z.string(),
-    is_archived: z.boolean(),
-  })).mutation(async ({ input }) => {
-    return db.insert(courses).values(input).returning("*").first();
-  }),
-});
+export async function createCourse(
+  unsafeData: z.infer<typeof courseFormSchema>
+): Promise<{ error: boolean; message?: string }> {
+  const { success, data } = courseFormSchema.safeParse(unsafeData)
+
+  if (!success) {
+    return { error: true, message: "Invalid data" }
+  }
+
+  try {
+    await db.insert(courses).values({
+      u_id: data.u_id,
+      name: data.name,
+      term: data.term,
+      course_description: data.course_description,
+      is_archived: data.is_archived,
+    }).execute()
+
+    return { error: false }
+  } catch (error) {
+    return { error: true, message: "Failed to create course" }
+  }
+}
+
+export async function getAllCourses() {
+  try {
+    const allCourses = await db.select().from(courses)
+    return { courses: allCourses, error: false }
+  } catch (error) {
+    return { courses: [], error: true, message: "Failed to fetch courses" }
+  }
+}
+
+export async function getActiveCourses() {
+  try {
+    const activeCourses = await db
+      .select()
+      .from(courses)
+      .where(eq(courses.is_archived, false))
+    return { courses: activeCourses, error: false }
+  } catch (error) {
+    return { courses: [], error: true, message: "Failed to fetch active courses" }
+  }
+}
