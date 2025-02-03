@@ -62,17 +62,15 @@ interface Project {
 
 // This is dummy data to be inputted later
 const courseOptions: Record<number, string> = {
-  0 : "Placeholder",
-  1 : "CS",
-  2 : "EE",
-  3 : "Online CS",
+  1 : "Placeholder Course 1",
+  2 : "Placeholder Course 2",
+  3 : "Placeholder Course 3",
 };
 
 const courseOptionsReversed: Record<string, number> = {
-  "Placeholder": 0,
-  "CS": 1,
-  "EE": 2,
-  "Online CS": 3,
+  "Placeholder Course 1": 1,
+  "Placeholder Course 2": 2,
+  "Placeholder Course 3": 3,
 };
 
 export default function ProjectEditSidebarPopout( project : Project) {

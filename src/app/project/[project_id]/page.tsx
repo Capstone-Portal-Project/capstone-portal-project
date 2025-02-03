@@ -46,8 +46,8 @@ export default function ProjectPage({ params }: BrowseProjectsParams) {
       {/* Sidebar */}
       {isSidebarOpen && (
         <ProjectEditSidebarPopout
-          cp_id={0}
-          course_id={[0]}
+          cp_id={Number(resolvedParams.project_id)}
+          course_id={[1]}
           cp_title={"Placeholder Title"}
           cp_description={placeholderDescription}
           cp_objectives={placeholderDescription}

@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "~/server/db"
-import { capstoneProjects, capstoneProjectCourses } from "~/server/db/schema"
+import { capstoneProjects, capstoneProjectCourses, courses } from "~/server/db/schema"
 import { z } from "zod"
 import { eq } from "drizzle-orm"
 
@@ -10,6 +10,19 @@ const projectFormSchema = z.object({
   cp_description: z.string().min(10),
   cp_objectives: z.string().min(10),
   course_ids: z.array(z.number()).min(1),
+  cp_image: z.string().optional(),
+})
+
+/*
+    Add this schema to allow for archiving projects
+    inside project edit form. -Justin
+*/
+const projectUpdateFormSchema = z.object({
+  course_ids: z.array(z.number().int().nonnegative()).min(1),
+  cp_title: z.string().min (2).max(256),
+  cp_description: z.string().min(10),
+  cp_objectives: z.string().min(10),
+  cp_archived: z.boolean(),
   cp_image: z.string().optional(),
 })
 
@@ -48,6 +61,63 @@ export async function createProject(
     return { error: false }
   } catch (error) {
     return { error: true, message: "Failed to create project" }
+  }
+}
+
+export async function updateProjectById(
+  projectId: number,
+  unsafeData: z.infer<typeof projectUpdateFormSchema>
+): Promise<{ error: boolean; message?: string }> {
+  const { success, data } = projectUpdateFormSchema.safeParse(unsafeData)
+
+  if (!success) {
+    return { error: true, message: "Invalid form data" }
+  }
+
+  const projectExists = await db.select().from(capstoneProjects).where(eq(capstoneProjects.cp_id, projectId)).execute();
+  if (projectExists.length === 0) {
+    return { error: true, message: `Project ID does not exist (${projectId} ${typeof projectId})` };
+  }
+
+  for (const courseId of data.course_ids) {
+    const courseExists = await db.select().from(courses).where(eq(courses.course_id, courseId)).execute();
+    if (courseExists.length === 0) {
+      return { error: true, message: `Course ID ${courseId} does not exist` };
+    }
+  }
+
+  try {
+
+    // Update the capstone project attributes
+    await db.update(capstoneProjects)
+      .set({
+        cp_title: data.cp_title,
+        cp_description: data.cp_description,
+        cp_objectives: data.cp_objectives,
+        cp_image: data.cp_image ?? undefined,
+        cp_archived: data.cp_archived,
+      })
+      .where(eq(capstoneProjects.cp_id, projectId))
+      .execute()
+
+    // Update the M:M relationship 
+    await db.delete(capstoneProjectCourses)
+      .where(eq(capstoneProjectCourses.cp_id, projectId))
+      .execute()
+
+    await Promise.all(data.course_ids.map(courseId =>
+      db.insert(capstoneProjectCourses).values({
+        cp_id: projectId,
+        course_id: courseId,
+      }).execute()
+    ))
+
+    return { error: false, message: "Project updated successfully" }
+  } catch (error) {
+
+    const message = (error instanceof Error ? error.message : "Failed to update project")
+
+    return { error: true, message: message }
   }
 }
 
