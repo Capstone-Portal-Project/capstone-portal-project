@@ -27,6 +27,7 @@ import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 import { useState, useEffect, useCallback } from 'react';
 import { updateProjectById } from "~/server/api/routers/capstoneProject";
+import { Toaster, toast } from "react-hot-toast";
 
 // Adjust this zod object
 const formSchema = z.object({
@@ -121,25 +122,29 @@ export default function ProjectEditSidebarPopout( project : Project) {
   };
 
   return (
-    <div className="flex flex-row h-screen">
-      {/* Resizing Handle */}
-      <div
-        className="cursor-ew-resize"
-        style={{ width: HANDLE_WIDTH }}
-        onMouseDown={handleMouseDown}
-      />
+    <>
+      <Toaster position="bottom-right" reverseOrder={false} />
+      <div className="flex flex-row h-screen">
+        
+        {/* Resizing Handle */}
+        <div
+          className="cursor-ew-resize"
+          style={{ width: HANDLE_WIDTH }}
+          onMouseDown={handleMouseDown}
+        />
 
-      {/* Sidebar Container: fixed height with scrolling */}
-      <div
-        className="bg-gray-100 border-l border-gray-300 px-5 py-5 h-screen overflow-y-auto"
-        style={{ width: sidebarWidth }}
-      >
-        <div className="w-full">
-          <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
-          <ProjectEditForm {...project} />
+        {/* Sidebar Container: fixed height with scrolling */}
+        <div
+          className="bg-gray-100 border-l border-gray-300 px-5 py-5 h-screen overflow-y-auto"
+          style={{ width: sidebarWidth }}
+        >
+          <div className="w-full">
+            <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
+            <ProjectEditForm {...project} />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -180,8 +185,10 @@ export function ProjectEditForm(project : Project) {
           cp_image: submittedValues.cp_image,
           cp_archived: submittedValues.cp_archived,
         }).then(({ message }) => {
+          toast.success("Project updated successfully!");
           console.log(message); // Show a success message
         }).catch((error) => {
+          toast.error("Failed to update project.");
           console.error(error); // Show an error message
         });
     }
