@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
+import { Select } from "~/components/ui/select";
 import {
   Form,
   FormControl,
@@ -27,8 +28,26 @@ const formSchema = z.object({
   }).max(256, {
     message: "Title cannot exceed 256 characters."
   }),
+  cp_company: z.string().min(2, {
+    message: "Company must be at least 2 characters.",
+  }).max(256, {
+    message: "Company cannot exceed 256 characters."
+  }),
+  cp_video: z.string().min(2, {
+    message: "Video Link must be at least 2 characters.",
+  }).max(256, {
+    message: "Video Link cannot exceed 256 characters."
+  }),
   cp_description: z.string().min(10, {
     message: "Description must be at least 10 characters."
+  }),
+  cp_qualifications: z.string().min(10, {
+    message: "Qualifications must be at least 10 characters."
+  }),
+  cp_students_needed: z.number().min(1, {
+    message: "At least 1 student is required."
+  }).max(10, {
+    message: "Cannot exceed 10 students."
   }),
   cp_objectives: z.string().min(10, {
     message: "Objectives must be at least 10 characters."
@@ -47,7 +66,11 @@ export default function SubmitProjectForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       cp_title: "",
+      cp_company: "",
+      cp_video: "",
       cp_description: "",
+      cp_qualifications: "",
+      cp_students_needed: 0,
       cp_objectives: "",
       course_ids: [],
       cp_image: "",
@@ -97,6 +120,34 @@ export default function SubmitProjectForm() {
 
           <FormField
             control={form.control}
+            name="cp_company"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Project Partner Company</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter partner company" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+            />
+
+<FormField
+            control={form.control}
+            name="cp_video"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Video Link</FormLabel>
+                <FormControl>
+                  <Input type="url" placeholder="Enter video link" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="cp_description"
             render={({ field }) => (
               <FormItem>
@@ -108,7 +159,20 @@ export default function SubmitProjectForm() {
               </FormItem>
             )}
           />
-
+          <FormField
+            control={form.control}
+            name="cp_qualifications"
+            render={({ field }) => (
+              <FormItem className="col-span-3">
+                <FormLabel>Qualifications</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="List required qualifications" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
           <FormField
             control={form.control}
             name="cp_objectives"
@@ -157,6 +221,24 @@ export default function SubmitProjectForm() {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="cp_students_needed"
+            render={({ field }) => (
+              <FormItem className="col-span-3">
+                <FormLabel>Students Needed </FormLabel>
+                <FormControl>
+                  <select {...field}>
+                    {[...Array(10)].map((_, i) => (
+                      <option key={i} value={i + 1}>{i + 1}</option>
+                    ))}
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
 
           <FormField
             control={form.control}
