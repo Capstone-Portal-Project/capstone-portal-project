@@ -1,3 +1,6 @@
+/*
+ * View this schema as an entity relationship diagram (ERD) by pasting it in dbdiagram.io
+ */
 
 Enum user_type {
   project_partner
