@@ -1,9 +1,10 @@
-import { db } from "~/server/db";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
 
-export const dynamic = "force-dynamic";
+import { auth } from '@clerk/nextjs/server';
 
 export default async function HomePage() {
+
+
+  
   return (
     <main>
       <div className="flex flex-col">

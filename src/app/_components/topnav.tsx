@@ -12,7 +12,6 @@ import {
 } from "../../components/ui/navigation-menu"
 import { Button } from "../../components/ui/button"
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import Link from "next/link"
 import Image from 'next/image'
 import { cn } from "../../lib/utils"
