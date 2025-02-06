@@ -45,7 +45,7 @@ export const capstoneProjects = createTable(
   "capstone_project",
   {
     cp_id: integer("cp_id").primaryKey().generatedByDefaultAsIdentity(),
-    course_id: integer("course_id").references(() => courses.course_id).notNull(),
+    course_id: integer("course_id").references(() => courses.course_id).notNull(), // "we're using this like orgId from https://youtu.be/lWcDAxNpJI8?si=Q35tddL0ttOHCbz7&t=180"
     cp_title: varchar("cp_title", { length: 256 }).notNull(),
     cp_description: text("cp_description"),
     cp_objectives: text("cp_objectives"),
