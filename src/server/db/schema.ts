@@ -1,6 +1,3 @@
-// Example model schema from the Drizzle docs
-// https://orm.drizzle.team/docs/sql-schema-declaration
-
 import { sql } from "drizzle-orm";
 import {
   integer,
@@ -8,8 +5,8 @@ import {
   timestamp,
   text,
   boolean,
-  real,
   varchar,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -20,67 +17,155 @@ import {
  */
 export const createTable = pgTableCreator((name) => `capstone-portal-project_${name}`);
 
+// Enums
+export const userTypeEnum = pgEnum('user_type', ['project_partner', 'student', 'instructor', 'admin']);
+export const programStatusEnum = pgEnum('capstone_program_status', ['submissions', 'matching', 'active', 'ending', 'archived', 'hidden']);
+export const projectStatusEnum = pgEnum('capstone_project_status', ['draft', 'submitted', 'deferred', 'active', 'archived', 'incomplete']);
+export const projectLogTypeEnum = pgEnum('capstone_project_log_type', ['submission', 'deferment', 'approval', 'partner_message', 'instructor_admin_message', 'course_transfer']);
+export const sequenceTypeEnum = pgEnum('sequence_type', ['iterated', 'repeated']);
+export const seasonEnum = pgEnum('season', ['winter', 'spring', 'summer', 'fall']);
+
+// Tables
 export const users = createTable(
   "users",
   {
-    u_id: integer("u_id").primaryKey().generatedByDefaultAsIdentity(),
-    u_name: varchar("u_name", { length: 256 }).notNull(),
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    username: varchar("username", { length: 256 }).notNull(),
     email: varchar("email", { length: 256 }).notNull(),
+    dateCreated: timestamp("date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+    type: userTypeEnum("type"),
   }
 );
 
-export const courses = createTable(
-  "course",
+export const term = createTable(
+  "term",
   {
-    course_id: integer("course_id").primaryKey().generatedByDefaultAsIdentity(),
-    u_id: integer("u_id").references(() => users.u_id).notNull(),
-    name: varchar("name", { length: 256 }).notNull(),
-    term: varchar("term", { length: 256 }).notNull(),
-    course_description: text("course_description"),
-    is_archived: boolean("is_archived").notNull(),
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    season: seasonEnum("season").notNull(),
+    year: integer("year").notNull(),
+    isPublished: boolean("is_published").notNull(),
   }
 );
 
-export const capstoneProjects = createTable(
-  "capstone_project",
+export const programs = createTable(
+  "programs",
   {
-    cp_id: integer("cp_id").primaryKey().generatedByDefaultAsIdentity(),
-    course_id: integer("course_id").references(() => courses.course_id).notNull(), // "we're using this like orgId from https://youtu.be/lWcDAxNpJI8?si=Q35tddL0ttOHCbz7&t=180"
-    cp_title: varchar("cp_title", { length: 256 }).notNull(),
-    cp_description: text("cp_description"),
-    cp_objectives: text("cp_objectives"),
-    cp_image: varchar("cp_image", { length: 512 }).default(""),
-    cp_date_created: timestamp("cp_date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-    cp_date_updated: timestamp("cp_date_updated", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-    cp_archived: boolean("cp_archived").notNull(),
+    programId: integer("program_id").primaryKey().generatedByDefaultAsIdentity(),
+    programName: varchar("program_name", { length: 256 }).notNull(),
+    programDescription: text("program_description"),
+    programStatus: programStatusEnum("program_status").notNull(),
+    startTermId: integer("start_term_id").references(() => term.id).notNull(),
+    endTermId: integer("end_term_id").references(() => term.id).notNull(),
   }
 );
 
-export const capstoneProjectCourses = createTable(
-  "capstone_project_courses",
+export const students = createTable(
+  "students",
   {
-    cp_id: integer("cp_id").references(() => capstoneProjects.cp_id).notNull(),
-    course_id: integer("course_id").references(() => courses.course_id).notNull(),
+    studentId: integer("student_id").primaryKey().generatedByDefaultAsIdentity(),
+    email: varchar("email", { length: 256 }).notNull(),
+    userId: integer("user_id").references(() => users.id),
+    programId: integer("program_id").references(() => programs.programId),
+    rankingSubmitted: boolean("ranking_submitted").notNull(),
+  }
+);
+
+export const instructors = createTable(
+  "instructors",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    programId: integer("program_id").references(() => programs.programId),
+    userId: integer("user_id").references(() => users.id),
+  }
+);
+
+export const sequences = createTable(
+  "sequences",
+  {
+    sequenceId: integer("sequence_id").primaryKey().generatedByDefaultAsIdentity(),
+    type: sequenceTypeEnum("type"),
+    description: text("description"),
+    showReportsToStudent: boolean("show_reports_to_student").notNull(),
+  }
+);
+
+export const projects = createTable(
+  "projects",
+  {
+    projectId: integer("project_id").primaryKey().generatedByDefaultAsIdentity(),
+    programsId: integer("programs_id").references(() => programs.programId).notNull(),
+    projectTitle: varchar("project_title", { length: 256 }).notNull(),
+    
+    // Application fields
+    appImage: varchar("app_image", { length: 512 }).default(""),
+    appVideo: varchar("app_video", { length: 512 }).default(""),
+    appOrganization: varchar("app_organization", { length: 512 }).notNull(),
+    appDescription: text("app_description").notNull(),
+    appObjectives: text("app_objectives").notNull(),
+    appMotivations: text("app_motivations").notNull(),
+    appMinQualifications: text("app_min_qualifications").notNull(),
+    appPrefQualifications: text("app_pref_qualifications").notNull(),
+    
+    // Showcase fields
+    showcaseDescription: text("showcase_description"),
+    showcaseImage: varchar("showcase_image", { length: 512 }),
+    showcaseVideo: varchar("showcase_video", { length: 512 }),
+    isShowcasePublished: boolean("is_showcase_published"),
+    
+    // Sequence info
+    sequenceId: integer("sequence_id").references(() => sequences.sequenceId),
+    sequenceReport: text("sequence_report"),
+    projectGithubLink: varchar("project_github_link", { length: 512 }),
+  }
+);
+
+export const projectLog = createTable(
+  "project_log",
+  {
+    projectLogId: integer("project_log_id").primaryKey().generatedByDefaultAsIdentity(),
+    projectId: integer("project_id").references(() => projects.projectId).notNull(),
+    dateCreated: timestamp("date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+    content: text("content"),
+    memo: text("memo"),
+    userId: integer("user_id").references(() => users.id).notNull(),
+  }
+);
+
+export const tags = createTable(
+  "tags",
+  {
+    tagId: integer("tag_id").primaryKey().generatedByDefaultAsIdentity(),
+    tag: varchar("tag", { length: 256 }),
+  }
+);
+
+export const projectTags = createTable(
+  "project_tags",
+  {
+    projectTagId: integer("project_tag_id").primaryKey().generatedByDefaultAsIdentity(),
+    capstone: integer("capstone").references(() => projects.projectId).notNull(),
+    tagId: integer("tag_id").references(() => tags.tagId).notNull(),
+  }
+);
+
+export const teams = createTable(
+  "teams",
+  {
+    teamId: integer("team_id").primaryKey().generatedByDefaultAsIdentity(),
+    projectId: integer("project_id").references(() => projects.projectId).notNull(),
+    capacity: integer("capacity"),
+    dateCreated: timestamp("date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+    dateUpdated: timestamp("date_updated", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   }
 );
 
 export const savedProjects = createTable(
-  "saved_project",
+  "saved_projects",
   {
-    save_id: integer("save_id").primaryKey().generatedByDefaultAsIdentity(),
-    u_id: integer("u_id").references(() => users.u_id).notNull(),
-    cp_id: integer("cp_id").references(() => capstoneProjects.cp_id).notNull(),
-    date_saved: timestamp("date_saved", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-  }
-);
-
-export const reviews = createTable(
-  "review",
-  {
-    review_id: integer("review_id").primaryKey().generatedByDefaultAsIdentity(),
-    u_id: integer("u_id").references(() => users.u_id).notNull(),
-    rating: real("rating").notNull(),
-    comments: text("comments"),
-    date_created: timestamp("date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+    saveId: integer("save_id").primaryKey().generatedByDefaultAsIdentity(),
+    studentId: integer("student_id").references(() => students.studentId).notNull(),
+    projectId: integer("project_id").references(() => projects.projectId).notNull(),
+    saveIndex: integer("save_index").notNull(),
+    preferenceDescription: text("preference_description"),
   }
 );
