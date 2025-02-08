@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { db } from "~/server/db";
-import { courses } from "~/server/db/schema";
+import { db } from "../src/server/db";
+import { courses } from "../src/server/db/schema";
 
 async function populateCourses() {
   const courseData = [
