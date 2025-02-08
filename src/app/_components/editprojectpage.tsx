@@ -26,8 +26,10 @@ import {
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 import { useState, useEffect, useCallback } from 'react';
-import { updateProjectById } from "~/server/api/routers/capstoneProject";
-import { Toaster, toast } from "react-hot-toast";
+// import { updateProjectById } from "~/server/api/routers/capstoneProject";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
+import { AlertCircle, CircleCheckBig } from "lucide-react"
+import { ScrollArea } from "../../components/ui/scroll-area"
 
 // Adjust this zod object
 const formSchema = z.object({
@@ -50,6 +52,7 @@ const formSchema = z.object({
 });
 
 interface Project {
+  className?: string;
   cp_id: number; // Primary Key, auto-generated
   course_id: number[]; // NOT NULL
   cp_title: string; // NOT NULL, max length 256
@@ -75,28 +78,28 @@ const courseOptionsReversed: Record<string, number> = {
 };
 
 export default function ProjectEditSidebarPopout( project : Project) {
-  const [sidebarWidth, setSidebarWidth] = useState(320); // Initial sidebar width
+  const [sidebarWidth, setSidebarWidth] = useState(350); // Initial sidebar width
   const [isResizing, setIsResizing] = useState(false);
 
   // Constants for sidebar structure
   const SIDEBAR_PADDING = 20; // Total padding (left + right)
-  const HANDLE_WIDTH = 8; // Width of the draggable handle
-  const MIN_WIDTH = 200; // Minimum sidebar width
+  const HANDLE_WIDTH = 2; // Width of the draggable handle
+  const MIN_WIDTH = 350; // Minimum sidebar width
   const MAX_WIDTH = 1000; // Maximum sidebar width
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isResizing) {
-      // Calculate width relative to the right edge, adjusting for padding and handle width
+      // Calculate width relative to the left edge
       const newWidth = Math.max(
         MIN_WIDTH, 
         Math.min(
           MAX_WIDTH, 
-          window.innerWidth - e.clientX - HANDLE_WIDTH - SIDEBAR_PADDING
+          e.clientX - SIDEBAR_PADDING // Width is determined by how far the cursor moves from the left
         )
       );
       setSidebarWidth(newWidth);
     }
-  }, [isResizing]);
+  }, [isResizing]);  
 
   useEffect(() => {
     if (isResizing) {
@@ -122,20 +125,12 @@ export default function ProjectEditSidebarPopout( project : Project) {
   };
 
   return (
-    <>
-      <Toaster position="bottom-right" reverseOrder={false} />
-      <div className="flex flex-row h-screen">
-        
-        {/* Resizing Handle */}
-        <div
-          className="cursor-ew-resize"
-          style={{ width: HANDLE_WIDTH }}
-          onMouseDown={handleMouseDown}
-        />
+    <div className={"flex flex-row fixed left-0 top-1/2 transform -translate-y-1/2 h-3/4 bg-white shadow-lg border-l border-gray-200 rounded-lg" + (project.className ? ` ${project.className}` : "")}>
 
-        {/* Sidebar Container: fixed height with scrolling */}
+      {/* Sidebar Container: fixed height with scrolling */}
+      <ScrollArea>
         <div
-          className="bg-gray-100 border-l border-gray-300 px-5 py-5 h-screen overflow-y-auto"
+          className="bg-gray-100 border-l border-gray-300 px-5 py-5 overflow-y-auto"
           style={{ width: sidebarWidth }}
         >
           <div className="w-full">
@@ -143,57 +138,79 @@ export default function ProjectEditSidebarPopout( project : Project) {
             <ProjectEditForm {...project} />
           </div>
         </div>
-      </div>
-    </>
+      </ScrollArea>
+
+
+      {/* Resizing Handle */}
+      <div
+        className="cursor-ew-resize"
+        style={{ width: HANDLE_WIDTH }}
+        onMouseDown={handleMouseDown}
+      />
+
+    </div>
   );
 }
 
 export function ProjectEditForm(project : Project) {
 
-    // TODO : Set default values to values of current project page
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-          course_id: project.course_id?.map((id: number) => courseOptions[id] ?? ""),
-          cp_title: project.cp_title,
-          cp_description: project.cp_description,
-          cp_objectives: project.cp_objectives,
-          cp_archived: false,
-          cp_image: project.cp_image,
-        },
-      });
+  const [alertMessage, setAlertMessage] = useState<{ type: "success" | "error" | null; message: string | null }>({
+    type: null,
+    message: null,
+  });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        
-        // Get values from the form
-        const submittedValues = { 
-          course_ids: values.course_id.map((x: string) => courseOptionsReversed[x]),
-          cp_title: values.cp_title,
-          cp_description: values.cp_description,
-          cp_objectives: values.cp_objectives,
-          cp_archived: values.cp_archived,
-          cp_image: (values.cp_image ? values.cp_image : undefined),
-        }
+  // TODO : Set default values to values of current project page
+  const form = useForm<z.infer<typeof formSchema>>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        course_id: project.course_id?.map((id: number) => courseOptions[id] ?? ""),
+        cp_title: project.cp_title,
+        cp_description: project.cp_description,
+        cp_objectives: project.cp_objectives,
+        cp_archived: false,
+        cp_image: project.cp_image,
+      },
+    });
 
-        console.log(submittedValues)
+  function onSubmit(values: z.infer<typeof formSchema>) {
+      
+      // Get values from the form
+      const submittedValues = { 
+        course_ids: values.course_id.map((x: string) => courseOptionsReversed[x]),
+        cp_title: values.cp_title,
+        cp_description: values.cp_description,
+        cp_objectives: values.cp_objectives,
+        cp_archived: values.cp_archived,
+        cp_image: (values.cp_image ? values.cp_image : undefined),
+      }
 
-        updateProjectById(project.cp_id, {
-          course_ids: submittedValues.course_ids.filter((id): id is number => id !== undefined),
-          cp_title: submittedValues.cp_title,
-          cp_description: submittedValues.cp_description,
-          cp_objectives: submittedValues.cp_objectives,
-          cp_image: submittedValues.cp_image,
-          cp_archived: submittedValues.cp_archived,
-        }).then(({ message }) => {
-          toast.success("Project updated successfully!");
-          console.log(message); // Show a success message
-        }).catch((error) => {
-          toast.error("Failed to update project.");
-          console.error(error); // Show an error message
-        });
-    }
-    
-      return (
+      console.log(submittedValues)
+
+      // updateProjectById(project.cp_id, {
+      //   course_ids: submittedValues.course_ids.filter((id): id is number => id !== undefined),
+      //   cp_title: submittedValues.cp_title,
+      //   cp_description: submittedValues.cp_description,
+      //   cp_objectives: submittedValues.cp_objectives,
+      //   cp_image: submittedValues.cp_image,
+      //   cp_archived: submittedValues.cp_archived,
+      // }).then(() => {
+      //   setAlertMessage({ type: "success", message: "Project updated successfully!" });
+      // })
+      // .catch((error) => {
+      //   setAlertMessage({ type: "error", message: "Failed to update project." });
+      //   console.error(error);
+      // });
+  }
+  
+    return (
+        <>
+          {alertMessage.type && (
+            <Alert variant={ alertMessage.type === "success" ? undefined : "destructive" }>
+              {alertMessage.type === "success" ? <CircleCheckBig className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+              <AlertTitle>{alertMessage.type === "success" ? "Success!" : "Error!"}</AlertTitle>
+              <AlertDescription>{alertMessage.message}</AlertDescription>
+            </Alert>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
@@ -327,6 +344,6 @@ export function ProjectEditForm(project : Project) {
               <Button type="submit">Submit</Button>
             </form>
           </Form>
-      );
-      
+        </>
+    );
   }
