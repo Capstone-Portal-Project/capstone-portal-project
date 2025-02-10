@@ -26,6 +26,7 @@ Table users {
   // Students only
   program_id integer [ref: > programs.program_id] 
   ranking_submitted boolean [not null] // indicates whether their ranking is submitted
+  team_id integer [ref: > teams.team_id]
 }
 
 enum capstone_program_status {
