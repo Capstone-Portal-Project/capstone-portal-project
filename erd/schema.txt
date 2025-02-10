@@ -22,6 +22,10 @@ Table users {
   email varchar(256) [not null]
   date_created timestamp [default: `CURRENT_TIMESTAMP`, not null]
   type user_types
+
+  // Students only
+  program_id integer [ref: > programs.program_id] 
+  ranking_submitted boolean [not null] // indicates whether their ranking is submitted
 }
 
 enum capstone_program_status {
@@ -47,24 +51,12 @@ Table programs {
   end_term_id integer  [not null, ref: < term.id]
 }
 
-/*
-A student represents a student enrolled in a capstone course. This is a seperate table from the users table, because an instructor may wish to  
- */
-Table students {
-  student_id integer [primary key, increment]
-  email varchar(256) [not null]
-  user_id integer [ref: - users.user_id]
-  program_id integer [ref: > programs.program_id] 
-  ranking_submitted boolean [not null] // indicates whether their ranking is submitted
-}
-
 /* 
  * Junction table that tracks instructor assignments to courses
  */
 Table instructors {
-  id integer [primary key, increment]
-  program_id integer [ref: - programs.program_id] 
-  user_id integer [ref: - users.user_id]
+  program_id integer [primary key,ref: - programs.program_id] 
+  user_id integer [primary key, ref: - users.user_id]
 }
 
 Enum capstone_project_status {
@@ -128,6 +120,7 @@ Table project_log {
   memo text // System generated, summerizes action, appended to username of person who performed action.
             // " transferred from Full-year EECS program to Full-year" 
   user_id integer [not null, ref: > users.user_id] // The user who performed this action
+  project_log_type capstone_project_log_type [not null]
 }
 
 
@@ -143,9 +136,8 @@ Table tags {
 Juction table for capstone projects and tags
  */
 Table project_tags {
-  project_tag_id integer [primary key, increment]
-  capstone integer [not null, ref: > projects.project_id]
-  tag_id integer [not null, ref: > tags.tag_id]
+  capstone integer [primary key, ref: > projects.project_id]
+  tag_id integer [primary key, ref: > tags.tag_id]
 }
 
 /*
@@ -166,7 +158,7 @@ Represents a project saved by a student
  */
 Table saved_projects { 
   save_id integer [primary key, increment] 
-  student_id integer [not null, ref: > students.student_id]
+  user_id integer [not null, ref: > users.user_id]
   project_id integer [not null, ref: > projects.project_id]
   save_index integer [not null]
   preference_description text // For students to explain their preference.
