@@ -102,8 +102,9 @@ export const EmailTemplate = ({
           }}
         >
           <Section style={{ textAlign: "center" }}>
+            {/* TODO: Update the image link hosted on main site */}
             <Image
-              src="/public/oregonStateBanner.png"
+              src="https://i.ibb.co/m5psC5V3/osu-drupal-480.png"    
               alt="Oregon State Banner"
               style={{
                 width: "100%",
