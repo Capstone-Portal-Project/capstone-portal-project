@@ -13,11 +13,18 @@ export enum projectLogTypes {
     COURSE_TRANSFER
 }
 
-export async function sendLogEmail(logType: projectLogTypes, recipientEmail: string, cc: Array<string>, recipientName: string, projectName: string, projectLink: string) {
+export async function sendLogEmail(logType: projectLogTypes, recipientEmail: string, recipientName: string, projectName: string, projectLink: string, cc?: Array<string>,) {
+
+    let subject = "";
+
+    if (!cc) {
+        cc = [""];
+    }
 
     switch (logType) {
         case projectLogTypes.SUBMISSION:
-            await sendEmail(recipientEmail, cc, await 
+            subject = `Project Submission: ${projectName} Successfully Submitted`
+            await sendEmail(recipientEmail, cc, subject, await 
                 render(<EmailTemplate
                     projectLogType={projectLogTypes.SUBMISSION}
                     recipientName={recipientName} 
@@ -26,7 +33,8 @@ export async function sendLogEmail(logType: projectLogTypes, recipientEmail: str
                 />));
             break;
         case projectLogTypes.DEFERMENT:
-            await sendEmail(recipientEmail, cc, await 
+            subject = `Project Deferment: ${projectName} Has Been Deferred`;
+            await sendEmail(recipientEmail, cc, subject, await 
                 render(<EmailTemplate
                     projectLogType={projectLogTypes.DEFERMENT}
                     recipientName={recipientName} 
@@ -35,7 +43,8 @@ export async function sendLogEmail(logType: projectLogTypes, recipientEmail: str
                 />));
             break;
         case projectLogTypes.APPROVAL:
-            await sendEmail(recipientEmail, cc, await 
+            subject = `Congratulations! ${projectName} Has Been Approved`;
+            await sendEmail(recipientEmail, cc, subject, await 
                 render(<EmailTemplate
                     projectLogType={projectLogTypes.APPROVAL}
                     recipientName={recipientName} 
@@ -44,7 +53,8 @@ export async function sendLogEmail(logType: projectLogTypes, recipientEmail: str
                 />));
             break;
         case projectLogTypes.PARTNER_MESSAGE:
-            await sendEmail(recipientEmail, cc, await 
+            subject = `New Partner Message Regarding ${projectName}`;
+            await sendEmail(recipientEmail, cc, subject, await 
                 render(<EmailTemplate
                     projectLogType={projectLogTypes.PARTNER_MESSAGE}
                     recipientName={recipientName} 
@@ -53,7 +63,8 @@ export async function sendLogEmail(logType: projectLogTypes, recipientEmail: str
                 />));
             break;
         case projectLogTypes.INSTRUCTOR_ADMIN_MESSAGE:
-            await sendEmail(recipientEmail, cc, await 
+            subject = `Instructor/Admin Message About ${projectName}`;
+            await sendEmail(recipientEmail, cc, subject, await 
                 render(<EmailTemplate
                     projectLogType={projectLogTypes.INSTRUCTOR_ADMIN_MESSAGE}
                     recipientName={recipientName} 
@@ -62,7 +73,8 @@ export async function sendLogEmail(logType: projectLogTypes, recipientEmail: str
                 />));
             break;
         case projectLogTypes.COURSE_TRANSFER:
-            await sendEmail(recipientEmail, cc, await 
+            subject = `Project ${projectName} Transferred to Another Course`;
+            await sendEmail(recipientEmail, cc, subject, await 
                 render(<EmailTemplate
                     projectLogType={projectLogTypes.COURSE_TRANSFER}
                     recipientName={recipientName} 
