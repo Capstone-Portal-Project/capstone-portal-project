@@ -13,7 +13,7 @@ export enum projectLogTypes {
     COURSE_TRANSFER
 }
 
-export async function sendLogEmail(logType: projectLogTypes, recipientEmail: string, recipientName: string, projectName: string, projectLink: string, cc?: Array<string>,) {
+export async function sendLogEmail(logType: projectLogTypes, recipientEmail: string, recipientName: string, projectName: string, projectLink: string, cc?: Array<string>) {
 
     let subject = "";
 
