@@ -14,7 +14,7 @@ const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN!;
 const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
-export const sendEmail = async (to: string, subject: string, htmlContent: string) => {
+export const sendEmail = async (to: string, cc: Array<string>, htmlContent: string, subject?: string) => {
   try {
     const accessToken = await oauth2Client.getAccessToken();
 
@@ -33,6 +33,7 @@ export const sendEmail = async (to: string, subject: string, htmlContent: string
     const mailOptions = {
       from: `"My App" <${GMAIL_USER}>`,
       to,
+      cc,
       subject,
       html: htmlContent,
     };
