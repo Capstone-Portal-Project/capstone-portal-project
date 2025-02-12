@@ -2,6 +2,7 @@
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
 import dotenv from "dotenv";
+import { Options } from "nodemailer/lib/mailer";
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN!;
 const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
-export const sendEmail = async (to: string, cc: Array<string>, htmlContent: string, subject?: string) => {
+export const sendEmail = async (to: string, cc: Array<string>, subject: string, htmlContent: string) => {
   try {
     const accessToken = await oauth2Client.getAccessToken();
 
@@ -30,8 +31,8 @@ export const sendEmail = async (to: string, cc: Array<string>, htmlContent: stri
       },
     });
 
-    const mailOptions = {
-      from: `"My App" <${GMAIL_USER}>`,
+    const mailOptions : Options = {
+      from: `"Capstone Project Portal" <${GMAIL_USER}>`,
       to,
       cc,
       subject,
