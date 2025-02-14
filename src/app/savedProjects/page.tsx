@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Button } from "~/components/ui/button";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Project {
   saveId: number;
@@ -20,7 +23,7 @@ export default function SavedProjectsPage() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const response = await fetch("/api/saved");
+        const response = await fetch("/api/savedProjects");
         const data = await response.json();
         if (!data.error) {
           setProjects(data.projects);
@@ -38,7 +41,7 @@ export default function SavedProjectsPage() {
 
   const updateRank = async (saveId: number, newIndex: number) => {
     try {
-      const response = await fetch("/api/update-rank", {
+      const response = await fetch("/api/savedProjects/update-rank", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,34 +63,63 @@ export default function SavedProjectsPage() {
     }
   };
 
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = projects.findIndex((project) => project.saveId === active.id);
+    const newIndex = projects.findIndex((project) => project.saveId === over.id);
+
+    if (oldIndex !== newIndex) {
+      const newProjects = arrayMove(projects, oldIndex, newIndex);
+      setProjects(newProjects);
+
+      // Update rankings in the backend
+      newProjects.forEach((project, index) => {
+        updateRank(project.saveId, index + 1); // Assuming index starts from 1
+      });
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold">Saved Projects</h1>
-      <ul>
-        {projects.length > 0 ? (
-          projects.map((project) => (
-            <li
-              key={project.saveId}
-              className="flex items-center justify-between p-2 border-b"
-            >
-              <span>Project ID: {project.projectId}</span>
-              <div className="flex gap-2">
-                <span>Save Index: {project.saveIndex}</span>
-                <Button onClick={() => updateRank(project.saveId, project.saveIndex + 1)}>
-                  +
-                </Button>
-                <Button onClick={() => updateRank(project.saveId, project.saveIndex - 1)}>
-                  -
-                </Button>
-              </div>
-            </li>
-          ))
-        ) : (
-          <p>No saved projects found.</p>
-        )}
-      </ul>
+      <h1 className="text-2xl font-bold mb-4 text-center">Saved Projects</h1> {}
+      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={projects.map((p) => p.saveId)} strategy={verticalListSortingStrategy}>
+          <ul className="flex flex-col items-center"> {}
+            {projects.length > 0 ? (
+              projects.map((project) => <SortableProject key={project.saveId} project={project} />)
+            ) : (
+              <p>No saved projects found.</p>
+            )}
+          </ul>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
+
+function SortableProject({ project }: { project: Project }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: project.saveId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="flex items-center justify-between px-4 py-6 border-b bg-white rounded-xl shadow-md cursor-grab active:cursor-grabbing w-3/4"
+>
+      <span className="font-semibold text-lg">Project ID: {project.projectId}</span>
+      <span className="text-base text-gray-600">Rank: {project.saveIndex}</span>
+    </li>
+  );
+}
+
