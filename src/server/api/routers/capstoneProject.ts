@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "~/server/db"
-import { capstoneProjects, capstoneProjectCourses } from "~/server/db/schema"
+import { projects, term } from "~/server/db/schema"
 import { z } from "zod"
 import { eq } from "drizzle-orm"
 
