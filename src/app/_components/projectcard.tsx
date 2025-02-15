@@ -8,6 +8,7 @@ import {
 } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
 import Link from "next/link"
+import { ViewDetails } from "~/app/_components/viewdetails"
 
 type ProjectCardProps = {
     project: {
@@ -44,9 +45,7 @@ export function ProjectCard({ project, onSave }: ProjectCardProps) {
                 </p>
             </CardContent>
             <CardFooter className="flex justify-between">
-                <Link href={`/project/${project.projectId}`}>
-                    <Button variant="outline">View Details</Button>
-                </Link>
+                <ViewDetails project={project} />
                 {onSave && !project.cp_archived && (
                     <Button
                         variant="secondary"
