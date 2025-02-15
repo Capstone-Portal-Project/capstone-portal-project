@@ -7,6 +7,7 @@ import {
   boolean,
   varchar,
   pgEnum,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -25,18 +26,28 @@ export const projectLogTypeEnum = pgEnum('capstone_project_log_type', ['submissi
 export const sequenceTypeEnum = pgEnum('sequence_type', ['iterated', 'repeated']);
 export const seasonEnum = pgEnum('season', ['winter', 'spring', 'summer', 'fall']);
 
-// Tables
+/**
+ * Users table schema.
+ */
 export const users = createTable(
   "users",
   {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    userId: integer("user_id").primaryKey().generatedByDefaultAsIdentity(),
     username: varchar("username", { length: 256 }).notNull(),
     email: varchar("email", { length: 256 }).notNull(),
     dateCreated: timestamp("date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     type: userTypeEnum("type"),
+
+    // Students only
+    programId: integer("program_id").references(() => programs.programId),
+    rankingSubmitted: boolean("ranking_submitted").notNull(),
+    teamId: integer("team_id").references(() => teams.teamId),
   }
 );
 
+/**
+ * Term table schema.
+ */
 export const term = createTable(
   "term",
   {
@@ -47,6 +58,9 @@ export const term = createTable(
   }
 );
 
+/**
+ * Programs table schema.
+ */
 export const programs = createTable(
   "programs",
   {
@@ -59,26 +73,21 @@ export const programs = createTable(
   }
 );
 
-export const students = createTable(
-  "students",
-  {
-    studentId: integer("student_id").primaryKey().generatedByDefaultAsIdentity(),
-    email: varchar("email", { length: 256 }).notNull(),
-    userId: integer("user_id").references(() => users.id),
-    programId: integer("program_id").references(() => programs.programId),
-    rankingSubmitted: boolean("ranking_submitted").notNull(),
+/**
+ * Instructors table schema.
+ */
+export const instructors = createTable("instructors", {
+  programId: integer("program_id").notNull().references(() => programs.programId),
+  userId: integer("user_id").notNull().references(() => users.userId),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.programId, table.userId] })
   }
-);
+});
 
-export const instructors = createTable(
-  "instructors",
-  {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-    programId: integer("program_id").references(() => programs.programId),
-    userId: integer("user_id").references(() => users.id),
-  }
-);
-
+/**
+ * Sequences table schema.
+ */
 export const sequences = createTable(
   "sequences",
   {
@@ -89,6 +98,9 @@ export const sequences = createTable(
   }
 );
 
+/**
+ * Projects table schema.
+ */
 export const projects = createTable(
   "projects",
   {
@@ -119,6 +131,9 @@ export const projects = createTable(
   }
 );
 
+/**
+ * Project log table schema.
+ */
 export const projectLog = createTable(
   "project_log",
   {
@@ -127,10 +142,14 @@ export const projectLog = createTable(
     dateCreated: timestamp("date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     content: text("content"),
     memo: text("memo"),
-    userId: integer("user_id").references(() => users.id).notNull(),
+    userId: integer("user_id").references(() => users.userId).notNull(),
+    projectLogType: projectLogTypeEnum("project_log_type").notNull(),
   }
 );
 
+/**
+ * Tags table schema.
+ */
 export const tags = createTable(
   "tags",
   {
@@ -139,6 +158,9 @@ export const tags = createTable(
   }
 );
 
+/**
+ * Project tags table schema.
+ */
 export const projectTags = createTable(
   "project_tags",
   {
@@ -148,6 +170,9 @@ export const projectTags = createTable(
   }
 );
 
+/**
+ * Teams table schema.
+ */
 export const teams = createTable(
   "teams",
   {
@@ -159,11 +184,14 @@ export const teams = createTable(
   }
 );
 
+/**
+ * Saved projects table schema.
+ */
 export const savedProjects = createTable(
   "saved_projects",
   {
     saveId: integer("save_id").primaryKey().generatedByDefaultAsIdentity(),
-    studentId: integer("student_id").references(() => students.studentId).notNull(),
+    userId: integer("user_id").references(() => users.userId).notNull(),
     projectId: integer("project_id").references(() => projects.projectId).notNull(),
     saveIndex: integer("save_index").notNull(),
     preferenceDescription: text("preference_description"),
