@@ -3,7 +3,7 @@
 import { ProjectCard } from "../_components/projectcard";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getActiveProjects } from "~/server/api/routers/capstoneProject";
+import { getBrowseProjects } from "~/server/api/routers/project";
 
 export default function BrowseProjects() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function BrowseProjects() {
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const result = await getActiveProjects();
+      const result = await getBrowseProjects();
       if (!result.error) {
         setProjects(result.projects);
       } else {
@@ -32,7 +32,7 @@ export default function BrowseProjects() {
       <div className="grid gap-6 md:grid-cols-2">
         {projects.map((project) => (
           <ProjectCard
-            key={project.cp_id}
+            key={project.projectId}
             project={project}
             onSave={handleSaveProject}
           />
