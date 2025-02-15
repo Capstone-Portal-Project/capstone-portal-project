@@ -1,46 +1,202 @@
+/*
+ * View this schema as an entity relationship diagram (ERD) by pasting it into dbdiagram.io
+ */
+
+Enum user_type {
+  project_partner
+  student
+  instructor
+  admin
+}
+/* 
+ * The users table represents one user of the website.
+ * A user can be:
+ * - a project partner
+ * - a student
+ * - an instructor 
+ * - an admin
+ */
 Table users {
-  u_id integer [primary key, increment]
-  u_name varchar(256) [not null]
+  user_id integer [primary key, increment] 
+  username varchar(256) [not null]
   email varchar(256) [not null]
-}
-
-Table courses {
-  course_id integer [primary key, increment]
-  u_id integer [not null, ref: > users.u_id]
-  name varchar(256) [not null]
-  term varchar(256) [not null]
-  course_description text
-  is_archived boolean [not null]
-}
-
-Table capstone_project {
-  cp_id integer [primary key, increment]
-  course_id integer [not null, ref: > courses.course_id]
-  cp_title varchar(256) [not null]
-  cp_description text
-  cp_objectives text
-  cp_image varchar(512) [default: '']
-  cp_date_created timestamp [default: `CURRENT_TIMESTAMP`, not null]
-  cp_date_updated timestamp [default: `CURRENT_TIMESTAMP`, not null]
-  cp_archived boolean [not null]
-}
-
-Table capstone_project_courses {
-  cp_id integer [not null, ref: > capstone_project.cp_id]
-  course_id integer [not null, ref: > courses.course_id]
-}
-
-Table saved_project {
-  save_id integer [primary key, increment]
-  u_id integer [not null, ref: > users.u_id]
-  cp_id integer [not null, ref: > capstone_project.cp_id]
-  date_saved timestamp [default: `CURRENT_TIMESTAMP`, not null]
-}
-
-Table review {
-  review_id integer [primary key, increment]
-  u_id integer [not null, ref: > users.u_id]
-  rating real [not null]
-  comments text
   date_created timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  type user_types
+
+  // Students only
+  program_id integer [ref: > programs.program_id] 
+  ranking_submitted boolean [not null] // indicates whether their ranking is submitted
+  team_id integer [ref: > teams.team_id]
+}
+
+enum capstone_program_status {
+  submissions // accepting applications
+  matching // matching is open for students
+  active // students can see which team they are in
+  ending // final project showcase reports are open
+  archived // the program is complete and its projects are displayed in the project showcase
+  hidden // the program is complete and its projects are NOT displayed in the project showcase
+}
+
+/*
+A program represents ONE INSTANCE of a capstone course or series of capstone 
+courses over multiple terms. An engineering student will be associated with one program
+ */
+Table programs {
+  program_id integer [primary key, increment]
+  program_name varchar(256) [not null]
+  program_description text 
+  program_status capstone_program_status [not null]
+
+  start_term_id integer [not null, ref: < term.id] // may not be necessary
+  end_term_id integer  [not null, ref: < term.id]
+}
+
+/* 
+ * Junction table that tracks instructor assignments to courses
+ */
+Table instructors {
+  program_id integer [primary key,ref: - programs.program_id] 
+  user_id integer [primary key, ref: - users.user_id]
+}
+
+Enum capstone_project_status {
+  draft // project partner is currently drafting this
+  submitted // the project partner has submitted and is now awaiting review
+  deferred // instructor has sent back the application for changes
+  active // with an active team
+  archived // the project is archived
+  incomplete // the project was not finished with the end of the term, thus it is not displayed publically
+}
+
+Table projects {
+  project_id integer [primary key, increment] 
+  programs_id integer [not null, ref: > programs.program_id]
+  project_title varchar(256) [not null] // Can be edited by students for showcase
+ 
+  // These fields are for when students are applying to projects 
+  app_image varchar(512) [default: '']
+  app_video varchar(512) [default: '']
+  app_organization varchar(512) [not null]
+  app_description text [not null]
+  app_objectives text [not null]
+  app_motivations text [not null]
+  app_min_qualifications text [not null]
+  app_pref_qualifications text [not null]
+  
+  // These fields are created by students at the end of the year
+  showcase_description text 
+  showcase_image varchar(512)
+  showcase_video varchar(512)
+  is_showcase_published boolean
+
+  // Sequence info (maybe this could be moved to a seperate table?)
+  sequence_id integer [ref: > sequences.sequence_id] // may be null
+  sequence_report text // internal report for future students working on the project
+  project_github_link varchar(512) // Can be edited by students for showcase
+}
+
+
+/*
+This enum represents the type of capstone project logs that can be created
+ */
+Enum capstone_project_log_type {
+  submission // A project partner submits or resubmits it 
+  deferment // An instructor or admin sends the submission back to the project partner (can include a message) 
+  approval // An instructor or admin approves the capstone project and it is added to the course student capstone_project_log (can include a message) 
+  partner_message // The partner sends a message to the instructors/admins (includes a message)
+  instructor_admin_message // An instructor or admin sends a message to a project partner (includes a message)
+  course_transfer // A capstone project is transferred to a different course (can include a message)
+}
+
+/*
+The log captures any time a user performs any of a variety of actions. See the 
+enum above for the possible types
+ */
+Table project_log {
+  project_log_id integer [primary key, increment]
+  project_id integer [not null, ref: > projects.project_id]
+  date_created timestamp [default: `CURRENT_TIMESTAME`, not null]
+  content text // Content of a message, if there is one
+  memo text // System generated, summerizes action, appended to username of person who performed action.
+            // " transferred from Full-year EECS program to Full-year" 
+  user_id integer [not null, ref: > users.user_id] // The user who performed this action
+  project_log_type capstone_project_log_type [not null]
+}
+
+
+/*
+Tags for capstone projects
+ */
+Table tags {
+  tag_id integer [primary key, increment]
+  tag varchar(256)
+}
+
+/* 
+Juction table for capstone projects and tags
+ */
+Table project_tags {
+  capstone integer [primary key, ref: > projects.project_id]
+  tag_id integer [primary key, ref: > tags.tag_id]
+}
+
+/*
+Represents 1 capstone team. A capstone project may have more than one team on it, 
+but all teams must be within the same course
+ */
+Table teams {
+  team_id integer [primary key, increment]
+  project_id integer [not null, ref: > projects.project_id]
+  capacity integer
+  date_created timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  date_updated timestamp [default: `CURRENT_TIMESTAMP`, not null]
+}
+
+
+/*
+Represents a project saved by a student
+ */
+Table saved_projects { 
+  save_id integer [primary key, increment] 
+  user_id integer [not null, ref: > users.user_id]
+  project_id integer [not null, ref: > projects.project_id]
+  save_index integer [not null]
+  preference_description text // For students to explain their preference.
+}
+
+/*
+Types of project sequences
+ */
+enum sequence_type {
+  iterated // multiple groups work on the same code
+  repeated // each iteration of a project is entirely new
+}
+
+/*
+A sequence represents a group of capstone projects over multiple years that are either multiple iterations 
+Entries are created when a project partner chooses to resubmit a previous project for a new program
+ */
+Table sequences {
+  sequence_id integer [primary key, increment]
+  type sequence_type
+  description text
+  show_reports_to_student boolean [not null] // an instructor can choose to not show reports to students
+}
+
+enum season{
+  winter
+  spring
+  summer
+  fall
+}
+
+/*
+Term
+ */ 
+Table term {
+  id integer [primary key, increment]
+  season season [not null]
+  year integer [not null]
+  is_published boolean [not null] // toggled by admin of whether the project showcase is up. 
 }
