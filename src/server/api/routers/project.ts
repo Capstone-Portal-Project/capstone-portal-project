@@ -94,6 +94,22 @@ export async function updateProject(
   }
 }
 
+export async function getProjectById(projectId: number) {
+  try {
+    const projectResult = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.projectId, projectId))
+      .limit(1)
+
+    const project = projectResult[0] ?? null
+    return { project, error: false }
+  } catch (error) {
+    return { project: null, error: true, message: "Failed to fetch project" }
+  }
+
+}
+
 /**
  * Fetches all projects.
  * 
