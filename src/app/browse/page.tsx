@@ -1,43 +1,33 @@
-"use client";
+'use client'
 
-import { ProjectCard } from "../_components/projectcard";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { getBrowseProjects } from "~/server/api/routers/project";
+import { Toaster } from "~/components/ui/toaster";
+import ProjectCard from "./components/ProjectCard";
+import * as PortalPrimitive from "@radix-ui/react-portal";
+import CardGrid from "./components/CardGrid";
 
-export default function BrowseProjects() {
-  const router = useRouter();
-  const [projects, setProjects] = useState<any[]>([]);
+const mockData = {
+  imgUrl: "https://eecs.engineering.oregonstate.edu/capstone/submission/assets/img/capstone_test.jpg",
+  title: "4-H Record Books (Year 2)",
+  description: "4-H Record Books is logging and reporting software that tracks a youth’s journey through the 4-H program. It digitizes current handwritten reports to give youth a new, modern approach to record keeping. This software allows youth to log their progress and then automatically generate formatted PDF reports. Record Books allows users to track their 4-H resume and project records. Record Books is a PWA application.", 
+  tags: ["Web", "React", "React", "React", "React", "React", "React"]
+}
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      const result = await getBrowseProjects();
-      if (!result.error) {
-        setProjects(result.projects);
-      } else {
-        console.error(result.message);
-      }
-    };
-
-    fetchProjects();
-  }, []);
-
-  function handleSaveProject(projectId: number): void {
-    throw new Error("Function not implemented.");
-  }
-
+const BrowsePage = () => {
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="mb-8 text-3xl font-bold">Browse Active Projects</h1>
-      <div className="grid gap-6 md:grid-cols-2">
-        {projects.map((project) => (
-          <ProjectCard
-            key={project.projectId}
-            project={project}
-            onSave={handleSaveProject}
-          />
-        ))}
-      </div>
-    </div>
+    <main className="bg-[#f7f5f5] w-full min-h-[100vh] place-items-center 
+      flex justify-center py-10 2xl:py-[40px]">
+      <PortalPrimitive.Root><Toaster /></PortalPrimitive.Root>
+      <CardGrid>
+        <ProjectCard {...mockData} />
+        <ProjectCard {...mockData} />
+        <ProjectCard {...mockData} />
+        <ProjectCard {...mockData} />
+        <ProjectCard {...mockData} />
+        <ProjectCard {...mockData} />
+        <ProjectCard {...mockData} />
+        <ProjectCard {...mockData} />        
+      </CardGrid>
+    </main>
   );
 }
+ export default BrowsePage;
