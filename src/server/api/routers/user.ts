@@ -3,7 +3,7 @@
 import { db } from "~/server/db"
 import { users } from "~/server/db/schema"
 import { z } from "zod"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 
 /**
  * Schema for validating user form data.
@@ -124,5 +124,23 @@ export async function getUsersByProgram(programId: number) {
     return { users: programUsers, error: false }
   } catch (error) {
     return { users: [], error: true, message: "Failed to fetch program users" }
+  }
+}
+
+
+export async function getProjectPartnerByTeamId(teamId: number) {
+  try {
+    const projectPartners = await db
+    .select()
+    .from(users)
+    .where(
+      and(
+        eq(users.teamId, teamId),
+        eq(users.type, 'project_partner')
+      )
+    )  
+    return { projectPartners, error: false }
+  } catch (error) {
+    return { user: null, error: true, message: "Failed to fetch project partner" }
   }
 }

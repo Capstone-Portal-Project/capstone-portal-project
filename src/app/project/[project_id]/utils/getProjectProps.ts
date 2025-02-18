@@ -1,46 +1,70 @@
-const getProjectProps = () => {
-    const props = {
+import { getProjectById } from "~/server/api/routers/project";
+import { getTeamsByProjectId } from "~/server/api/routers/team";
+import { getProjectPartnerByTeamId } from "~/server/api/routers/user";
+import { getProjectTags } from "~/server/api/routers/tag";
+
+const getProjectProps = async (projectId : number) => {
+    
+  const { project } = await getProjectById(projectId);
+  const teamsResponse = await getTeamsByProjectId(projectId);
+  const teams = teamsResponse.team;
+
+  const projectPartners = teams && !teamsResponse.error ? await Promise.all(
+    teams.map(async (team) => {
+      const partner = await getProjectPartnerByTeamId(team.teamId);
+      return partner;
+    })
+  ) : [];
+
+  const projectTags = await getProjectTags(projectId);
+
+  const projectPartnerNames = projectPartners
+  .map((partner) => 'username' in partner ? partner.username : '')
+  .join(", ");
+
+    
+  const LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nec neque in elit auctor accumsan ut quis sem. Vivamus quam nunc, mattis ut tortor vel, laoreet viverra mauris. Suspendisse interdum arcu in leo molestie, in euismod velit sollicitudin. Proin felis lacus, aliquet eu tincidunt in, ornare eu elit. Quisque interdum, ipsum eu bibendum ullamcorper, diam dolor lobortis enim, nec feugiat risus lacus sit amet nunc. Donec ut lacus ut nunc convallis vestibulum sodales at sem. Vivamus mattis nibh nec sapien pellentesque lacinia. Mauris luctus sem dolor, nec porttitor magna ullamcorper vehicula. Vivamus quis vehicula urna. Duis lacus tortor, euismod eu felis non, blandit eleifend urna. Morbi accumsan dignissim risus, aliquet euismod massa dignissim pellentesque. Fusce venenatis purus quis metus malesuada, non porttitor nisi bibendum. Vivamus varius ullamcorper ex sit amet venenatis. Vivamus dapibus tempus orci, id congue eros.";
+  const ShortLoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nec neque in elit auctor accumsan ut quis sem."
+  const ShorterLoremIpsum = "Lorem Ipsum";
+
+  const props = {
       hero: {
-        title: "3D Tetris Using Augmented Reality",
-        desc: `Augmented Reality combines the real-ness of AR with the synthetic-ness of VR. In the project, the real will be a plastic box. The
-            synthetic will be a group of weirdly-shaped 3D objects that the user will attempt to fit in the box under the control of real 
-            collision physics. This can be just a fun excercise, but feel free to turn it into a game with scoring, timing, etc.`,
+        title: project?.projectTitle ?? ShorterLoremIpsum,
+        desc: project?.appDescription ?? LoremIpsum,
       },
       content: { 
         textcontent:[
           {
             heading: "Objectives",
             text:
-              "The deliverable is the interactive program, using a Quest 3, that allows the user to oprtimally fit the 3D objects" +
-              "in the box. This can be just a fun excercise, but feel free to turn it into a game with scoring, timing, etc.",
+            project?.appObjectives ?? LoremIpsum,
           },
           {
             heading: "Motivations",
+
             text:
-              "Augmented Reality is a hot technology used (among other things) to teach people how to assemble or fix objects, " +
-              "such as automobile engines.  That is a perfect example that combines the real-ness of AR with the synthetic-ness of" +
-              " VR.  We could do that, but why not do something cooler and funner?",
+              project?.appMotivations ?? LoremIpsum,
           },
           {
             heading: "Minimum Qualifications",
-            text: "All students on this project must have taken, or currently be taking, CS 450. No Exceptions!",
+            text: project?.appMinQualifications ?? ShortLoremIpsum,
           },
           {
             heading: "Preferred Qualifications",
-            text: "None Listed",
+            text: project?.appPrefQualifications ?? ShortLoremIpsum,
           },
         ]
       },
       infoCard: {
-        img: 'https://eecs.engineering.oregonstate.edu/capstone/submission/assets/img/capstone_test.jpg',
-        desc: 'Blank placeholder text',
+        img: project?.appImage ?? '',
+        desc: project?.showcaseDescription ?? '',
         details: {
-          'Project Partner': 'Mike Bailey',
+          'Project Partner': projectPartnerNames ?? 'Mr. Miyagi' ,
           'NDA/IPA': false,
-          'Number of Groups': 1,
-          'Project Status': true          
+          'Number of Groups': teams ? teams.length : 0,
+          'Project Status': project?.isShowcasePublished,          
         },
-        keywords: ["Gaming", "Augmented Reality (AR)", "New Product or Game"],
+        keywords: projectTags.tags ?? [],
       },
     };
 
