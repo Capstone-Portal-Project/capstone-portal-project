@@ -25,8 +25,12 @@ export function TopNav() {
       href: "/instructor/manage-courses",
     },
     {
-      title: "Project Submissions",
-      href: "/instructor/project-submissions",
+      title: "Projects",
+      href: "/instructor/projects",
+    },
+    {
+      title: "Add Project",
+      href: "/instructor/add-project",
     },
   ]
 
