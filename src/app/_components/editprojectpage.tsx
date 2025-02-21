@@ -412,9 +412,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                 )}
               />
               
-              <div className="grid grid-cols-12 gap-4">
-                
-                <div className="col-span-4">
                   
               <FormField
                 control={form.control}
@@ -434,9 +431,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                   </FormItem>
                 )}
               />
-                </div>
-                
-              </div>
               
               <FormField
                 control={form.control}
