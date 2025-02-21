@@ -2,7 +2,7 @@ type content = {
     textcontent: {heading: string, text: string}[]
 };
 
-export default async function Content(content: content) {
+export default function Content(content: content) {
     return (
         <div className="grid gap-3 grid-rows-4">
             {content.textcontent.map((data, index) => (

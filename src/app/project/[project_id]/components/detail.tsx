@@ -10,7 +10,7 @@ type infoCard = {
     keywords: string[]
 };
 
-export default async function Detail(infoCard: infoCard) {
+export default function Detail(infoCard: infoCard) {
     const { img, desc, details, keywords } = infoCard;
 
     return (

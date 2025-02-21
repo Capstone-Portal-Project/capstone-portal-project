@@ -3,7 +3,7 @@ type hero = {
     desc: string,
 }
 
-export default async function Hero(hero: hero) {
+export default function Hero(hero: hero) {
     const {title, desc} = hero;
 
     return (

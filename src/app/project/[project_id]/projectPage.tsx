@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import Detail from "./components/detail";
 import Hero from "./components/hero";
 import Content from "./components/content";
-import { getDummyData } from "./utils/getDummyData";
 import type { ProjectProps } from "./utils/getDummyData";
 import ProjectEditSidebarPopout from "~/app/_components/editprojectpage";
+import { Button } from "src/components/ui/button";
+import { SquarePenIcon, EyeOffIcon } from "lucide-react";
+
 
 interface ProjectPageClientProps {
   project: ProjectProps;
@@ -14,28 +16,26 @@ interface ProjectPageClientProps {
 
 export default function ProjectPageClient({ project: initialProject }: ProjectPageClientProps) {
   const [project, setProject] = useState<ProjectProps>(initialProject);
-
-  // Optionally add client-side logic here (e.g., refreshing data)
-  useEffect(() => {
-    // Client-side code if needed
-  }, []);
+  const [isSidebarVisible, setSidebarVisible] = useState(true);
 
   if (!project) return <div>Loading...</div>;
 
   return (
-    <div className="flex flex-row h-screen">
-      <ProjectEditSidebarPopout
-        className="border-4 border-gray-300 rounded-lg"
-        cp_id={0}
-        course_id={[]}
-        cp_title={""}
-        cp_date_created={""}
-        cp_date_updated={""}
-        cp_archived={false}
-        {...project}
-      />
+    <>
+      {isSidebarVisible && (
+        <ProjectEditSidebarPopout
+          className="border-4 border-gray-300 rounded-lg"
+          cp_id={0}
+          course_id={[]}
+          cp_title={""}
+          cp_date_created={""}
+          cp_date_updated={""}
+          cp_archived={false}
+          {...project}
+        />
+      )}
 
-      <main className="w-full h-full bg-white-off grid grid-rows-[100vh] pr-[300px]">
+      <main className="w-full h-full bg-white-off grid grid-rows-[100vh]">
         <Hero {...project.hero} />
         <div className="px-16 py-4">
           <div className="grid grid-cols-2">
@@ -56,6 +56,24 @@ export default function ProjectPageClient({ project: initialProject }: ProjectPa
           </div>
         </div>
       </main>
-    </div>
+
+      <Button
+        onClick={() => setSidebarVisible(prev => !prev)}
+        variant="outline" className="fixed bottom-4 right-4 border-[#DC4405]"
+      >
+        {isSidebarVisible ? (
+          <>
+            <SquarePenIcon />
+            <p>Edit Project</p>
+          </>
+        ) : (
+          <>
+            <EyeOffIcon />
+            <p>Close Editor</p>
+          </>
+        )}
+      </Button>
+
+    </>
   );
 }
