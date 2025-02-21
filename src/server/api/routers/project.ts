@@ -1,9 +1,11 @@
 "use server"
 
 import { db } from "~/server/db"
-import { projects } from "~/server/db/schema"
+import { projects, projectLog } from "~/server/db/schema"
 import { z } from "zod"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
+import { sendLogEmail, projectLogTypes } from '~/server/mail/sendMail';
+import { users } from "~/server/db/schema"
 
 /**
  * Schema for validating project form data.
@@ -25,7 +27,8 @@ const projectFormSchema = z.object({
   isShowcasePublished: z.boolean().optional(),
   sequenceId: z.number().optional(),
   sequenceReport: z.string().optional(),
-  projectGithubLink: z.string().optional()
+  projectGithubLink: z.string().optional(),
+  projectStatus: z.enum(['draft', 'submitted', 'deferred', 'active', 'archived', 'incomplete']).optional()
 })
 
 /**
@@ -56,7 +59,6 @@ export async function createProject(
       projectId: result[0]?.projectId 
     }
   } catch (error) {
-    // Log the actual error for debugging
     console.error("Database error:", error)
     return { 
       error: true, 
@@ -133,13 +135,18 @@ export async function getProjectsByProgram(programId: number) {
  */
 export async function getBrowseProjects() {
     try {
-        const archivedProjects = await db
+        const activeProjects = await db
             .select()
             .from(projects)
-            .where(eq(projects.isShowcasePublished, false))
-        return { projects: archivedProjects, error: false }
-    } catch ( error ) {
-        return { projects: [], error: true, message: "Failed to fetch archived projects" }
+            .where(
+                and(
+                    eq(projects.projectStatus, 'active'),
+                    eq(projects.isShowcasePublished, false)
+                )
+            )
+        return { projects: activeProjects, error: false }
+    } catch (error) {
+        return { projects: [], error: true, message: "Failed to fetch active projects" }
     }
 }
 
@@ -159,3 +166,74 @@ export async function getShowcaseProjects() {
     return { projects: [], error: true, message: "Failed to fetch showcase projects" }
   }
 }
+
+export async function getSubmittedProjects() {
+  try {
+    const submittedProjects = await db
+      .select({
+        projectId: projects.projectId,
+        projectTitle: projects.projectTitle,
+        appDescription: projects.appDescription,
+        appOrganization: projects.appOrganization,
+        programsId: projects.programsId
+      })
+      .from(projects)
+      .where(eq(projects.projectStatus, 'submitted'))
+      .execute();
+   
+    return { 
+      error: false, 
+      projects: submittedProjects 
+    };
+  } catch (error) {
+    console.error('Error fetching submitted projects:', error);
+    return { 
+      error: true, 
+      message: 'Failed to fetch submitted projects',
+      projects: [] 
+    };
+  }
+}
+
+export async function updateProjectStatus(projectId: number, status: 'approved' | 'rejected') {
+  try {
+    // First update the project status
+    await db.update(projects)
+      .set({ projectStatus: status === 'approved' ? 'active' : 'archived' })
+      .where(eq(projects.projectId, projectId))
+      .execute();
+
+    // Get the first instructor user (temporary solution)
+    const instructors = await db
+      .select({
+        userId: users.userId,
+      })
+      .from(users)
+      .where(eq(users.type, 'instructor'))
+      .limit(1)
+      .execute();
+
+    const instructor = instructors[0];
+    if (!instructor) {
+      throw new Error('No instructor found');
+    }
+
+    // Create a project log entry with the instructor's user ID
+    await db.insert(projectLog).values({
+      projectId,
+      userId: instructor.userId,
+      content: `Project ${status}`,
+      projectLogType: status === 'approved' ? 'approval' : 'deferment',
+    }).execute();
+
+    return { error: false };
+  } catch (error) {
+    console.error('Error updating project status:', error);
+    return { 
+      error: true, 
+      message: error instanceof Error ? error.message : 'Failed to update project status'
+    };
+  }
+}
+
+// TO-DO: Create Functions for Sending Rejection and Acceptance Emails

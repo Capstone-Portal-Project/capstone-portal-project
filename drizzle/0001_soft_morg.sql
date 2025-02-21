@@ -1,0 +1,1 @@
+ALTER TABLE "capstone-portal-project_projects" ADD COLUMN "project_status" "capstone_project_status" DEFAULT 'draft';

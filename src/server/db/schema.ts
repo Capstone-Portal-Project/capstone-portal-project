@@ -128,6 +128,7 @@ export const projects = createTable(
     sequenceId: integer("sequence_id").references(() => sequences.sequenceId),
     sequenceReport: text("sequence_report"),
     projectGithubLink: varchar("project_github_link", { length: 512 }),
+    projectStatus: projectStatusEnum("project_status").default("draft"),
   }
 );
 

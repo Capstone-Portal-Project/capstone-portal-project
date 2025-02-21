@@ -136,8 +136,7 @@ export default function SubmitProjectForm() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setSubmitting(true);
-      const result = await createProject(values);
-      
+      const result = await createProject({ ...values, projectStatus: 'submitted' });
       if (!result.error) {
         toast({
           title: "Success",
