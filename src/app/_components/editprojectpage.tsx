@@ -464,7 +464,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            disabled
                             aria-readonly
                           />
                         </FormControl>
