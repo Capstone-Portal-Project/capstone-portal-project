@@ -35,12 +35,12 @@ export default function ProjectPageClient({ pageContent: initialProject, project
       >
         {isSidebarVisible ? (
           <>
-            <SquarePenIcon />
+            <EyeOffIcon />
             <p>Edit Project</p>
           </>
         ) : (
           <>
-            <EyeOffIcon />
+            <SquarePenIcon />
             <p>Close Editor</p>
           </>
         )}
