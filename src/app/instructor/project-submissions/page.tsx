@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import { Textarea } from "~/components/ui/textarea";
 
 type Project = {
   projectId: number;
@@ -26,6 +27,7 @@ export default function ProjectSubmissions() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [comments, setComments] = useState<string>("");
 
   useEffect(() => {
     async function fetchProjects() {
@@ -55,12 +57,13 @@ export default function ProjectSubmissions() {
     fetchProjects();
   }, [toast]);
 
-  const handleStatusChange = async (projectId: number, status: 'approved' | 'rejected') => {
+  const handleStatusChange = async (projectId: number, status: 'approved' | 'rejected', comments?: string) => {
     try {
-      const result = await updateProjectStatus(projectId, status);
+      const result = await updateProjectStatus(projectId, status, comments);
       
       if (!result.error) {
         setProjects(projects.filter(project => project.projectId !== projectId));
+        setComments("");
         toast({
           title: "Success",
           description: `Project ${status} successfully`,
@@ -104,62 +107,67 @@ export default function ProjectSubmissions() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map(project => (
-          <Card key={project.projectId} className="flex flex-col">
+          <Card key={project.projectId} className="flex flex-col h-full">
             <CardHeader>
               <CardTitle className="line-clamp-1">{project.projectTitle}</CardTitle>
               <CardDescription className="line-clamp-1">{project.appOrganization}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="line-clamp-2 text-sm text-muted-foreground mb-4">
+            <CardContent className="flex-grow">
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
                 {project.appDescription}
               </p>
             </CardContent>
-            <CardFooter className="mt-auto space-x-2">
+            <CardFooter className="flex justify-center pb-4">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">View Details</Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full max-w-[200px] transition-all hover:bg-primary hover:text-primary-foreground"
+                  >
+                    Review Project
+                  </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>{project.projectTitle}</DialogTitle>
-                    <DialogDescription>{project.appOrganization}</DialogDescription>
+                    <DialogTitle className="text-xl">{project.projectTitle}</DialogTitle>
+                    <DialogDescription className="text-base">{project.appOrganization}</DialogDescription>
                   </DialogHeader>
-                  <div className="py-4">
-                    <h4 className="font-medium mb-2">Project Description</h4>
-                    <p className="text-muted-foreground">{project.appDescription}</p>
-                  </div>
-                  <div className="flex gap-4 justify-end">
-                    <Button 
-                      onClick={() => handleStatusChange(project.projectId, 'approved')}
-                      variant="default"
-                    >
-                      Approve
-                    </Button>
-                    <Button 
-                      onClick={() => handleStatusChange(project.projectId, 'rejected')}
-                      variant="destructive"
-                    >
-                      Reject
-                    </Button>
+                  <div className="space-y-6 py-4">
+                    <div className="prose dark:prose-invert">
+                      <p className="text-sm leading-relaxed">{project.appDescription}</p>
+                    </div>
+                    <div>
+                      <label htmlFor="comments" className="text-sm font-medium block mb-2">
+                        Review Comments
+                      </label>
+                      <Textarea
+                        id="comments"
+                        placeholder="Add your review comments here..."
+                        value={comments}
+                        onChange={(e) => setComments(e.target.value)}
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button 
+                        onClick={() => handleStatusChange(project.projectId, 'rejected', comments)}
+                        variant="destructive"
+                        className="w-28"
+                      >
+                        Reject
+                      </Button>
+                      <Button 
+                        onClick={() => handleStatusChange(project.projectId, 'approved', comments)}
+                        variant="default"
+                        className="w-28"
+                      >
+                        Approve
+                      </Button>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => handleStatusChange(project.projectId, 'approved')}
-                  variant="default"
-                  size="sm"
-                >
-                  Approve
-                </Button>
-                <Button 
-                  onClick={() => handleStatusChange(project.projectId, 'rejected')}
-                  variant="destructive"
-                  size="sm"
-                >
-                  Reject
-                </Button>
-              </div>
             </CardFooter>
           </Card>
         ))}
