@@ -3,9 +3,10 @@
 import { db } from "~/server/db"
 import { projects, projectLog } from "~/server/db/schema"
 import { z } from "zod"
-import { eq, and } from "drizzle-orm"
+import { eq, and, sql } from "drizzle-orm"
 import { sendLogEmail, projectLogTypes } from '~/server/mail/sendMail';
 import { users } from "~/server/db/schema"
+import { auth } from "@clerk/nextjs/server";
 
 /**
  * Schema for validating project form data.
@@ -28,7 +29,7 @@ const projectFormSchema = z.object({
   sequenceId: z.number().optional(),
   sequenceReport: z.string().optional(),
   projectGithubLink: z.string().optional(),
-  projectStatus: z.enum(['draft', 'submitted', 'deferred', 'active', 'archived', 'incomplete']).optional()
+  projectStatus: z.enum(['draft', 'submitted', 'deferred', 'active', 'archived', 'incomplete']).optional(),
 })
 
 /**
@@ -40,30 +41,83 @@ const projectFormSchema = z.object({
 export async function createProject(
   unsafeData: z.infer<typeof projectFormSchema>
 ): Promise<{ error: boolean; message?: string; projectId?: number }> {
-  const parseResult = projectFormSchema.safeParse(unsafeData)
+  const { userId: clerkUserId } = await auth();
+  
+  if (!clerkUserId) {
+    return { error: true, message: "Unauthorized" };
+  }
+
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.clerk_user_id, clerkUserId))
+    .limit(1);
+
+  if (!user.length) {
+    return { error: true, message: "User not found" };
+  }
+
+  const userId = user[0]?.userId;
+  
+  if (!userId) {
+    return { error: true, message: "Invalid user ID" };
+  }
+
+  const parseResult = projectFormSchema.safeParse(unsafeData);
 
   if (!parseResult.success) {
     return { error: true, message: "Invalid data: " + JSON.stringify(parseResult.error) }
   }
 
-  const data = parseResult.data
+  const projectData = parseResult.data;
 
   try {
     const result = await db.insert(projects)
-      .values(data)
+      .values(projectData)
       .returning({ projectId: projects.projectId })
-      .execute()
+      .execute();
 
-    return { 
-      error: false, 
-      projectId: result[0]?.projectId 
+    const projectId = result[0]?.projectId;
+
+    if (!projectId) {
+      throw new Error("Failed to create project: No project ID returned");
     }
+
+    // Create project log entry for submission
+    await db.insert(projectLog).values({
+      projectId,
+      userId,
+      content: `Project submitted: ${projectData.projectTitle}`,
+      projectLogType: 'submission'
+    }).execute();
+
+    // Send notifications
+    const [creator] = await db
+      .select({
+        email: users.email,
+        username: users.username
+      })
+      .from(users)
+      .where(eq(users.userId, userId))
+      .execute();
+
+    if (creator) {
+      await sendLogEmail(
+        projectLogTypes.SUBMISSION,
+        creator.email,
+        creator.username,
+        projectData.projectTitle,
+        `/project/${projectId}`
+      );
+    }
+
+    return { error: false, projectId };
   } catch (error) {
-    console.error("Database error:", error)
+    console.error("Database error:", error);
     return { 
       error: true, 
       message: `Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`
-    }
+    };
   }
 }
 
@@ -78,21 +132,27 @@ export async function updateProject(
   projectId: number,
   unsafeData: z.infer<typeof projectFormSchema>
 ): Promise<{ error: boolean; message?: string }> {
-  const { success, data } = projectFormSchema.safeParse(unsafeData)
+  const parseResult = projectFormSchema.safeParse(unsafeData)
 
-  if (!success) {
-    return { error: true, message: "Invalid data" }
+  if (!parseResult.success) {
+    return { error: true, message: "Invalid data: " + JSON.stringify(parseResult.error) }
   }
+
+  const projectData = parseResult.data
 
   try {
     await db.update(projects)
-      .set(data)
+      .set(projectData)
       .where(eq(projects.projectId, projectId))
       .execute()
 
     return { error: false }
   } catch (error) {
-    return { error: true, message: "Failed to update project" }
+    console.error("Database error:", error)
+    return { 
+      error: true, 
+      message: `Failed to update project: ${error instanceof Error ? error.message : 'Unknown error'}`
+    }
   }
 }
 
@@ -134,20 +194,20 @@ export async function getProjectsByProgram(programId: number) {
  * @returns {Promise<{ projects: any[]; error: boolean; message?: string }>} The result of the fetch operation.
  */
 export async function getBrowseProjects() {
-    try {
-        const activeProjects = await db
-            .select()
-            .from(projects)
-            .where(
-                and(
-                    eq(projects.projectStatus, 'active'),
-                    eq(projects.isShowcasePublished, false)
-                )
-            )
-        return { projects: activeProjects, error: false }
-    } catch (error) {
-        return { projects: [], error: true, message: "Failed to fetch active projects" }
-    }
+  try {
+    const activeProjects = await db
+      .select()
+      .from(projects)
+      .where(
+        and(
+          eq(projects.projectStatus, 'active'),
+          eq(projects.isShowcasePublished, false)
+        )
+      )
+    return { projects: activeProjects, error: false }
+  } catch (error) {
+    return { projects: [], error: true, message: "Failed to fetch active projects" }
+  }
 }
 
 /**
@@ -167,6 +227,11 @@ export async function getShowcaseProjects() {
   }
 }
 
+/**
+ * Fetches all submitted projects.
+ * 
+ * @returns {Promise<{ projects: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
 export async function getSubmittedProjects() {
   try {
     const submittedProjects = await db
@@ -195,45 +260,91 @@ export async function getSubmittedProjects() {
   }
 }
 
-export async function updateProjectStatus(projectId: number, status: 'approved' | 'rejected') {
+/**
+ * Updates the status of a project and sends notifications.
+ * 
+ * @param {number} projectId - The ID of the project to update.
+ * @param {'approved' | 'rejected'} status - The new status of the project.
+ * @param {string} [comments] - Optional comments about the status change.
+ * @returns {Promise<{ error: boolean; message?: string }>} The result of the update operation.
+ */
+export async function updateProjectStatus(
+  projectId: number, 
+  status: 'approved' | 'rejected',
+  comments?: string
+) {
   try {
-    // First update the project status
-    await db.update(projects)
-      .set({ projectStatus: status === 'approved' ? 'active' : 'archived' })
-      .where(eq(projects.projectId, projectId))
-      .execute();
-
-    // Get the first instructor user (temporary solution)
-    const instructors = await db
+    // Get project info first
+    const projectInfo = await db
       .select({
-        userId: users.userId,
+        projectTitle: projects.projectTitle
       })
-      .from(users)
-      .where(eq(users.type, 'instructor'))
-      .limit(1)
-      .execute();
+      .from(projects)
+      .where(eq(projects.projectId, projectId))
+      .execute()
 
-    const instructor = instructors[0];
-    if (!instructor) {
-      throw new Error('No instructor found');
+    if (!projectInfo.length) {
+      throw new Error('Project not found')
     }
 
-    // Create a project log entry with the instructor's user ID
+    // Get the most recent project log entry to get the userId
+    const projectLogEntry = await db
+      .select({
+        userId: projectLog.userId
+      })
+      .from(projectLog)
+      .where(eq(projectLog.projectId, projectId))
+      .orderBy(sql`date_created DESC`)
+      .limit(1)
+      .execute()
+
+    if (!projectLogEntry.length || !projectLogEntry[0]) {
+      throw new Error('No project log entry found')
+    }
+
+    const userId = projectLogEntry[0].userId
+
+    // Get creator info
+    const creator = await db
+      .select({
+        email: users.email,
+        username: users.username
+      })
+      .from(users)
+      .where(eq(users.userId, userId))
+      .execute()
+
+    // Update project status
+    await db.update(projects)
+      .set({ projectStatus: status === 'approved' ? 'active' : 'deferred' })
+      .where(eq(projects.projectId, projectId))
+      .execute()
+
+    // Create project log entry
     await db.insert(projectLog).values({
       projectId,
-      userId: instructor.userId,
-      content: `Project ${status}`,
-      projectLogType: status === 'approved' ? 'approval' : 'deferment',
-    }).execute();
+      userId,
+      content: comments || `Project ${status}`,
+      projectLogType: status === 'approved' ? 'approval' : 'deferment'
+    }).execute()
 
-    return { error: false };
+    // Send email to creator if found
+    if (creator[0] && projectInfo[0]) {
+      await sendLogEmail(
+        status === 'approved' ? projectLogTypes.APPROVAL : projectLogTypes.DEFERMENT,
+        creator[0].email,
+        creator[0].username,
+        projectInfo[0].projectTitle,
+        `/project/${projectId}`
+      )
+    }
+
+    return { error: false }
   } catch (error) {
-    console.error('Error updating project status:', error);
+    console.error('Error updating project status:', error)
     return { 
       error: true, 
       message: error instanceof Error ? error.message : 'Failed to update project status'
-    };
+    }
   }
 }
-
-// TO-DO: Create Functions for Sending Rejection and Acceptance Emails
