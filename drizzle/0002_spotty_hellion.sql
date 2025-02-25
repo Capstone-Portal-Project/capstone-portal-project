@@ -1,0 +1,1 @@
+ALTER TABLE "capstone-portal-project_users" ADD COLUMN "clerk_user_id" varchar(256) NOT NULL;

@@ -28,6 +28,7 @@ import { UploadButton } from "../utils/uploadthing";
 import { createProject } from "~/server/api/routers/project";
 import { getActivePrograms } from "~/server/api/routers/program";
 import { Toaster, useToast } from "~/components/ui/toaster";
+import { useUser } from "@clerk/nextjs";
 
 type Program = {
   programId: number;
@@ -81,6 +82,7 @@ export default function SubmitProjectForm() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const { user } = useUser();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -136,8 +138,7 @@ export default function SubmitProjectForm() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setSubmitting(true);
-      const result = await createProject(values);
-      
+      const result = await createProject({ ...values, projectStatus: 'submitted' });
       if (!result.error) {
         toast({
           title: "Success",

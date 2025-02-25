@@ -1,0 +1,921 @@
+{
+  "id": "e6476ae2-2b66-4b99-8e47-28a182e3b645",
+  "prevId": "eb5f4714-3206-49b1-8e00-1077a9c95608",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.capstone-portal-project_instructors": {
+      "name": "capstone-portal-project_instructors",
+      "schema": "",
+      "columns": {
+        "program_id": {
+          "name": "program_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "capstone-portal-project_instructors_program_id_capstone-portal-project_programs_program_id_fk": {
+          "name": "capstone-portal-project_instructors_program_id_capstone-portal-project_programs_program_id_fk",
+          "tableFrom": "capstone-portal-project_instructors",
+          "tableTo": "capstone-portal-project_programs",
+          "columnsFrom": [
+            "program_id"
+          ],
+          "columnsTo": [
+            "program_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "capstone-portal-project_instructors_user_id_capstone-portal-project_users_user_id_fk": {
+          "name": "capstone-portal-project_instructors_user_id_capstone-portal-project_users_user_id_fk",
+          "tableFrom": "capstone-portal-project_instructors",
+          "tableTo": "capstone-portal-project_users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "capstone-portal-project_instructors_program_id_user_id_pk": {
+          "name": "capstone-portal-project_instructors_program_id_user_id_pk",
+          "columns": [
+            "program_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_programs": {
+      "name": "capstone-portal-project_programs",
+      "schema": "",
+      "columns": {
+        "program_id": {
+          "name": "program_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_programs_program_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "program_name": {
+          "name": "program_name",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "program_description": {
+          "name": "program_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "program_status": {
+          "name": "program_status",
+          "type": "capstone_program_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_term_id": {
+          "name": "start_term_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_term_id": {
+          "name": "end_term_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "capstone-portal-project_programs_start_term_id_capstone-portal-project_term_id_fk": {
+          "name": "capstone-portal-project_programs_start_term_id_capstone-portal-project_term_id_fk",
+          "tableFrom": "capstone-portal-project_programs",
+          "tableTo": "capstone-portal-project_term",
+          "columnsFrom": [
+            "start_term_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "capstone-portal-project_programs_end_term_id_capstone-portal-project_term_id_fk": {
+          "name": "capstone-portal-project_programs_end_term_id_capstone-portal-project_term_id_fk",
+          "tableFrom": "capstone-portal-project_programs",
+          "tableTo": "capstone-portal-project_term",
+          "columnsFrom": [
+            "end_term_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_project_log": {
+      "name": "capstone-portal-project_project_log",
+      "schema": "",
+      "columns": {
+        "project_log_id": {
+          "name": "project_log_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_project_log_project_log_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_created": {
+          "name": "date_created",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "memo": {
+          "name": "memo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "project_log_type": {
+          "name": "project_log_type",
+          "type": "capstone_project_log_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "capstone-portal-project_project_log_project_id_capstone-portal-project_projects_project_id_fk": {
+          "name": "capstone-portal-project_project_log_project_id_capstone-portal-project_projects_project_id_fk",
+          "tableFrom": "capstone-portal-project_project_log",
+          "tableTo": "capstone-portal-project_projects",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "project_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "capstone-portal-project_project_log_user_id_capstone-portal-project_users_user_id_fk": {
+          "name": "capstone-portal-project_project_log_user_id_capstone-portal-project_users_user_id_fk",
+          "tableFrom": "capstone-portal-project_project_log",
+          "tableTo": "capstone-portal-project_users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_project_tags": {
+      "name": "capstone-portal-project_project_tags",
+      "schema": "",
+      "columns": {
+        "project_tag_id": {
+          "name": "project_tag_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_project_tags_project_tag_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "capstone": {
+          "name": "capstone",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "capstone-portal-project_project_tags_capstone_capstone-portal-project_projects_project_id_fk": {
+          "name": "capstone-portal-project_project_tags_capstone_capstone-portal-project_projects_project_id_fk",
+          "tableFrom": "capstone-portal-project_project_tags",
+          "tableTo": "capstone-portal-project_projects",
+          "columnsFrom": [
+            "capstone"
+          ],
+          "columnsTo": [
+            "project_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "capstone-portal-project_project_tags_tag_id_capstone-portal-project_tags_tag_id_fk": {
+          "name": "capstone-portal-project_project_tags_tag_id_capstone-portal-project_tags_tag_id_fk",
+          "tableFrom": "capstone-portal-project_project_tags",
+          "tableTo": "capstone-portal-project_tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "tag_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_projects": {
+      "name": "capstone-portal-project_projects",
+      "schema": "",
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_projects_project_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "programs_id": {
+          "name": "programs_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "project_title": {
+          "name": "project_title",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "app_image": {
+          "name": "app_image",
+          "type": "varchar(512)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "app_video": {
+          "name": "app_video",
+          "type": "varchar(512)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "app_organization": {
+          "name": "app_organization",
+          "type": "varchar(512)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "app_description": {
+          "name": "app_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "app_objectives": {
+          "name": "app_objectives",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "app_motivations": {
+          "name": "app_motivations",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "app_min_qualifications": {
+          "name": "app_min_qualifications",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "app_pref_qualifications": {
+          "name": "app_pref_qualifications",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "showcase_description": {
+          "name": "showcase_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "showcase_image": {
+          "name": "showcase_image",
+          "type": "varchar(512)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "showcase_video": {
+          "name": "showcase_video",
+          "type": "varchar(512)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_showcase_published": {
+          "name": "is_showcase_published",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sequence_id": {
+          "name": "sequence_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sequence_report": {
+          "name": "sequence_report",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "project_github_link": {
+          "name": "project_github_link",
+          "type": "varchar(512)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "project_status": {
+          "name": "project_status",
+          "type": "capstone_project_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'draft'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "capstone-portal-project_projects_programs_id_capstone-portal-project_programs_program_id_fk": {
+          "name": "capstone-portal-project_projects_programs_id_capstone-portal-project_programs_program_id_fk",
+          "tableFrom": "capstone-portal-project_projects",
+          "tableTo": "capstone-portal-project_programs",
+          "columnsFrom": [
+            "programs_id"
+          ],
+          "columnsTo": [
+            "program_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "capstone-portal-project_projects_sequence_id_capstone-portal-project_sequences_sequence_id_fk": {
+          "name": "capstone-portal-project_projects_sequence_id_capstone-portal-project_sequences_sequence_id_fk",
+          "tableFrom": "capstone-portal-project_projects",
+          "tableTo": "capstone-portal-project_sequences",
+          "columnsFrom": [
+            "sequence_id"
+          ],
+          "columnsTo": [
+            "sequence_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_saved_projects": {
+      "name": "capstone-portal-project_saved_projects",
+      "schema": "",
+      "columns": {
+        "save_id": {
+          "name": "save_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_saved_projects_save_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "save_index": {
+          "name": "save_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "preference_description": {
+          "name": "preference_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "capstone-portal-project_saved_projects_user_id_capstone-portal-project_users_user_id_fk": {
+          "name": "capstone-portal-project_saved_projects_user_id_capstone-portal-project_users_user_id_fk",
+          "tableFrom": "capstone-portal-project_saved_projects",
+          "tableTo": "capstone-portal-project_users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "capstone-portal-project_saved_projects_project_id_capstone-portal-project_projects_project_id_fk": {
+          "name": "capstone-portal-project_saved_projects_project_id_capstone-portal-project_projects_project_id_fk",
+          "tableFrom": "capstone-portal-project_saved_projects",
+          "tableTo": "capstone-portal-project_projects",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "project_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_sequences": {
+      "name": "capstone-portal-project_sequences",
+      "schema": "",
+      "columns": {
+        "sequence_id": {
+          "name": "sequence_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_sequences_sequence_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "type": {
+          "name": "type",
+          "type": "sequence_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "show_reports_to_student": {
+          "name": "show_reports_to_student",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_tags": {
+      "name": "capstone-portal-project_tags",
+      "schema": "",
+      "columns": {
+        "tag_id": {
+          "name": "tag_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_tags_tag_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "tag": {
+          "name": "tag",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_teams": {
+      "name": "capstone-portal-project_teams",
+      "schema": "",
+      "columns": {
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_teams_team_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "capacity": {
+          "name": "capacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date_created": {
+          "name": "date_created",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "date_updated": {
+          "name": "date_updated",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "capstone-portal-project_teams_project_id_capstone-portal-project_projects_project_id_fk": {
+          "name": "capstone-portal-project_teams_project_id_capstone-portal-project_projects_project_id_fk",
+          "tableFrom": "capstone-portal-project_teams",
+          "tableTo": "capstone-portal-project_projects",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "project_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_term": {
+      "name": "capstone-portal-project_term",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_term_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "season": {
+          "name": "season",
+          "type": "season",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_published": {
+          "name": "is_published",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.capstone-portal-project_users": {
+      "name": "capstone-portal-project_users",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "capstone-portal-project_users_user_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "username": {
+          "name": "username",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_created": {
+          "name": "date_created",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "type": {
+          "name": "type",
+          "type": "user_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "program_id": {
+          "name": "program_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ranking_submitted": {
+          "name": "ranking_submitted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clerk_user_id": {
+          "name": "clerk_user_id",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "capstone-portal-project_users_program_id_capstone-portal-project_programs_program_id_fk": {
+          "name": "capstone-portal-project_users_program_id_capstone-portal-project_programs_program_id_fk",
+          "tableFrom": "capstone-portal-project_users",
+          "tableTo": "capstone-portal-project_programs",
+          "columnsFrom": [
+            "program_id"
+          ],
+          "columnsTo": [
+            "program_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "capstone-portal-project_users_team_id_capstone-portal-project_teams_team_id_fk": {
+          "name": "capstone-portal-project_users_team_id_capstone-portal-project_teams_team_id_fk",
+          "tableFrom": "capstone-portal-project_users",
+          "tableTo": "capstone-portal-project_teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "team_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "public.capstone_program_status": {
+      "name": "capstone_program_status",
+      "schema": "public",
+      "values": [
+        "submissions",
+        "matching",
+        "active",
+        "ending",
+        "archived",
+        "hidden"
+      ]
+    },
+    "public.capstone_project_log_type": {
+      "name": "capstone_project_log_type",
+      "schema": "public",
+      "values": [
+        "submission",
+        "deferment",
+        "approval",
+        "partner_message",
+        "instructor_admin_message",
+        "course_transfer"
+      ]
+    },
+    "public.capstone_project_status": {
+      "name": "capstone_project_status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "submitted",
+        "deferred",
+        "active",
+        "archived",
+        "incomplete"
+      ]
+    },
+    "public.season": {
+      "name": "season",
+      "schema": "public",
+      "values": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    "public.sequence_type": {
+      "name": "sequence_type",
+      "schema": "public",
+      "values": [
+        "iterated",
+        "repeated"
+      ]
+    },
+    "public.user_type": {
+      "name": "user_type",
+      "schema": "public",
+      "values": [
+        "project_partner",
+        "student",
+        "instructor",
+        "admin"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

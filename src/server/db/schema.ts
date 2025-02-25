@@ -37,6 +37,7 @@ export const users = createTable(
     email: varchar("email", { length: 256 }).notNull(),
     dateCreated: timestamp("date_created", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     type: userTypeEnum("type"),
+    clerk_user_id: varchar("clerk_user_id", { length: 256 }).notNull(),
 
     // Students only
     programId: integer("program_id").references(() => programs.programId),
@@ -128,6 +129,7 @@ export const projects = createTable(
     sequenceId: integer("sequence_id").references(() => sequences.sequenceId),
     sequenceReport: text("sequence_report"),
     projectGithubLink: varchar("project_github_link", { length: 512 }),
+    projectStatus: projectStatusEnum("project_status").default("draft"),
   }
 );
 
