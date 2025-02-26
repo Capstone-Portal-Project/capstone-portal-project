@@ -106,6 +106,24 @@ export async function getTeamById(teamId: number) {
 }
 
 /**
+ * Fetches teams by its project ID.
+ * 
+ * @param {number} projectId - The ID of the project to fetch the team for.
+ * @returns {Promise<{ team: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getTeamsByProjectId(projectId: number) {
+  try {
+    const team = await db
+      .select()
+      .from(teams)
+      .where(eq(teams.projectId, projectId))
+    return { team, error: false }
+  } catch (error) {
+    return { team: null, error: true, message: "Failed to fetch team" }
+  }
+}
+
+/**
  * Fetches all members of a specific team.
  * 
  * @param {number} teamId - The ID of the team to fetch members for.
