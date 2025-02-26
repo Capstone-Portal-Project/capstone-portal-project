@@ -15,14 +15,6 @@ import {
   FormMessage,
 } from "../../components/ui/form"
 import { Input } from "../../components/ui/input"
-import {
-  MultiSelector,
-  MultiSelectorContent,
-  MultiSelectorInput,
-  MultiSelectorItem,
-  MultiSelectorList,
-  MultiSelectorTrigger,
-} from "../../components/ui/extension/multi-select";
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 import { useState, useEffect, useCallback } from 'react';
@@ -31,37 +23,45 @@ import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
 import { AlertCircle, CircleCheckBig } from "lucide-react"
 import { ScrollArea } from "../../components/ui/scroll-area"
 
-// Adjust this zod object
 const formSchema = z.object({
-  course_id: z.array(z.string()).min(1, {
-    message: "Please select at least one course.",
-  }), // INTEGER NOT NULL
-  cp_title: z.string().max(256, {
-    message: "Title must be at most 256 characters.",
-  }).min(2, {
-    message: "Title must be larger than 2 characters",
-  }), // VARCHAR(256) NOT NULL
-  cp_description: z.string().min(10, {
-    message: "Description must be at least 10 characters.",
-  }), // TEXT
-  cp_objectives: z.string().min(10, {
-    message: "Objectives must be at least 10 characters.",
-  }), // TEXT
-  cp_archived: z.boolean(), // BOOLEAN NOT NULL
-  cp_image: z.string().max(512).optional(), // VARCHAR(512) (nullable, so optional)
+  projectTitle: z.string(),
+  programsId: z.number(),
+  appImage: z.string().optional(),
+  appVideo: z.string().optional(),
+  appOrganization: z.string().optional(),
+  appDescription: z.string(),
+  appObjectives: z.string(),
+  appMotivations: z.string(),
+  appMinQualifications: z.string(),
+  appPrefQualifications: z.string(),
+  showcaseDescription: z.string().optional(),
+  showcaseImage: z.string().optional(),
+  showcaseVideo: z.string().optional(),
+  isShowcasePublished: z.boolean().optional(),
+  sequenceId: z.number().optional(),
+  sequenceReport: z.string().optional(),
+  projectGithubLink: z.string().optional()
 });
 
-interface Project {
-  className?: string;
-  cp_id: number; // Primary Key, auto-generated
-  course_id: number[]; // NOT NULL
-  cp_title: string; // NOT NULL, max length 256
-  cp_description?: string; // TEXT, nullable
-  cp_objectives?: string; // TEXT, nullable
-  cp_date_created: string; // TIMESTAMP WITH TIME ZONE, default CURRENT_TIMESTAMP
-  cp_date_updated: string; // TIMESTAMP WITH TIME ZONE, default CURRENT_TIMESTAMP
-  cp_archived: boolean; // NOT NULL
-  cp_image?: string; // VARCHAR(512), default empty string
+export interface ProjectSchema {
+  projectId: number;
+  programsId: number;
+  projectTitle: string;
+  appImage: string | null;
+  appVideo: string | null;
+  appOrganization: string;
+  appDescription: string;
+  appObjectives: string;
+  appMotivations: string;
+  appMinQualifications: string;
+  appPrefQualifications: string;
+  showcaseDescription: string | null;
+  showcaseImage: string | null;
+  showcaseVideo: string | null;
+  isShowcasePublished: boolean | null;
+  sequenceId: number | null;
+  sequenceReport: string | null;
+  projectGithubLink: string | null;
 }
 
 // This is dummy data to be inputted later
@@ -77,7 +77,7 @@ const courseOptionsReversed: Record<string, number> = {
   "Placeholder Course 3": 3,
 };
 
-export default function ProjectEditSidebarPopout( project : Project) {
+export default function ProjectEditSidebarPopout({ project, className }: { project: ProjectSchema, className?: string }) {
   const [sidebarWidth, setSidebarWidth] = useState(350); // Initial sidebar width
   const [isResizing, setIsResizing] = useState(false);
 
@@ -125,7 +125,7 @@ export default function ProjectEditSidebarPopout( project : Project) {
   };
 
   return (
-    <div className={"flex flex-row fixed left-0 top-1/2 transform -translate-y-1/2 h-3/4 bg-white shadow-lg border-l border-gray-200 rounded-lg" + (project.className ? ` ${project.className}` : "")}>
+    <div className={"flex flex-row fixed left-0 top-1/2 transform -translate-y-1/2 h-3/4 bg-white shadow-lg border-l border-gray-200 rounded-lg" + (className ? ` ${className}` : "")}>
 
       {/* Sidebar Container: fixed height with scrolling */}
       <ScrollArea>
@@ -152,7 +152,7 @@ export default function ProjectEditSidebarPopout( project : Project) {
   );
 }
 
-export function ProjectEditForm(project : Project) {
+export function ProjectEditForm(project : ProjectSchema) {
 
   const [alertMessage, setAlertMessage] = useState<{ type: "success" | "error" | null; message: string | null }>({
     type: null,
@@ -163,12 +163,7 @@ export function ProjectEditForm(project : Project) {
   const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
-        course_id: project.course_id?.map((id: number) => courseOptions[id] ?? ""),
-        cp_title: project.cp_title,
-        cp_description: project.cp_description,
-        cp_objectives: project.cp_objectives,
-        cp_archived: false,
-        cp_image: project.cp_image,
+        
       },
     });
 
@@ -176,12 +171,7 @@ export function ProjectEditForm(project : Project) {
       
       // Get values from the form
       const submittedValues = { 
-        course_ids: values.course_id.map((x: string) => courseOptionsReversed[x]),
-        cp_title: values.cp_title,
-        cp_description: values.cp_description,
-        cp_objectives: values.cp_objectives,
-        cp_archived: values.cp_archived,
-        cp_image: (values.cp_image ? values.cp_image : undefined),
+        
       }
 
       console.log(submittedValues)
@@ -211,136 +201,342 @@ export function ProjectEditForm(project : Project) {
               <AlertDescription>{alertMessage.message}</AlertDescription>
             </Alert>
           )}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-3xl mx-auto py-10">
               <FormField
                 control={form.control}
-                name="course_id"
+                name="projectTitle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Select Course</FormLabel>
-                    <MultiSelector
-                      onValuesChange={(value) => {
-                        console.log(value)
-                        field.onChange(value); 
-                      }}
-                      defaultValue={field.value.join(", ")} // Ensure values are strings
-                      values={field.value}
-                    >                      
-                      <MultiSelectorTrigger>
-                        <MultiSelectorInput placeholder={field.value.length > 0 ? undefined : "Select courses"} />
-                      </MultiSelectorTrigger>
-                      <MultiSelectorContent>
-                        <MultiSelectorList>
-                          {Object.entries(courseOptions).map(([key, value]) => (
-                            <MultiSelectorItem key={value} value={value}>
-                              <span>{value}</span>
-                            </MultiSelectorItem>
-                          ))}
-                        </MultiSelectorList>
-                      </MultiSelectorContent>
-                    </MultiSelector>
-                    <FormDescription>
-                      Select courses to assign this project to.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="cp_title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>Project Title</FormLabel>
                     <FormControl>
-                      <Input
-                        type=""
-                        placeholder="Enter a title for the course"
-                        {...field}
-                      />
+                      <Input 
+                      placeholder="title"
+                      
+                      type="text"
+                      {...field} />
                     </FormControl>
-                    <FormDescription>Provide a title for the course (max 256 characters).</FormDescription>
+                    
                     <FormMessage />
                   </FormItem>
                 )}
               />
-                
+
+              <FormField
+                  control={form.control}
+                  name="programsId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Program</FormLabel>
+                      <FormControl>
+                        <Input 
+                        placeholder=""
+                        
+                        type="number"
+                        {...field} />
+                      </FormControl>
+                      
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
               <FormField
                 control={form.control}
-                name="cp_description"
+                name="appImage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder=""
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    <FormDescription>This image will be displayed in this page</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="appVideo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Video Link</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder="Link to your video"
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="appOrganization"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Organization</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder="Oregon State Unviersity"
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="appDescription"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Description" 
+                        placeholder="Lorem Ipsum"
                         className="resize-none"
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription>Optional: Provide a description for the course.</FormDescription>
+                    <FormDescription>This should describe details about the project.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              
               <FormField
                 control={form.control}
-                name="cp_objectives"
+                name="appObjectives"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Objectives</FormLabel>
                     <FormControl>
                       <Textarea
-                          placeholder="Description" 
-                          className="resize-none"
-                          {...field}
-                        />
-                    </FormControl>
-                    <FormDescription>Optional: Specify the objectives of the course.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="cp_archived"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5 mr-10">
-                      <FormLabel>Archive Project</FormLabel>
-                      <FormDescription>Archive this project in &quot;Browse Projects&quot; page</FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} aria-readonly />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="cp_image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project Image</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        placeholder="Image"
+                        placeholder="Lorem Ipsum"
+                        className="resize-none"
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription>Upload an image</FormDescription>
+                    <FormDescription>This should describe the objectives of the project</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              
+              <FormField
+                control={form.control}
+                name="appMotivations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Motivations</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Lorem Ipsum"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>This should describe the motive of this project.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="appMinQualifications"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Minimum Qualifications</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder="Breathes"
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="appPrefQualifications"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preferred Qualifications</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder="Genius"
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="showcaseDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Showcase Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder=""
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+                  
+              <FormField
+                control={form.control}
+                name="showcaseImage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Showcase Image</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder=""
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="showcaseVideo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Showcase Video</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder=""
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+                <FormField
+                    control={form.control}
+                    name="isShowcasePublished"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel>Publish on Showcase</FormLabel>
+                          <FormDescription>Allow this project to be viewed in the project showcase</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            aria-readonly
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+              
+              <div className="grid grid-cols-12 gap-4">
+                
+                <div className="col-span-6">
+                  
+              <FormField
+                control={form.control}
+                name="sequenceId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sequence ID</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder=""
+                      
+                      type="number"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+                </div>
+                
+                <div className="col-span-6">
+                  
+              <FormField
+                control={form.control}
+                name="sequenceReport"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sequence Report</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder=""
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+                </div>
+                
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="projectGithubLink"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Github Link</FormLabel>
+                    <FormControl>
+                      <Input 
+                      placeholder=""
+                      
+                      type="text"
+                      {...field} />
+                    </FormControl>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <Button type="submit">Submit</Button>
             </form>
           </Form>
