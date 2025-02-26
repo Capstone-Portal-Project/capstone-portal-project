@@ -43,7 +43,6 @@ export const users = createTable(
     programId: integer("program_id").references(() => programs.programId),
     rankingSubmitted: boolean("ranking_submitted").notNull(),
     teamId: integer("team_id").references(() => teams.teamId),
-    clerkUserId: varchar("clerkUserId", { length: 256 }).notNull(),
   }
 );
 

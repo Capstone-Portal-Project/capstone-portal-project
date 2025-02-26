@@ -36,6 +36,10 @@ export function TopNav() {
       title: "Project Submissions",
       href: "/instructor/project-submissions",
     },
+    {
+      title: "Project Assignments",
+      href: "/instructor/project-assignments",
+    },
   ]
 
   return (
