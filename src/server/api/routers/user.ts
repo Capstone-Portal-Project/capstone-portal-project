@@ -14,7 +14,8 @@ const userFormSchema = z.object({
   type: z.enum(['project_partner', 'student', 'instructor', 'admin']),
   programId: z.number().optional(),
   rankingSubmitted: z.boolean().default(false),
-  teamId: z.number().optional()
+  teamId: z.number().optional(),
+  clerk_user_id: z.string().max(256)
 })
 
 /**
@@ -127,7 +128,12 @@ export async function getUsersByProgram(programId: number) {
   }
 }
 
-
+/**
+ * Fetches all users for a specific team.
+ * 
+ * @param {number} teamId - The ID of the team to fetch users for.
+ * @returns {Promise<{ users: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
 export async function getProjectPartnerByTeamId(teamId: number) {
   try {
     const projectPartners = await db
@@ -142,5 +148,24 @@ export async function getProjectPartnerByTeamId(teamId: number) {
     return { projectPartners, error: false }
   } catch (error) {
     return { user: null, error: true, message: "Failed to fetch project partner" }
+  }
+}
+
+/**
+ * Fetches a user by their Clerk ID.
+ * 
+ * @param {string} clerkId - The Clerk ID of the user to fetch.
+ * @returns {Promise<{ user: any; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getUserByClerkId(clerkId: string) {
+  try {
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.clerk_user_id, clerkId))
+      .limit(1)
+    return { user: user[0], error: false }
+  } catch (error) {
+    return { user: null, error: true, message: "Failed to fetch user" }
   }
 }
