@@ -6,6 +6,8 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Button } from "~/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface Project {
   saveId: number;
@@ -19,6 +21,7 @@ export default function SavedProjectsPage() {
   const { user } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchProjects() {
@@ -85,6 +88,14 @@ export default function SavedProjectsPage() {
 
   return (
     <div className="p-4">
+      
+      <div className="flex justify-between items-center px-4">
+      <h1 className="text-3xl font-bold">Browse Projects</h1>
+      <Button onClick={() => router.push("/browse")}>
+        Return to Projects
+      </Button>
+      </div>
+
       <h1 className="text-2xl font-bold mb-4 text-center">Saved Projects</h1> {}
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={projects.map((p) => p.saveId)} strategy={verticalListSortingStrategy}>
