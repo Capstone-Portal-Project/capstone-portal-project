@@ -5,8 +5,8 @@ import { DataTableUser, columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useUser } from "@clerk/clerk-react";
 import { getStudentsByProgram } from "~/server/api/routers/user";
-import { getBrowseProjects } from "~/server/api/routers/project";
-import ProjectCard from "~/app/browse/components/ProjectCard";
+import { getProjectsByProgram } from "~/server/api/routers/project";
+import DroppableProjectCard from "./_components/DroppableProjectCard";
 import {
     ResizableHandle,
     ResizablePanel,
@@ -65,7 +65,10 @@ export default function ProjectAssignments() {
 
     async function fetchProjects() {
         try {
-          const result = await getBrowseProjects();
+          // Simulating getting program ID
+          const programId = 5;
+
+          const result = await getProjectsByProgram(programId);
           if (!result.error) {
             setProjects(result.projects);
           } else {
@@ -89,27 +92,34 @@ export default function ProjectAssignments() {
   return (
     <div className="container mx-auto py-10 h-full">
         <ResizablePanelGroup direction="horizontal" >
+            {/* Students List (Draggable) */}
             <ResizablePanel  defaultSize={30}>
                 <DataTable columns={columns} data={userData} />
             </ResizablePanel>
             <ResizableHandle />
+            {/* Projects List (Droppable) */}
             <ResizablePanel  defaultSize={70}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 px-4">
-                    {projects.map((project) => (
-                        <ProjectCard
-                        key={project.projectId}
-                        projectId={project.projectId}
-                        imgUrl={project.appImage || ''}
-                        title={project.projectTitle}
-                        description={project.appDescription}
-                        tags={[project.appOrganization]}
-                        />
-                    ))}
-                    {projects.length === 0 && (
-                        <div className="col-span-full text-center py-10 text-gray-500">
-                        No active projects available
-                        </div>
-                    )}
+                <div>
+                    <h3 className="text-2xl font-semibold mx-4 mb-4">
+                        Projects
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 px-4">
+                        {projects.map((project) => (
+                            <DroppableProjectCard
+                            key={project.projectId}
+                            projectId={project.projectId}
+                            imgUrl={project.appImage || ''}
+                            title={project.projectTitle}
+                            description={project.appDescription}
+                            tags={[project.appOrganization]}
+                            />
+                        ))}
+                        {projects.length === 0 && (
+                            <div className="col-span-full text-center py-10 text-gray-500">
+                            No active projects available
+                            </div>
+                        )}
+                    </div>
                 </div>
             </ResizablePanel>
         </ResizablePanelGroup>
