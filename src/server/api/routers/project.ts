@@ -277,6 +277,30 @@ export async function getSubmittedProjects() {
 }
 
 /**
+ * Fetches all archived projects.
+ * 
+ * @returns {Promise<{ projects: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getArchivedProjects() {
+  try {
+    const archivedProjects = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.projectStatus, 'archived'));
+    
+    return { projects: archivedProjects, error: false };
+  } catch (error) {
+    console.error('Error fetching archived projects:', error);
+    return { 
+      error: true, 
+      message: 'Failed to fetch archived projects',
+      projects: [] 
+    };
+  }
+}
+
+
+/**
  * Updates the status of a project and sends notifications.
  * 
  * @param {number} projectId - The ID of the project to update.
