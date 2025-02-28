@@ -89,7 +89,13 @@ export default function ProjectAssignments() {
   }, [user]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+
+        <div className="flex items-center justify-center h-screen text-2xl font-semibold">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+            <span className="ml-2">Loading submissions...</span>
+        </div>
+    )
   }
 
 
@@ -123,7 +129,7 @@ export default function ProjectAssignments() {
   return (
     <div className="container mx-auto py-10 h-full flex gap-2">
         {/* Students List (Draggable) */}
-        {/* <DataTable columns={columns} data={userData} /> */}
+        {/* <DataTable columns={columns} data={userData} /> Eventually want to use this since it has a searchable table of users */}
         {/* map the user data into a column here */}
         <DndContext 
         onDragStart={onDragStart}
@@ -133,7 +139,7 @@ export default function ProjectAssignments() {
                 <h3 className="text-2xl font-semibold mx-4 mb-4">
                     Students
                 </h3>
-                <div className="flex flex-col gap-6 px-4">
+                <div className="flex flex-col gap-6">
                     {/* List all the users that have a null projectId (haven't been assigned to a project yet) */}
                     {userData.filter(user => user.projectId === null).map((user) => (
                         <UserCard key={user.id} user={user} />

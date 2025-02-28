@@ -41,7 +41,7 @@ export default function UserCard({ user }: UserCardProps) {
             ref={setNodeRef}
             {...attributes}
             {...listeners}
-            className="bg-white shadow-lg rounded-lg p-4 cursor-grab hover:ring-inset hover:ring-2"
+            className="bg-white border rounded-lg p-4 cursor-grab hover:ring-inset hover:ring-2"
             style={style}
             onMouseEnter={() => setMouseIsOver(true)}
             onMouseLeave={() => setMouseIsOver(false)}

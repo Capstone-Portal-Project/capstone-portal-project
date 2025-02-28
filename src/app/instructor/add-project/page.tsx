@@ -166,7 +166,7 @@ export default function SubmitProjectForm() {
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center h-screen text-2xl font-semibold">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           <span className="ml-2">Loading available programs...</span>
         </div>
