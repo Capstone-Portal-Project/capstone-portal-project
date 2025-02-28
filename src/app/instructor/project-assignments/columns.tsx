@@ -10,6 +10,7 @@ export type DataTableUser = {
   id: number
   username: string
   email: string
+  projectId: number | null
 }
 
 export const columns: ColumnDef<DataTableUser>[] = [
