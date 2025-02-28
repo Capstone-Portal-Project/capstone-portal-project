@@ -36,21 +36,17 @@ const DroppableProjectCard = (props: ProjectCardProps) => {
     const userIds = useMemo(() => users.map((user) => user.id), [users]);
 
     return (
-        <div ref={setNodeRef} className="h-[250px] max-h-[250px]">
-            <Card className="h-full flex flex-col">
-                <CardHeader  className="pt-3 pb-1 hover:underline">
+        <div ref={setNodeRef} className="w-full">
+            <Card className="min-h-[250px] flex flex-col"> {/* Changed h-[250px] to min-h-[250px] */}
+                <CardHeader className="pt-3 pb-1 hover:underline">
                     <CardTitle className="text-xl font-semibold line-clamp-2">
                         {title}
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="m-4 bg-slate-200 rounded-md flex-grow">
-                    <div className="m-2 flex flex-col gap-2">
-                        {/* <SortableContext items={userIds}> */}
-                            {users.map((user) => (
-                                <UserCard key={user.id} user={user} />
-                            ))}
-                        {/* </SortableContext> */}
-                    </div>
+                <CardContent className="m-4 p-4 bg-slate-200 rounded-md flex flex-col gap-2 flex-grow">
+                    {users.map((user) => (
+                        <UserCard key={user.id} user={user} />
+                    ))}
                 </CardContent>
             </Card>
         </div>
