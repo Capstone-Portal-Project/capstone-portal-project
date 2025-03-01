@@ -18,64 +18,73 @@ import { Input } from "../../components/ui/input"
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 import { useState, useEffect, useCallback } from 'react';
-// import { updateProjectById } from "~/server/api/routers/capstoneProject";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
 import { AlertCircle, CircleCheckBig } from "lucide-react"
 import { ScrollArea } from "../../components/ui/scroll-area"
+import { UploadButton } from "../utils/uploadthing";
+import { toast } from "~/hooks/use-toast";
+import { updateProject } from "~/server/api/routers/project";
 
 const formSchema = z.object({
-  projectTitle: z.string(),
-  programsId: z.number(),
+  programsId: z.number({
+    required_error: "Program ID is required",
+  }),
+  projectTitle: z.string().min(2, {
+    message: "Title must be at least 2 characters.",
+  }).max(256, {
+    message: "Title cannot exceed 256 characters."
+  }),
+  appDescription: z.string().min(10, {
+    message: "Description must be at least 10 characters."
+  }),
+  appObjectives: z.string().min(10, {
+    message: "Objectives must be at least 10 characters."
+  }),
+  appOrganization: z.string().min(2, {
+    message: "Organization must be at least 2 characters."
+  }).max(512, {
+    message: "Organization cannot exceed 512 characters."
+  }),
+  appMotivations: z.string().min(10, {
+    message: "Motivations must be at least 10 characters."
+  }),
+  appMinQualifications: z.string().min(10, {
+    message: "Minimum qualifications must be at least 10 characters."
+  }),
+  appPrefQualifications: z.string().min(10, {
+    message: "Preferred qualifications must be at least 10 characters."
+  }),
   appImage: z.string().optional(),
   appVideo: z.string().optional(),
-  appOrganization: z.string().optional(),
-  appDescription: z.string(),
-  appObjectives: z.string(),
-  appMotivations: z.string(),
-  appMinQualifications: z.string(),
-  appPrefQualifications: z.string(),
+  projectGithubLink: z.union([z.string().url(), z.string().length(0)]).optional(),
   showcaseDescription: z.string().optional(),
   showcaseImage: z.string().optional(),
   showcaseVideo: z.string().optional(),
   isShowcasePublished: z.boolean().optional(),
   sequenceId: z.number().optional(),
   sequenceReport: z.string().optional(),
-  projectGithubLink: z.string().optional()
 });
 
 export interface ProjectSchema {
   projectId: number;
   programsId: number;
   projectTitle: string;
-  appImage: string | null;
-  appVideo: string | null;
+  appImage: string | undefined;
+  appVideo: string | undefined;
   appOrganization: string;
   appDescription: string;
   appObjectives: string;
   appMotivations: string;
   appMinQualifications: string;
   appPrefQualifications: string;
-  showcaseDescription: string | null;
-  showcaseImage: string | null;
-  showcaseVideo: string | null;
-  isShowcasePublished: boolean | null;
-  sequenceId: number | null;
-  sequenceReport: string | null;
-  projectGithubLink: string | null;
+  showcaseDescription: string | undefined;
+  showcaseImage: string | undefined;
+  showcaseVideo: string | undefined;
+  isShowcasePublished: boolean | undefined;
+  sequenceId: number | undefined;
+  sequenceReport: string | undefined;
+  projectGithubLink: string | undefined;
 }
-
-// This is dummy data to be inputted later
-const courseOptions: Record<number, string> = {
-  1 : "Placeholder Course 1",
-  2 : "Placeholder Course 2",
-  3 : "Placeholder Course 3",
-};
-
-const courseOptionsReversed: Record<string, number> = {
-  "Placeholder Course 1": 1,
-  "Placeholder Course 2": 2,
-  "Placeholder Course 3": 3,
-};
 
 export default function ProjectEditSidebarPopout({ project, className }: { project: ProjectSchema, className?: string }) {
   const [sidebarWidth, setSidebarWidth] = useState(350); // Initial sidebar width
@@ -154,42 +163,59 @@ export default function ProjectEditSidebarPopout({ project, className }: { proje
 
 export function ProjectEditForm(project : ProjectSchema) {
 
-  const [alertMessage, setAlertMessage] = useState<{ type: "success" | "error" | null; message: string | null }>({
-    type: null,
-    message: null,
+  const [alertMessage, setAlertMessage] = useState<{ type: "success" | "error" | undefined; message: string | undefined }>({
+    type: undefined,
+    message: undefined,
   });
 
   // TODO : Set default values to values of current project page
   const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
-        
-      },
+        programsId: project.programsId,
+        projectTitle: project.projectTitle,
+        appDescription: project.appDescription,
+        appObjectives: project.appObjectives,
+        appOrganization: project.appOrganization,
+        appMotivations: project.appMotivations,
+        appMinQualifications: project.appMinQualifications,
+        appPrefQualifications: project.appPrefQualifications,
+        appImage: project.appImage,
+        appVideo: "",
+        projectGithubLink: project.projectGithubLink,
+        showcaseDescription: project.showcaseDescription,
+        showcaseImage: project.showcaseImage,
+        showcaseVideo: "",
+        isShowcasePublished: project.isShowcasePublished,
+        sequenceId: project.sequenceId,
+        sequenceReport: project.sequenceReport,
+      }
     });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
       
-      // Get values from the form
-      const submittedValues = { 
-        
+      try {
+        const result = await updateProject(project.projectId, values);
+        if (!result.error) {
+          toast({
+            title: "Success",
+            description: "Project created successfully!",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: result.message ?? "Failed to create project",
+          });
+        }
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "An unexpected error occurred while editing the project",
+        });
+        console.error("Submission failed:", error);
       }
-
-      console.log(submittedValues)
-
-      // updateProjectById(project.cp_id, {
-      //   course_ids: submittedValues.course_ids.filter((id): id is number => id !== undefined),
-      //   cp_title: submittedValues.cp_title,
-      //   cp_description: submittedValues.cp_description,
-      //   cp_objectives: submittedValues.cp_objectives,
-      //   cp_image: submittedValues.cp_image,
-      //   cp_archived: submittedValues.cp_archived,
-      // }).then(() => {
-      //   setAlertMessage({ type: "success", message: "Project updated successfully!" });
-      // })
-      // .catch((error) => {
-      //   setAlertMessage({ type: "error", message: "Failed to update project." });
-      //   console.error(error);
-      // });
   }
   
     return (
@@ -230,7 +256,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                       <FormLabel>Program</FormLabel>
                       <FormControl>
                         <Input 
-                        placeholder=""
                         
                         type="number"
                         {...field} />
@@ -246,15 +271,42 @@ export function ProjectEditForm(project : ProjectSchema) {
                 name="appImage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image</FormLabel>
+                    <FormLabel>App Image</FormLabel>
                     <FormControl>
-                      <Input 
-                      placeholder=""
-                      
-                      type="text"
-                      {...field} />
+                      <div className="flex flex-col gap-4">
+                        <UploadButton
+                          endpoint="imageUploader"
+                          onClientUploadComplete={(res) => {
+                            if (res?.[0]) {
+                              field.onChange(res[0].url);
+                              toast({
+                                title: "Success",
+                                description: "Image uploaded successfully",
+                              });
+                            }
+                          }}
+                          onUploadError={(error: Error) => {
+                            toast({
+                              variant: "destructive",
+                              title: "Error",
+                              description: `Failed to upload image: ${error.message}`,
+                            });
+                          }}
+                        />
+                        {field.value && (
+                          <div className="mt-4">
+                            <img 
+                              src={field.value} 
+                              alt="Project preview" 
+                              className="max-w-xs rounded-lg shadow-md" 
+                            />
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    <FormDescription>This image will be displayed in this page</FormDescription>
+                    <FormDescription>
+                      Upload a project image (max 4MB)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -420,13 +472,40 @@ export function ProjectEditForm(project : ProjectSchema) {
                   <FormItem>
                     <FormLabel>Showcase Image</FormLabel>
                     <FormControl>
-                      <Input 
-                      placeholder=""
-                      
-                      type="text"
-                      {...field} />
+                      <div className="flex flex-col gap-4">
+                        <UploadButton
+                          endpoint="imageUploader"
+                          onClientUploadComplete={(res) => {
+                            if (res?.[0]) {
+                              field.onChange(res[0].url);
+                              toast({
+                                title: "Success",
+                                description: "Image uploaded successfully",
+                              });
+                            }
+                          }}
+                          onUploadError={(error: Error) => {
+                            toast({
+                              variant: "destructive",
+                              title: "Error",
+                              description: `Failed to upload image: ${error.message}`,
+                            });
+                          }}
+                        />
+                        {field.value && (
+                          <div className="mt-4">
+                            <img 
+                              src={field.value} 
+                              alt="Project preview" 
+                              className="max-w-xs rounded-lg shadow-md" 
+                            />
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    
+                    <FormDescription>
+                      Upload a project image (max 4MB)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
