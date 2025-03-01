@@ -2,34 +2,59 @@ import ProjectPageClient from "./projectPage";
 import getProjectProps from "./utils/getProjectProps";
 import type { ProjectSchema } from "~/app/_components/editprojectpage";
 import { getProjectById } from "~/server/api/routers/project";
+import { getTeamsByProjectId } from "~/server/api/routers/team";
+import { getProjectPartnerByTeamId } from "~/server/api/routers/user";
+import { getProjectTags } from "~/server/api/routers/tag";
+
+export const dynamic = "force-dynamic";
 
 export default async function ProjectPage({ params }: { params: Promise<{project_id: string}> }) {
 
   const projectId = (await params).project_id;
-  const pageContent = await getProjectProps(Number(projectId));
   const projectResponse = await getProjectById(Number(projectId));
+  const teamsResponse = await getTeamsByProjectId(Number(projectId));
+  const teams = teamsResponse.team;
+
+  const projectPartners = teams && !teamsResponse.error ? await Promise.all(
+      teams.map(async (team) => {
+        const partner = await getProjectPartnerByTeamId(team.teamId);
+        return partner;
+      })
+    ) : [];
+
+  const projectTags = await getProjectTags(Number(projectId));
+
+  const projectPartnerNames = projectPartners
+  .map((partner) => 'username' in partner ? partner.username : '')
+  .join(", ");
 
   if (projectResponse?.project) {
     const projectDetails : ProjectSchema = {
       projectId: Number(projectId),
       programsId: projectResponse.project.programsId,
       projectTitle: projectResponse.project.projectTitle,
-      appImage: projectResponse.project.appImage,
-      appVideo: projectResponse.project.appVideo,
+      appImage: projectResponse.project.appImage ?? undefined,
+      appVideo: projectResponse.project.appVideo ?? undefined,
       appOrganization: projectResponse.project.appOrganization,
       appDescription: projectResponse.project.appDescription,
       appObjectives: projectResponse.project.appObjectives,
       appMotivations: projectResponse.project.appMotivations,
       appMinQualifications: projectResponse.project.appMinQualifications,
       appPrefQualifications: projectResponse.project.appPrefQualifications,
-      showcaseDescription: projectResponse.project.showcaseDescription,
-      showcaseImage: projectResponse.project.showcaseImage,
-      showcaseVideo: projectResponse.project.showcaseVideo,
-      isShowcasePublished: projectResponse.project.isShowcasePublished,
-      sequenceId: projectResponse.project.sequenceId,
-      sequenceReport: projectResponse.project.sequenceReport,
-      projectGithubLink: projectResponse.project.projectGithubLink
+      showcaseDescription: projectResponse.project.showcaseDescription ?? undefined,
+      showcaseImage: projectResponse.project.showcaseImage ?? undefined,
+      showcaseVideo: projectResponse.project.showcaseVideo ?? undefined,
+      isShowcasePublished: projectResponse.project.isShowcasePublished ?? undefined,
+      sequenceId: projectResponse.project.sequenceId ?? undefined,
+      sequenceReport: projectResponse.project.sequenceReport ?? undefined,
+      projectGithubLink: projectResponse.project.projectGithubLink ?? undefined
     }
+
+    const pageContent = getProjectProps(
+      projectDetails,
+      projectTags.tags,
+      projectPartnerNames
+    );
 
     return <ProjectPageClient 
       pageContent={pageContent} 

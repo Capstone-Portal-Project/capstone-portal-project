@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
 import { Button } from "../../components/ui/button"
 import {
   Form,
@@ -18,12 +17,10 @@ import { Input } from "../../components/ui/input"
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 import { useState, useEffect, useCallback } from 'react';
-import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
-import { AlertCircle, CircleCheckBig } from "lucide-react"
 import { ScrollArea } from "../../components/ui/scroll-area"
 import { UploadButton } from "../utils/uploadthing";
-import { toast } from "~/hooks/use-toast";
 import { updateProject } from "~/server/api/routers/project";
+import { Toaster, useToast } from "~/components/ui/toaster";
 
 const formSchema = z.object({
   programsId: z.number({
@@ -86,30 +83,39 @@ export interface ProjectSchema {
   projectGithubLink: string | undefined;
 }
 
-export default function ProjectEditSidebarPopout({ project, className }: { project: ProjectSchema, className?: string }) {
+export default function ProjectEditSidebarPopout({
+  project,
+  refreshPage,
+  onClose, // add a callback to close/hide the sidebar
+}: {
+  project: ProjectSchema;
+  refreshPage: (editData: ProjectSchema) => void;
+  onClose: () => void;
+}) {
+  
   const [sidebarWidth, setSidebarWidth] = useState(350); // Initial sidebar width
   const [isResizing, setIsResizing] = useState(false);
-
+  
   // Constants for sidebar structure
+  const HANDLE_WIDTH = 2; // Width of the resizing handle
   const SIDEBAR_PADDING = 20; // Total padding (left + right)
-  const HANDLE_WIDTH = 2; // Width of the draggable handle
   const MIN_WIDTH = 350; // Minimum sidebar width
   const MAX_WIDTH = 1000; // Maximum sidebar width
-
+  
+  // For a right-anchored sidebar, the width is the distance from the cursor to the right edge.
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isResizing) {
-      // Calculate width relative to the left edge
       const newWidth = Math.max(
-        MIN_WIDTH, 
+        MIN_WIDTH,
         Math.min(
-          MAX_WIDTH, 
-          e.clientX - SIDEBAR_PADDING // Width is determined by how far the cursor moves from the left
+          MAX_WIDTH,
+          window.innerWidth - e.clientX - SIDEBAR_PADDING // Calculate from the right side
         )
       );
       setSidebarWidth(newWidth);
     }
-  }, [isResizing]);  
-
+  }, [isResizing]);
+  
   useEffect(() => {
     if (isResizing) {
       document.addEventListener("mousemove", handleMouseMove);
@@ -118,38 +124,26 @@ export default function ProjectEditSidebarPopout({ project, className }: { proje
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     }
-
+  
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [handleMouseMove, isResizing]);
-
+  
   const handleMouseDown = () => {
     setIsResizing(true);
+    document.body.style.userSelect = "none"; // Disable text selection
   };
-
+  
   const handleMouseUp = () => {
     setIsResizing(false);
+    document.body.style.userSelect = "auto"; // Restore text selection
   };
 
   return (
-    <div className={"flex flex-row fixed left-0 top-1/2 transform -translate-y-1/2 h-3/4 bg-white shadow-lg border-l border-gray-200 rounded-lg" + (className ? ` ${className}` : "")}>
-
-      {/* Sidebar Container: fixed height with scrolling */}
-      <ScrollArea>
-        <div
-          className="bg-gray-100 border-l border-gray-300 px-5 py-5 overflow-y-auto"
-          style={{ width: sidebarWidth }}
-        >
-          <div className="w-full">
-            <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
-            <ProjectEditForm {...project} />
-          </div>
-        </div>
-      </ScrollArea>
-
-
+    <>
+    <div className="flex flex-row fixed right-4 bottom-16 h-3/4 bg-white shadow-lg border-t border-b border-r border-gray-400 rounded-lg">
       {/* Resizing Handle */}
       <div
         className="cursor-ew-resize"
@@ -157,16 +151,26 @@ export default function ProjectEditSidebarPopout({ project, className }: { proje
         onMouseDown={handleMouseDown}
       />
 
+      {/* Sidebar Container: fixed height with scrolling */}
+      <ScrollArea>
+        <div
+          className="border-l border-gray-400 px-5 py-5 overflow-y-auto"
+          style={{ width: sidebarWidth }}
+        >
+          <div className="w-full">
+            <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
+            <ProjectEditForm project={project} refreshPage={refreshPage} />
+          </div>
+        </div>
+      </ScrollArea>
     </div>
+  </>
   );
 }
 
-export function ProjectEditForm(project : ProjectSchema) {
+export function ProjectEditForm({ project, refreshPage }: { project: ProjectSchema, refreshPage: (editData: ProjectSchema) => void }) {
 
-  const [alertMessage, setAlertMessage] = useState<{ type: "success" | "error" | undefined; message: string | undefined }>({
-    type: undefined,
-    message: undefined,
-  });
+  const { toast } = useToast();
 
   // TODO : Set default values to values of current project page
   const form = useForm<z.infer<typeof formSchema>>({
@@ -181,11 +185,11 @@ export function ProjectEditForm(project : ProjectSchema) {
         appMinQualifications: project.appMinQualifications,
         appPrefQualifications: project.appPrefQualifications,
         appImage: project.appImage,
-        appVideo: "",
+        appVideo: undefined,
         projectGithubLink: project.projectGithubLink,
         showcaseDescription: project.showcaseDescription,
         showcaseImage: project.showcaseImage,
-        showcaseVideo: "",
+        showcaseVideo: project.showcaseVideo,
         isShowcasePublished: project.isShowcasePublished,
         sequenceId: project.sequenceId,
         sequenceReport: project.sequenceReport,
@@ -193,42 +197,58 @@ export function ProjectEditForm(project : ProjectSchema) {
     });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-      
-      try {
-        const result = await updateProject(project.projectId, values);
-        if (!result.error) {
-          toast({
-            title: "Success",
-            description: "Project created successfully!",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: result.message ?? "Failed to create project",
-          });
-        }
-      } catch (error) {
+
+    const editData: ProjectSchema = {
+      projectId: project.projectId,
+      programsId: values.programsId,
+      projectTitle: values.projectTitle,
+      appDescription: values.appDescription,
+      appObjectives: values.appObjectives,
+      appOrganization: values.appOrganization,
+      appMotivations: values.appMotivations,
+      appMinQualifications: values.appMinQualifications,
+      appPrefQualifications: values.appPrefQualifications,
+      appImage: values.appImage,
+      appVideo: values.appVideo,
+      projectGithubLink: values.projectGithubLink,
+      showcaseDescription: values.showcaseDescription,
+      showcaseImage: values.showcaseImage,
+      showcaseVideo: values.showcaseVideo,
+      isShowcasePublished: values.isShowcasePublished,
+      sequenceId: values.sequenceId,
+      sequenceReport: values.sequenceReport,
+    };
+
+    try {
+      const result = await updateProject(project.projectId, values);
+      if (!result.error) {
+        toast({
+          title: "Success",
+          description: "Project edited successfully!",
+        });
+      console.log("TIME TO REFERSH THE PAGE")
+      refreshPage(editData);
+      } else {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "An unexpected error occurred while editing the project",
+          description: result.message ?? "Failed to edit project",
         });
-        console.error("Submission failed:", error);
       }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred while editing the project",
+      });
+      console.error("Submission failed:", error);
+    }
   }
   
     return (
-        <>
-          {alertMessage.type && (
-            <Alert variant={ alertMessage.type === "success" ? undefined : "destructive" }>
-              {alertMessage.type === "success" ? <CircleCheckBig className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              <AlertTitle>{alertMessage.type === "success" ? "Success!" : "Error!"}</AlertTitle>
-              <AlertDescription>{alertMessage.message}</AlertDescription>
-            </Alert>
-          )}
+      <div className="w-full">
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-3xl mx-auto py-10">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full py-10">
               <FormField
                 control={form.control}
                 name="projectTitle"
@@ -453,7 +473,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Showcase Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder=""
                         className="resize-none"
                         {...field}
                       />
@@ -519,7 +538,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Showcase Video</FormLabel>
                     <FormControl>
                       <Input 
-                      placeholder=""
                       
                       type="text"
                       {...field} />
@@ -562,7 +580,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Sequence ID</FormLabel>
                     <FormControl>
                       <Input 
-                      placeholder=""
                       
                       type="number"
                       {...field} />
@@ -584,7 +601,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Sequence Report</FormLabel>
                     <FormControl>
                       <Input 
-                      placeholder=""
                       
                       type="text"
                       {...field} />
@@ -606,7 +622,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Project Github Link</FormLabel>
                     <FormControl>
                       <Input 
-                      placeholder=""
                       
                       type="text"
                       {...field} />
@@ -619,6 +634,7 @@ export function ProjectEditForm(project : ProjectSchema) {
               <Button type="submit">Submit</Button>
             </form>
           </Form>
-        </>
+          <Toaster />
+        </div>
     );
   }
