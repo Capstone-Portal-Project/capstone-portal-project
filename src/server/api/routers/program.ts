@@ -99,3 +99,20 @@ export async function updateProgramStatus(
     return { error: true, message: "Failed to update program status" }
   }
 }
+
+/**
+ * Get a program by programId
+ * 
+ * @param {number} programId - The ID of the program to get.
+ * @returns {Promise<{ program: any; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getProgramById(programId: number) {
+  try {
+    const program = await db.select()
+      .from(programs)
+      .where(eq(programs.programId, programId))
+    return { program: program[0], error: false }
+  } catch (error) {
+    return { program: null, error: true, message: "Failed to fetch program" }
+  }
+}

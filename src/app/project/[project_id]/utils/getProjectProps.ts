@@ -1,3 +1,4 @@
+
 import type { ProjectSchema } from "~/app/_components/editprojectpage";
 import type { ProjectProps, InfoCard } from "./getDummyData";
 
@@ -6,7 +7,9 @@ import type { ProjectProps, InfoCard } from "./getDummyData";
  * They will reset whenever this file is reloaded or redeployed.
  */
 let savedProjectTags: InfoCard["keywords"] = [];
-let savedProjectPartnerNames = "Mr. Miyagi";
+let savedProjectPartnerNames = "N/A";
+let savedProgramName = "N/A";
+let savedSequence = "N/A";
 
 const LoremIpsum = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
@@ -30,24 +33,44 @@ const ShorterLoremIpsum = "Lorem Ipsum";
 export default function getProjectProps(
   project: ProjectSchema,
   projectTags?: InfoCard["keywords"],        // optional
-  projectPartnerNames?: string              // optional
+  projectPartnerNames?: string,             // optional
+  programName?: string,
+  sequence?: string,
 ): ProjectProps {
   // Update file-scoped variables if new values are passed in.
   if (projectTags !== undefined) {
     savedProjectTags = projectTags;
+    console.log("Saved new project tags:", savedProjectTags);
   }
   if (projectPartnerNames !== undefined) {
     savedProjectPartnerNames = projectPartnerNames;
+    console.log("Saved new project partner names:", savedProjectPartnerNames);
+  }
+  if (programName !== undefined) {
+    savedProgramName = programName;
+    console.log("Saved new program name:", savedProgramName);
+  }
+  if (sequence !== undefined) {
+    savedSequence = sequence;
+    console.log("Saved new sequence:", savedSequence);
   }
 
   // Construct the final object matching ProjectProps
   return {
-    hero: {
+    header: {
       title: project?.projectTitle ?? ShorterLoremIpsum,
-      desc: project?.appDescription ?? LoremIpsum,
+      organization: project?.appOrganization ?? "N/A",
+      program: savedProgramName,
+      sequence: savedSequence,
+      githubLink: project?.projectGithubLink ?? undefined,
+      videoLink: project?.appVideo ?? undefined,
     },
     content: {
       textcontent: [
+        {
+          heading: "Description",
+          text: project?.appDescription ?? LoremIpsum,
+        },
         {
           heading: "Objectives",
           text: project?.appObjectives ?? LoremIpsum,

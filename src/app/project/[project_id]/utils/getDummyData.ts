@@ -1,6 +1,10 @@
-export interface Hero {
+export interface Header {
   title: string;
-  desc: string;
+  organization: string;
+  program: string;
+  sequence: string;
+  githubLink?: string | undefined;
+  videoLink?: string | undefined;
 }
 
 export interface ContentItem {
@@ -29,21 +33,27 @@ export interface InfoCard {
 }
 
 export interface ProjectProps {
-  hero: Hero;
+  header: Header;
   content: Content;
   infoCard: InfoCard;
 }
 
 export const getDummyData = (): ProjectProps => {
   const props: ProjectProps = {
-    hero: {
+    header: {
       title: "3D Tetris Using Augmented Reality",
-      desc: `Augmented Reality combines the real-ness of AR with the synthetic-ness of VR. In the project, the real will be a plastic box. The
-            synthetic will be a group of weirdly-shaped 3D objects that the user will attempt to fit in the box under the control of real 
-            collision physics. This can be just a fun excercise, but feel free to turn it into a game with scoring, timing, etc.`,
+      organization: "Tetris",
+      program: "CS 46X - Senior Software Design Project",
+      sequence: "Iterated"
     },
     content: {
       textcontent: [
+        {
+          heading: "Description",
+          text: `Augmented Reality combines the real-ness of AR with the synthetic-ness of VR. In the project, the real will be a plastic box. The
+          synthetic will be a group of weirdly-shaped 3D objects that the user will attempt to fit in the box under the control of real 
+          collision physics. This can be just a fun excercise, but feel free to turn it into a game with scoring, timing, etc.`,
+        },
         {
           heading: "Objectives",
           text:

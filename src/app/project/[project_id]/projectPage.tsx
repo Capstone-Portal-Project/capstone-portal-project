@@ -10,15 +10,24 @@ import { Button } from "src/components/ui/button";
 import { SquarePenIcon } from "lucide-react";
 import getProjectProps from "./utils/getProjectProps";
 import { EyeOffIcon } from "lucide-react";
-
+import { Pin } from "lucide-react";
+import { checkUserRole } from "~/app/utils/checkUserRole";
 export interface ProjectPageClientProps {
   pageContent: ProjectProps;
   project: ProjectSchema;
+  programName: string;
+  sequenceName: string;
+  projectPartnerNames: string;
+  projectTags: { tagId: number; tag: string | null; projectTagId: number; }[];
 }
 
 export default function ProjectPageClient({
   pageContent: initialProject,
   project: projectDetails,
+  programName,
+  sequenceName,
+  projectPartnerNames,
+  projectTags,
 }: ProjectPageClientProps) {
   const [pageContent, setPageContent] = useState<ProjectProps>(initialProject);
   const [isSidebarVisible, setSidebarVisible] = useState(false);
@@ -26,46 +35,60 @@ export default function ProjectPageClient({
 
   const handleRefresh = (editData: ProjectSchema) => {
     console.log("Refreshing page...");
-    setPageContent(() => getProjectProps(editData, undefined, undefined));
+    setPageContent(() =>
+      getProjectProps(editData, projectTags, projectPartnerNames, programName, sequenceName)
+    );
+
+    console.log(pageContent);
     router.refresh();
   };
-
-  const handleSidebarVisibility = (state: boolean) => {
-    setSidebarVisible(!state)
-  }
 
   if (!pageContent) return <div>Loading...</div>;
 
   return (
     <>
       {isSidebarVisible && (
-        <ProjectEditSidebarPopout
-          project={projectDetails}
-          refreshPage={handleRefresh}
-          onClose={() => setSidebarVisible(false)}
-        />
+        // Sidebar overlay with fixed positioning and z-index
+        <div className="fixed z-50">
+          <ProjectEditSidebarPopout
+            project={projectDetails}
+            refreshPage={handleRefresh}
+            onClose={() => setSidebarVisible(false)}
+          />
+        </div>
       )}
-      
+
       <ProjectContent {...pageContent} />
 
-      {/* Optionally, you could have another button elsewhere to re-open the sidebar */}
-      <Button
-        onClick={() => setSidebarVisible(prev => !prev)}
-        variant="outline" className="fixed bottom-4 right-4 border-[#DC4405]"
-      >
-        {isSidebarVisible ? (
-          <>
-            <EyeOffIcon />
-            <p>Close Editor</p>
-          </>
-        ) : (
-          <>
-            <SquarePenIcon />
-            <p>Edit Content</p>
-          </>
-        )}
-      </Button>
+      {/* Flex container fixed at the bottom right. 
+          The use of flex-row-reverse ensures the first button stays at the right,
+          and additional buttons will expand leftwards. */}
+      <div className="fixed bottom-4 right-4 flex flex-row-reverse items-center space-x-2 space-x-reverse z-60">
+        <Button
+          onClick={() => setSidebarVisible((prev) => !prev)}
+          variant="outline"
+          className="border-[#DC4405]"
+        >
+          {isSidebarVisible ? (
+            <>
+              <EyeOffIcon />
+              <p>Close Editor</p>
+            </>
+          ) : (
+            <>
+              <SquarePenIcon />
+              <p>Edit Content</p>
+            </>
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          className="border-[#DC4405]"
+        >
+          <Pin />
+          <p>Save Project</p>
+        </Button>
+      </div>
     </>
   );
 }
-

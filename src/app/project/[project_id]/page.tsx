@@ -5,6 +5,8 @@ import { getProjectById } from "~/server/api/routers/project";
 import { getTeamsByProjectId } from "~/server/api/routers/team";
 import { getProjectPartnerByTeamId } from "~/server/api/routers/user";
 import { getProjectTags } from "~/server/api/routers/tag";
+import { getSequenceById } from "~/server/api/routers/sequence";
+import { getProgramById } from "~/server/api/routers/program";
 
 export const dynamic = "force-dynamic";
 
@@ -50,15 +52,33 @@ export default async function ProjectPage({ params }: { params: Promise<{project
       projectGithubLink: projectResponse.project.projectGithubLink ?? undefined
     }
 
+    const programResponse = await getProgramById(projectDetails.programsId);
+    const programName = programResponse.program?.programName ?? "Unknown Program";
+
+    let sequenceName: string;
+
+    if (projectDetails.sequenceId !== undefined) {
+      const sequenceResponse = await getSequenceById(projectDetails.sequenceId);
+      sequenceName = sequenceResponse.sequence?.type ?? "Unknown Sequence";
+    } else {
+      sequenceName = "";
+    }
+
     const pageContent = getProjectProps(
       projectDetails,
       projectTags.tags,
-      projectPartnerNames
+      projectPartnerNames,
+      programName,
+      sequenceName
     );
 
     return <ProjectPageClient 
       pageContent={pageContent} 
       project={projectDetails}
+      programName={programName}
+      sequenceName={sequenceName}
+      projectPartnerNames={projectPartnerNames}
+      projectTags={projectTags.tags}
     />;
   }
 

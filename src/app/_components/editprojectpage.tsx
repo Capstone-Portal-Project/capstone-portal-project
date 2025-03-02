@@ -143,7 +143,7 @@ export default function ProjectEditSidebarPopout({
 
   return (
     <>
-    <div className="flex flex-row fixed right-4 bottom-16 h-3/4 bg-white shadow-lg border-t border-b border-r border-gray-400 rounded-lg">
+    <div className="flex flex-row fixed right-4 bottom-16 h-3/4 bg-white shadow-lg border border-gray-400 rounded-lg">
       {/* Resizing Handle */}
       <div
         className="cursor-ew-resize"
@@ -154,7 +154,7 @@ export default function ProjectEditSidebarPopout({
       {/* Sidebar Container: fixed height with scrolling */}
       <ScrollArea>
         <div
-          className="border-l border-gray-400 px-5 py-5 overflow-y-auto"
+          className="px-5 py-5 overflow-y-auto"
           style={{ width: sidebarWidth }}
         >
           <div className="w-full">
