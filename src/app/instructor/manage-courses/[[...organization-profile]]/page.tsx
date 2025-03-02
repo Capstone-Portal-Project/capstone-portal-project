@@ -5,7 +5,6 @@ export default function ManageCourse() {
   
   return (
     <div className="container mx-6 p-6">
-      <div>ManageCourse</div>
       <OrganizationProfile 
         appearance={{
           elements: {

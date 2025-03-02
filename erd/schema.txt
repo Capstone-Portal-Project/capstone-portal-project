@@ -22,6 +22,7 @@ Table users {
   email varchar(256) [not null]
   date_created timestamp [default: `CURRENT_TIMESTAMP`, not null]
   type user_types
+  clerkUserId varchar(256) [not null]
 
   // Students only
   program_id integer [ref: > programs.program_id] 
