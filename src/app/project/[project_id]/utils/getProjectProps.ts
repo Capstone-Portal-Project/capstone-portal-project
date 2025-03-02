@@ -1,76 +1,104 @@
-import { getProjectById } from "~/server/api/routers/project";
-import { getTeamsByProjectId } from "~/server/api/routers/team";
-import { getProjectPartnerByTeamId } from "~/server/api/routers/user";
-import { getProjectTags } from "~/server/api/routers/tag";
 
-const getProjectProps = async (projectId : number) => {
-    
-  const { project } = await getProjectById(projectId);
-  const teamsResponse = await getTeamsByProjectId(projectId);
-  const teams = teamsResponse.team;
+import type { ProjectSchema } from "~/app/_components/editprojectpage";
+import type { ProjectProps, InfoCard } from "./getDummyData";
 
-  const projectPartners = teams && !teamsResponse.error ? await Promise.all(
-    teams.map(async (team) => {
-      const partner = await getProjectPartnerByTeamId(team.teamId);
-      return partner;
-    })
-  ) : [];
+/**
+ * File-scoped (module-level) variables that act like 'static' storage.
+ * They will reset whenever this file is reloaded or redeployed.
+ */
+let savedProjectTags: InfoCard["keywords"] = [];
+let savedProjectPartnerNames = "N/A";
+let savedProgramName = "N/A";
+let savedSequence = "N/A";
 
-  const projectTags = await getProjectTags(projectId);
+const LoremIpsum = `
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Mauris nec neque in elit auctor accumsan ut quis sem. 
+Vivamus quam nunc, mattis ut tortor vel, laoreet viverra mauris. 
+Suspendisse interdum arcu in leo molestie, in euismod velit sollicitudin.
+`.trim();
 
-  const projectPartnerNames = projectPartners
-  .map((partner) => 'username' in partner ? partner.username : '')
-  .join(", ");
+const ShortLoremIpsum = `
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Mauris nec neque in elit auctor accumsan ut quis sem.
+`.trim();
 
-    
-  const LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nec neque in elit auctor accumsan ut quis sem. Vivamus quam nunc, mattis ut tortor vel, laoreet viverra mauris. Suspendisse interdum arcu in leo molestie, in euismod velit sollicitudin. Proin felis lacus, aliquet eu tincidunt in, ornare eu elit. Quisque interdum, ipsum eu bibendum ullamcorper, diam dolor lobortis enim, nec feugiat risus lacus sit amet nunc. Donec ut lacus ut nunc convallis vestibulum sodales at sem. Vivamus mattis nibh nec sapien pellentesque lacinia. Mauris luctus sem dolor, nec porttitor magna ullamcorper vehicula. Vivamus quis vehicula urna. Duis lacus tortor, euismod eu felis non, blandit eleifend urna. Morbi accumsan dignissim risus, aliquet euismod massa dignissim pellentesque. Fusce venenatis purus quis metus malesuada, non porttitor nisi bibendum. Vivamus varius ullamcorper ex sit amet venenatis. Vivamus dapibus tempus orci, id congue eros.";
-  const ShortLoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nec neque in elit auctor accumsan ut quis sem."
-  const ShorterLoremIpsum = "Lorem Ipsum";
+const ShorterLoremIpsum = "Lorem Ipsum";
 
-  const props = {
-      hero: {
-        title: project?.projectTitle ?? ShorterLoremIpsum,
-        desc: project?.appDescription ?? LoremIpsum,
-      },
-      content: { 
-        textcontent:[
-          {
-            heading: "Objectives",
-            text:
-            project?.appObjectives ?? LoremIpsum,
-          },
-          {
-            heading: "Motivations",
+/**
+ * `getProjectProps` returns a `ProjectProps` object.
+ * When new tags or partner names are provided, it updates the
+ * file-scoped variables for subsequent calls.
+ */
+export default function getProjectProps(
+  project: ProjectSchema,
+  projectTags?: InfoCard["keywords"],        // optional
+  projectPartnerNames?: string,             // optional
+  programName?: string,
+  sequence?: string,
+): ProjectProps {
+  // Update file-scoped variables if new values are passed in.
+  if (projectTags !== undefined) {
+    savedProjectTags = projectTags;
+    console.log("Saved new project tags:", savedProjectTags);
+  }
+  if (projectPartnerNames !== undefined) {
+    savedProjectPartnerNames = projectPartnerNames;
+    console.log("Saved new project partner names:", savedProjectPartnerNames);
+  }
+  if (programName !== undefined) {
+    savedProgramName = programName;
+    console.log("Saved new program name:", savedProgramName);
+  }
+  if (sequence !== undefined) {
+    savedSequence = sequence;
+    console.log("Saved new sequence:", savedSequence);
+  }
 
-            text:
-              project?.appMotivations ?? LoremIpsum,
-          },
-          {
-            heading: "Minimum Qualifications",
-            text: project?.appMinQualifications ?? ShortLoremIpsum,
-          },
-          {
-            heading: "Preferred Qualifications",
-            text: project?.appPrefQualifications ?? ShortLoremIpsum,
-          },
-        ]
-      },
-      infoCard: {
-        img: project?.appImage ?? '',
-        desc: project?.showcaseDescription ?? '',
-        details: {
-          'Project Partner': projectPartnerNames ?? 'Mr. Miyagi' ,
-          'NDA/IPA': false,
-          'Number of Groups': teams ? teams.length : 0,
-          'Project Status': project?.isShowcasePublished,          
+  // Construct the final object matching ProjectProps
+  return {
+    header: {
+      title: project?.projectTitle ?? ShorterLoremIpsum,
+      organization: project?.appOrganization ?? "N/A",
+      program: savedProgramName,
+      sequence: savedSequence,
+      githubLink: project?.projectGithubLink ?? undefined,
+      videoLink: project?.appVideo ?? undefined,
+    },
+    content: {
+      textcontent: [
+        {
+          heading: "Description",
+          text: project?.appDescription ?? LoremIpsum,
         },
-        keywords: projectTags.tags ?? [],
+        {
+          heading: "Objectives",
+          text: project?.appObjectives ?? LoremIpsum,
+        },
+        {
+          heading: "Motivations",
+          text: project?.appMotivations ?? LoremIpsum,
+        },
+        {
+          heading: "Minimum Qualifications",
+          text: project?.appMinQualifications ?? ShortLoremIpsum,
+        },
+        {
+          heading: "Preferred Qualifications",
+          text: project?.appPrefQualifications ?? ShortLoremIpsum,
+        },
+      ],
+    },
+    infoCard: {
+      img: project?.appImage ?? "",
+      desc: project?.showcaseDescription ?? "",
+      details: {
+        "Project Partner": savedProjectPartnerNames,
+        "NDA/IPA": false,
+        "Number of Groups": 0, // or another dynamic value if you have it
+        "Project Status": project?.isShowcasePublished,
       },
-    };
-
-    return props;
+      keywords: savedProjectTags,
+    },
+  };
 }
-
-export default getProjectProps;
-
-  

@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
 import { Button } from "../../components/ui/button"
 import {
   Form,
@@ -18,89 +17,105 @@ import { Input } from "../../components/ui/input"
 import { Textarea } from "../../components/ui/textarea"
 import { Switch } from "../../components/ui/switch"
 import { useState, useEffect, useCallback } from 'react';
-// import { updateProjectById } from "~/server/api/routers/capstoneProject";
-import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
-import { AlertCircle, CircleCheckBig } from "lucide-react"
 import { ScrollArea } from "../../components/ui/scroll-area"
+import { UploadButton } from "../utils/uploadthing";
+import { updateProject } from "~/server/api/routers/project";
+import { Toaster, useToast } from "~/components/ui/toaster";
 
 const formSchema = z.object({
-  projectTitle: z.string(),
-  programsId: z.number(),
+  programsId: z.number({
+    required_error: "Program ID is required",
+  }),
+  projectTitle: z.string().min(2, {
+    message: "Title must be at least 2 characters.",
+  }).max(256, {
+    message: "Title cannot exceed 256 characters."
+  }),
+  appDescription: z.string().min(10, {
+    message: "Description must be at least 10 characters."
+  }),
+  appObjectives: z.string().min(10, {
+    message: "Objectives must be at least 10 characters."
+  }),
+  appOrganization: z.string().min(2, {
+    message: "Organization must be at least 2 characters."
+  }).max(512, {
+    message: "Organization cannot exceed 512 characters."
+  }),
+  appMotivations: z.string().min(10, {
+    message: "Motivations must be at least 10 characters."
+  }),
+  appMinQualifications: z.string().min(10, {
+    message: "Minimum qualifications must be at least 10 characters."
+  }),
+  appPrefQualifications: z.string().min(10, {
+    message: "Preferred qualifications must be at least 10 characters."
+  }),
   appImage: z.string().optional(),
   appVideo: z.string().optional(),
-  appOrganization: z.string().optional(),
-  appDescription: z.string(),
-  appObjectives: z.string(),
-  appMotivations: z.string(),
-  appMinQualifications: z.string(),
-  appPrefQualifications: z.string(),
+  projectGithubLink: z.union([z.string().url(), z.string().length(0)]).optional(),
   showcaseDescription: z.string().optional(),
   showcaseImage: z.string().optional(),
   showcaseVideo: z.string().optional(),
   isShowcasePublished: z.boolean().optional(),
   sequenceId: z.number().optional(),
   sequenceReport: z.string().optional(),
-  projectGithubLink: z.string().optional()
 });
 
 export interface ProjectSchema {
   projectId: number;
   programsId: number;
   projectTitle: string;
-  appImage: string | null;
-  appVideo: string | null;
+  appImage: string | undefined;
+  appVideo: string | undefined;
   appOrganization: string;
   appDescription: string;
   appObjectives: string;
   appMotivations: string;
   appMinQualifications: string;
   appPrefQualifications: string;
-  showcaseDescription: string | null;
-  showcaseImage: string | null;
-  showcaseVideo: string | null;
-  isShowcasePublished: boolean | null;
-  sequenceId: number | null;
-  sequenceReport: string | null;
-  projectGithubLink: string | null;
+  showcaseDescription: string | undefined;
+  showcaseImage: string | undefined;
+  showcaseVideo: string | undefined;
+  isShowcasePublished: boolean | undefined;
+  sequenceId: number | undefined;
+  sequenceReport: string | undefined;
+  projectGithubLink: string | undefined;
 }
 
-// This is dummy data to be inputted later
-const courseOptions: Record<number, string> = {
-  1 : "Placeholder Course 1",
-  2 : "Placeholder Course 2",
-  3 : "Placeholder Course 3",
-};
-
-const courseOptionsReversed: Record<string, number> = {
-  "Placeholder Course 1": 1,
-  "Placeholder Course 2": 2,
-  "Placeholder Course 3": 3,
-};
-
-export default function ProjectEditSidebarPopout({ project, className }: { project: ProjectSchema, className?: string }) {
+export default function ProjectEditSidebarPopout({
+  project,
+  refreshPage,
+  onClose, // add a callback to close/hide the sidebar
+}: {
+  project: ProjectSchema;
+  refreshPage: (editData: ProjectSchema) => void;
+  onClose: () => void;
+}) {
+  
   const [sidebarWidth, setSidebarWidth] = useState(350); // Initial sidebar width
   const [isResizing, setIsResizing] = useState(false);
-
+  
   // Constants for sidebar structure
+  const HANDLE_WIDTH = 2; // Width of the resizing handle
   const SIDEBAR_PADDING = 20; // Total padding (left + right)
-  const HANDLE_WIDTH = 2; // Width of the draggable handle
   const MIN_WIDTH = 350; // Minimum sidebar width
   const MAX_WIDTH = 1000; // Maximum sidebar width
-
+  
+  // For a right-anchored sidebar, the width is the distance from the cursor to the right edge.
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isResizing) {
-      // Calculate width relative to the left edge
       const newWidth = Math.max(
-        MIN_WIDTH, 
+        MIN_WIDTH,
         Math.min(
-          MAX_WIDTH, 
-          e.clientX - SIDEBAR_PADDING // Width is determined by how far the cursor moves from the left
+          MAX_WIDTH,
+          window.innerWidth - e.clientX - SIDEBAR_PADDING // Calculate from the right side
         )
       );
       setSidebarWidth(newWidth);
     }
-  }, [isResizing]);  
-
+  }, [isResizing]);
+  
   useEffect(() => {
     if (isResizing) {
       document.addEventListener("mousemove", handleMouseMove);
@@ -109,38 +124,26 @@ export default function ProjectEditSidebarPopout({ project, className }: { proje
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     }
-
+  
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [handleMouseMove, isResizing]);
-
+  
   const handleMouseDown = () => {
     setIsResizing(true);
+    document.body.style.userSelect = "none"; // Disable text selection
   };
-
+  
   const handleMouseUp = () => {
     setIsResizing(false);
+    document.body.style.userSelect = "auto"; // Restore text selection
   };
 
   return (
-    <div className={"flex flex-row fixed left-0 top-1/2 transform -translate-y-1/2 h-3/4 bg-white shadow-lg border-l border-gray-200 rounded-lg" + (className ? ` ${className}` : "")}>
-
-      {/* Sidebar Container: fixed height with scrolling */}
-      <ScrollArea>
-        <div
-          className="bg-gray-100 border-l border-gray-300 px-5 py-5 overflow-y-auto"
-          style={{ width: sidebarWidth }}
-        >
-          <div className="w-full">
-            <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
-            <ProjectEditForm {...project} />
-          </div>
-        </div>
-      </ScrollArea>
-
-
+    <>
+    <div className="flex flex-row fixed right-4 bottom-16 h-3/4 bg-white shadow-lg border border-gray-400 rounded-lg">
       {/* Resizing Handle */}
       <div
         className="cursor-ew-resize"
@@ -148,61 +151,104 @@ export default function ProjectEditSidebarPopout({ project, className }: { proje
         onMouseDown={handleMouseDown}
       />
 
+      {/* Sidebar Container: fixed height with scrolling */}
+      <ScrollArea>
+        <div
+          className="px-5 py-5 overflow-y-auto"
+          style={{ width: sidebarWidth }}
+        >
+          <div className="w-full">
+            <h1 className="mb-4 text-xl font-bold">Edit Project</h1>
+            <ProjectEditForm project={project} refreshPage={refreshPage} />
+          </div>
+        </div>
+      </ScrollArea>
     </div>
+  </>
   );
 }
 
-export function ProjectEditForm(project : ProjectSchema) {
+export function ProjectEditForm({ project, refreshPage }: { project: ProjectSchema, refreshPage: (editData: ProjectSchema) => void }) {
 
-  const [alertMessage, setAlertMessage] = useState<{ type: "success" | "error" | null; message: string | null }>({
-    type: null,
-    message: null,
-  });
+  const { toast } = useToast();
 
   // TODO : Set default values to values of current project page
   const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
-        
-      },
+        programsId: project.programsId,
+        projectTitle: project.projectTitle,
+        appDescription: project.appDescription,
+        appObjectives: project.appObjectives,
+        appOrganization: project.appOrganization,
+        appMotivations: project.appMotivations,
+        appMinQualifications: project.appMinQualifications,
+        appPrefQualifications: project.appPrefQualifications,
+        appImage: project.appImage,
+        appVideo: undefined,
+        projectGithubLink: project.projectGithubLink,
+        showcaseDescription: project.showcaseDescription,
+        showcaseImage: project.showcaseImage,
+        showcaseVideo: project.showcaseVideo,
+        isShowcasePublished: project.isShowcasePublished,
+        sequenceId: project.sequenceId,
+        sequenceReport: project.sequenceReport,
+      }
     });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-      
-      // Get values from the form
-      const submittedValues = { 
-        
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+
+    const editData: ProjectSchema = {
+      projectId: project.projectId,
+      programsId: values.programsId,
+      projectTitle: values.projectTitle,
+      appDescription: values.appDescription,
+      appObjectives: values.appObjectives,
+      appOrganization: values.appOrganization,
+      appMotivations: values.appMotivations,
+      appMinQualifications: values.appMinQualifications,
+      appPrefQualifications: values.appPrefQualifications,
+      appImage: values.appImage,
+      appVideo: values.appVideo,
+      projectGithubLink: values.projectGithubLink,
+      showcaseDescription: values.showcaseDescription,
+      showcaseImage: values.showcaseImage,
+      showcaseVideo: values.showcaseVideo,
+      isShowcasePublished: values.isShowcasePublished,
+      sequenceId: values.sequenceId,
+      sequenceReport: values.sequenceReport,
+    };
+
+    try {
+      const result = await updateProject(project.projectId, values);
+      if (!result.error) {
+        toast({
+          title: "Success",
+          description: "Project edited successfully!",
+        });
+      console.log("TIME TO REFERSH THE PAGE")
+      refreshPage(editData);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message ?? "Failed to edit project",
+        });
       }
-
-      console.log(submittedValues)
-
-      // updateProjectById(project.cp_id, {
-      //   course_ids: submittedValues.course_ids.filter((id): id is number => id !== undefined),
-      //   cp_title: submittedValues.cp_title,
-      //   cp_description: submittedValues.cp_description,
-      //   cp_objectives: submittedValues.cp_objectives,
-      //   cp_image: submittedValues.cp_image,
-      //   cp_archived: submittedValues.cp_archived,
-      // }).then(() => {
-      //   setAlertMessage({ type: "success", message: "Project updated successfully!" });
-      // })
-      // .catch((error) => {
-      //   setAlertMessage({ type: "error", message: "Failed to update project." });
-      //   console.error(error);
-      // });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred while editing the project",
+      });
+      console.error("Submission failed:", error);
+    }
   }
   
     return (
-        <>
-          {alertMessage.type && (
-            <Alert variant={ alertMessage.type === "success" ? undefined : "destructive" }>
-              {alertMessage.type === "success" ? <CircleCheckBig className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              <AlertTitle>{alertMessage.type === "success" ? "Success!" : "Error!"}</AlertTitle>
-              <AlertDescription>{alertMessage.message}</AlertDescription>
-            </Alert>
-          )}
+      <div className="w-full">
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-3xl mx-auto py-10">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full py-10">
               <FormField
                 control={form.control}
                 name="projectTitle"
@@ -230,7 +276,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                       <FormLabel>Program</FormLabel>
                       <FormControl>
                         <Input 
-                        placeholder=""
                         
                         type="number"
                         {...field} />
@@ -246,15 +291,42 @@ export function ProjectEditForm(project : ProjectSchema) {
                 name="appImage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image</FormLabel>
+                    <FormLabel>App Image</FormLabel>
                     <FormControl>
-                      <Input 
-                      placeholder=""
-                      
-                      type="text"
-                      {...field} />
+                      <div className="flex flex-col gap-4">
+                        <UploadButton
+                          endpoint="imageUploader"
+                          onClientUploadComplete={(res) => {
+                            if (res?.[0]) {
+                              field.onChange(res[0].url);
+                              toast({
+                                title: "Success",
+                                description: "Image uploaded successfully",
+                              });
+                            }
+                          }}
+                          onUploadError={(error: Error) => {
+                            toast({
+                              variant: "destructive",
+                              title: "Error",
+                              description: `Failed to upload image: ${error.message}`,
+                            });
+                          }}
+                        />
+                        {field.value && (
+                          <div className="mt-4">
+                            <img 
+                              src={field.value} 
+                              alt="Project preview" 
+                              className="max-w-xs rounded-lg shadow-md" 
+                            />
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    <FormDescription>This image will be displayed in this page</FormDescription>
+                    <FormDescription>
+                      Upload a project image (max 4MB)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -401,7 +473,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Showcase Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder=""
                         className="resize-none"
                         {...field}
                       />
@@ -420,13 +491,40 @@ export function ProjectEditForm(project : ProjectSchema) {
                   <FormItem>
                     <FormLabel>Showcase Image</FormLabel>
                     <FormControl>
-                      <Input 
-                      placeholder=""
-                      
-                      type="text"
-                      {...field} />
+                      <div className="flex flex-col gap-4">
+                        <UploadButton
+                          endpoint="imageUploader"
+                          onClientUploadComplete={(res) => {
+                            if (res?.[0]) {
+                              field.onChange(res[0].url);
+                              toast({
+                                title: "Success",
+                                description: "Image uploaded successfully",
+                              });
+                            }
+                          }}
+                          onUploadError={(error: Error) => {
+                            toast({
+                              variant: "destructive",
+                              title: "Error",
+                              description: `Failed to upload image: ${error.message}`,
+                            });
+                          }}
+                        />
+                        {field.value && (
+                          <div className="mt-4">
+                            <img 
+                              src={field.value} 
+                              alt="Project preview" 
+                              className="max-w-xs rounded-lg shadow-md" 
+                            />
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    
+                    <FormDescription>
+                      Upload a project image (max 4MB)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -440,7 +538,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Showcase Video</FormLabel>
                     <FormControl>
                       <Input 
-                      placeholder=""
                       
                       type="text"
                       {...field} />
@@ -483,7 +580,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Sequence ID</FormLabel>
                     <FormControl>
                       <Input 
-                      placeholder=""
                       
                       type="number"
                       {...field} />
@@ -505,7 +601,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Sequence Report</FormLabel>
                     <FormControl>
                       <Input 
-                      placeholder=""
                       
                       type="text"
                       {...field} />
@@ -527,7 +622,6 @@ export function ProjectEditForm(project : ProjectSchema) {
                     <FormLabel>Project Github Link</FormLabel>
                     <FormControl>
                       <Input 
-                      placeholder=""
                       
                       type="text"
                       {...field} />
@@ -540,6 +634,7 @@ export function ProjectEditForm(project : ProjectSchema) {
               <Button type="submit">Submit</Button>
             </form>
           </Form>
-        </>
+          <Toaster />
+        </div>
     );
   }
