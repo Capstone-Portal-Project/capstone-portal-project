@@ -19,6 +19,13 @@ import { cn } from "../../lib/utils"
 
 export function TopNav() {
 
+  const adminLinks: { title: string; href: string; }[] = [
+    {
+      title: "Upadate Home",
+      href: "/admin/update-home",
+    },
+  ]
+
   const instructorLinks: { title: string; href: string; }[] = [
     {
       title: "Manage Course",
@@ -57,6 +64,20 @@ export function TopNav() {
       </Link>
       <NavigationMenu>
         <NavigationMenuList>
+        <NavigationMenuItem>
+            <NavigationMenuTrigger>Admin Tools</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px] ">
+                {adminLinks.map((link) => (
+                  <ListItem
+                    key={link.title}
+                    title={link.title}
+                    href={link.href}
+                  />
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuTrigger>Instructor Tools</NavigationMenuTrigger>
             <NavigationMenuContent>
