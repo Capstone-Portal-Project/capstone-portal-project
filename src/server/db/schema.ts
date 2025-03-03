@@ -199,3 +199,16 @@ export const savedProjects = createTable(
     preferenceDescription: text("preference_description"),
   }
 );
+
+/**
+ * Capstone Project Portal Home Page table schema.
+ */
+export const homepageContent = createTable(
+  "homepage_content",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    heroTitle: varchar("hero_title", { length: 256 }).notNull(),
+    heroSubtitle: varchar("hero_subtitle", { length: 256 }).notNull(),
+    mainContent: text("main_content").notNull(),
+  }
+);
