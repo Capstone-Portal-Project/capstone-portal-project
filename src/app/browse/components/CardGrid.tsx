@@ -1,5 +1,7 @@
 import React from "react";
 
+import React from "react";
+
 const CardGrid = ({ children }: { children?: React.ReactNode }) => {
   return(
     <div className="grid grid-cols-1 grid-rows-3 w-full">

@@ -25,6 +25,14 @@ type ProjectCardProps = {
   projectId?: number,
 }
 
+type ProjectCardProps = {
+  imgUrl?: string,
+  title?: string, 
+  description?: string,
+  tags?: string[],
+  projectId?: number,
+}
+
 const BrowsePage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +64,7 @@ const BrowsePage = () => {
       </div>
     );
   }
+
 
 
   return (
