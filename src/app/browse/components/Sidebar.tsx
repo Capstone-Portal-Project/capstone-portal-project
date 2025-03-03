@@ -30,35 +30,7 @@ const TabButton = (props: TabButtonProps) => {
 }
 
 const Sidebar = () => {
-    return (
-<<<<<<< Updated upstream
-        <div className="bg-[#f7f5f5] h-full w-full rounded-lg flex flex-col pt-4 px-4 focus:outline-none space-y-3">
-            <div>
-                <span className="text-[#808080] font-bold">Tabs</span>
-                <div className="border h-[1px] w-full" />
-                    <TabButton>
-                        <Archive /> Archived
-                    </TabButton>
-                    <TabButton { ...{isActive: true} }>
-                        <BookOpen /> Active
-                    </TabButton>
-                    <TabButton>
-                        <Pin /> Saved
-                    </TabButton>
-            </div>
-            <div>
-                <span className="text-[#808080] font-bold">Filters</span>
-                <div className="border h-[1px] w-full mb-3" />
-                <div className="flex flex-col space-y-3">
-                    <div className="flex focus-within:ring-2 focus-within:ring-[#D73F09] content-center place-items-center bg-[#e9e5e4]">
-                        <Search className="mx-1"/>
-                        <textarea 
-                        className="resize-none focus:outline-none w-full h-auto py-1 px-1 whitespace-nowrap overflow-hidden bg-[#e9e5e4]" 
-                        rows={1} placeholder="Search..." />
-                    </div>
-                    <span className="text-[#808080]">Sort by</span>  
-                </div>       
-=======
+    return (     
         <div className="bg-[#f7f5f5] h-full w-full rounded-lg px-4 pt-4 pb-6 overflow-y-scroll">
             <div className="relative h-full flex flex-col focus:outline-none space-y-3">
                 <div>
@@ -110,7 +82,6 @@ const Sidebar = () => {
 
                     </div>       
                 </div>                
->>>>>>> Stashed changes
             </div>
         </div>        
     );    

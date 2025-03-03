@@ -59,9 +59,6 @@ const BrowsePage = () => {
 
   return (
     <div className="flex flex-col bg-[#FFFFFF] w-full  place-items-center pb-0 2xl:py-[40px]">
-        {/* <div className="w-full text-center font-bold text-4xl py-5 bg-[#D73F09] text-[#f7f5f5]">
-          <h1>Current Projects</h1>
-        </div> */}
         <div className="layout grid grid-cols-12 h-[32rem]">
           <div className="col-span-3 h-full overflow-hidden">
           </div>
