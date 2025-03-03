@@ -29,7 +29,7 @@ const Sidebar = () => {
             <div>
                 <span className="text-[#808080] font-bold">Tabs</span>
                 <div className="border h-[1px] w-full" />
-                    <Link href="browse/archive">                    
+                    <Link href="/archive">                    
                         <TabButton>
                             <Archive /> Archived
                         </TabButton>
