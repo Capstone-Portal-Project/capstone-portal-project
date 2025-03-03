@@ -1,6 +1,7 @@
 "use client"
 
 import { Archive, BookOpen, Pin, Search } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 import { cn } from "~/lib/utils";
 
@@ -28,15 +29,19 @@ const Sidebar = () => {
             <div>
                 <span className="text-[#808080] font-bold">Tabs</span>
                 <div className="border h-[1px] w-full" />
-                    <TabButton>
-                        <Archive /> Archived
-                    </TabButton>
+                    <Link href="browse/archive">                    
+                        <TabButton>
+                            <Archive /> Archived
+                        </TabButton>
+                    </Link>
                     <TabButton { ...{isActive: true} }>
                         <BookOpen /> Active
                     </TabButton>
-                    <TabButton>
-                        <Pin /> Saved
-                    </TabButton>
+                    <Link href="savedProjects">
+                        <TabButton>
+                            <Pin /> Saved
+                        </TabButton>                    
+                    </Link>
             </div>
             <div>
                 <span className="text-[#808080] font-bold">Filters</span>
