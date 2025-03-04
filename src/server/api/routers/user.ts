@@ -128,6 +128,30 @@ export async function getUsersByProgram(programId: number) {
   }
 }
 
+
+/**
+ * Fetches all students for a specific program.
+ * 
+ * @param {number} programId - The ID of the program to fetch users for.
+ * @returns {Promise<{ users: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getStudentsByProgram(programId: number) {
+  try {
+    const programUsers = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.programId, programId),
+          eq(users.type, 'student')
+        )
+      )
+    return { users: programUsers, error: false }
+  } catch (error) {
+    return { users: [], error: true, message: "Failed to fetch program students" }
+  }
+}
+
 /**
  * Fetches all users for a specific team.
  * 

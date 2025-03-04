@@ -106,19 +106,29 @@ export default function ProjectAssignments() {
 
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (!over) return;
-
-    console.log(`User ${active.id} dragged to project ${over.id}`);
-
     const userId = active.data.current!.userId as number;
-    const newProject = over.data.current!.projectId as number;
+    
+    // If dropped back into the unassigned list, set projectId to null
+    if (!over) {
+      // Update the user's project ID to null (unassigned)
+      console.log(`User ${active.id} dragged to unassigned`);
 
-    // Update the user's project ID in the state, then the database
-    setUserData(() =>
-        userData.map((user) => 
-            user.id === userId ? { ...user, projectId: newProject } : user
-        )
+      setUserData((prevState) =>
+        prevState.map((user) =>
+          user.id === userId ? { ...user, projectId: null } : user
     )
+  );
+} else {
+  // Otherwise, assign the user to the new project
+      console.log(`User ${active.id} dragged to project ${over.id}`);
+
+      const newProject = over.data.current!.projectId as number;
+      setUserData((prevState) =>
+        prevState.map((user) =>
+          user.id === userId ? { ...user, projectId: newProject } : user
+        )
+      );
+    }
 
     console.log(userData);
 
@@ -139,6 +149,9 @@ export default function ProjectAssignments() {
                 <h3 className="text-2xl font-semibold mx-4 mb-4">
                     Students
                 </h3>
+                {/* <div>
+                    <DataTable columns={columns} data={userData.filter(user => user.projectId === null)} />
+                </div> */}
                 <div className="flex flex-col gap-6">
                     {/* List all the users that have a null projectId (haven't been assigned to a project yet) */}
                     {userData.filter(user => user.projectId === null).map((user) => (
