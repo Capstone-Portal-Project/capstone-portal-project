@@ -3,41 +3,47 @@
 import clsx from "clsx";
 import { Pin } from "lucide-react";
 import { useState } from "react";
+import { createSavedProject } from "~/server/api/routers/savedProjects";
 
 type PinButtonProps = {
-    onClick?: () => void
-}
+    projectId: number;
+    userId: number;
+};
 
-const PinButton = (props: PinButtonProps) => {
-    const { onClick } = props;
+const PinButton = ({ projectId, userId=1 }: PinButtonProps) => {
     const [isActive, setIsActive] = useState(false);
 
-    const clickHandler = (event: React.MouseEvent) => {
+    const clickHandler = async (event: React.MouseEvent) => {
         event.preventDefault();
-
-        // Handle Internal State
         setIsActive(!isActive);
 
-        // Delegate External Side-effect
-        onClick?.();
-    }
 
+        const savedProjectData = {
+            userId: 8,
+            projectId:16,
+            saveIndex: 0,
+        };
 
-    return(
-        <div 
-        onClick={clickHandler}
-        className={clsx(
-            `flex items-center justify-center bg-[#FFFFFF] text-[#423e3c] ease-in-out transition-all
-            group-hover:bg-[#f7f5f5] hover:!bg-[#e9e5e4] h-9 w-9 [&_svg]:size-6 rounded-md 
-            [&_svg]:transition-colors [&_svg]:duration-500 [&_svg]:ease-in-out`,
-            {
-                '[&_svg]:fill-[#C4D6A4]': isActive,
-                '[&_svg]:fill-[#f7f5f5]': !isActive
-            }
-        )}>
+        const response = await createSavedProject(savedProjectData);
+        console.log(response);
+    };
+
+    return (
+        <div
+            onClick={clickHandler}
+            className={clsx(
+                `flex items-center justify-center bg-[#FFFFFF] text-[#423e3c] ease-in-out transition-all
+                group-hover:bg-[#f7f5f5] hover:!bg-[#e9e5e4] h-9 w-9 [&_svg]:size-6 rounded-md 
+                [&_svg]:transition-colors [&_svg]:duration-500 [&_svg]:ease-in-out`,
+                {
+                    '[&_svg]:fill-[#C4D6A4]': isActive,
+                    '[&_svg]:fill-[#f7f5f5]': !isActive
+                }
+            )}
+        >
             <Pin />
         </div>
     );
-}
+};
 
 export default PinButton;

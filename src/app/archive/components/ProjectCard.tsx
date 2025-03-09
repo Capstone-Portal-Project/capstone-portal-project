@@ -25,7 +25,6 @@ const ProjectCard = (props: ProjectCardProps) => {
                     <div className="w-full space-y-1.5 leading-none tracking-tight">
                         <div className="flex justify-between">
                             <div className="text-lg font-semibold">{title}</div>
-                            <PinButton />
                         </div>
                         <div className="text-sm text-muted-foreground overflow-hidden text-ellipsis line-clamp-2">{description}</div>
                     </div>
