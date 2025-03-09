@@ -109,3 +109,79 @@ export async function deleteSavedProject(saveId: number) {
     return { error: true, message: "Failed to delete saved project" }
   }
 }
+
+/**
+ * Fetches the highest saveIndex for a specific user.
+ * 
+ * @param {number} userId - The ID of the user to fetch the highest saveIndex for.
+ * @returns {Promise<number>} The highest saveIndex for the user or 0 if no saved projects exist.
+ */
+export async function getHighestSaveIndex(userId: number): Promise<number> {
+  try {
+    const result = await db
+      .select()
+      .from(savedProjects)
+      .where(eq(savedProjects.userId, userId))
+    return result.length+1
+  } catch (error) {
+    console.error("Failed to fetch highest saveIndex", error)
+    return 0
+  }
+}
+
+
+export async function updateRankAndGetProjects(
+  saveId: number,
+  userId: number,
+  direction: 'up' | 'down'
+) {
+  try {
+    const currentProject = await db
+  .select()
+  .from(savedProjects)
+  .where(eq(savedProjects.saveId, saveId));
+
+if (!currentProject || currentProject.length === 0) {
+  return { error: true, message: "Project not found" };
+}
+
+// At this point, TypeScript knows currentProject is non-empty
+const project = currentProject[0];
+
+if (!project) {
+  return { error: true, message: "Project not found" };  // Safeguard if somehow project is still undefined
+}
+
+const newSaveIndex = direction === 'up' ? project.saveIndex - 1 : project.saveIndex + 1;
+
+
+
+    // Update the project with the new saveIndex
+    const updateResult = await updateSavedProject(saveId, { saveIndex: newSaveIndex });
+
+    if (updateResult.error) {
+      return { error: true, message: "Failed to update project rank" };
+    }
+
+    // If the saveIndex reaches a certain value (e.g., 0), we delete the project
+    if (newSaveIndex <= 0) {
+      const deleteResult = await deleteSavedProject(saveId);
+      if (deleteResult.error) {
+        return { error: true, message: "Failed to delete project after rank update" };
+      }
+    }
+
+    // Fetch the updated list of saved projects for the user
+    const savedProjectsResult = await getSavedProjectsByUser(userId);
+
+    if (savedProjectsResult.error) {
+      return { error: true, message: "Failed to fetch updated list of projects" };
+    }
+
+    return { error: false, savedProjects: savedProjectsResult.savedProjects };
+  } catch (error) {
+    console.error("Error updating rank and fetching projects:", error);
+    return { error: true, message: "An unexpected error occurred" };
+  }
+}
+

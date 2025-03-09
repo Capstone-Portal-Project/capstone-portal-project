@@ -3,25 +3,25 @@
 import clsx from "clsx";
 import { Pin } from "lucide-react";
 import { useState } from "react";
-import { createSavedProject } from "~/server/api/routers/savedProjects";
+import { createSavedProject, getHighestSaveIndex } from "~/server/api/routers/savedProjects";
 
 type PinButtonProps = {
     projectId: number;
     userId: number;
 };
 
-const PinButton = ({ projectId, userId=1 }: PinButtonProps) => {
+const PinButton = ({ projectId, userId }: PinButtonProps) => {
     const [isActive, setIsActive] = useState(false);
-
     const clickHandler = async (event: React.MouseEvent) => {
         event.preventDefault();
         setIsActive(!isActive);
 
+        const saveIndex= await getHighestSaveIndex(userId);
 
         const savedProjectData = {
-            userId: 8,
-            projectId:16,
-            saveIndex: 0,
+            userId,
+            projectId,
+            saveIndex,
         };
 
         const response = await createSavedProject(savedProjectData);
