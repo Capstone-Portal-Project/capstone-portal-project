@@ -388,3 +388,31 @@ export async function updateProjectStatus(
     }
   }
 }
+
+/**
+ * Fetches the title of a project by its projectId.
+ * 
+ * @param {number} projectId - The ID of the project to fetch the title for.
+ * @returns {Promise<{ title: string | null; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getTitleByProjectId(projectId: number) {
+  try {
+    const projectResult = await db
+      .select({ projectTitle: projects.projectTitle })
+      .from(projects)
+      .where(eq(projects.projectId, projectId))
+      .limit(1)
+
+    // If no project is found, return null title
+    const project = projectResult[0] ?? null
+
+    if (!project) {
+      return { title: null, error: true, message: "Project not found" }
+    }
+
+    return { title: project.projectTitle, error: false }
+  } catch (error) {
+    console.error("Failed to fetch project title", error)
+    return { title: null, error: true, message: "Failed to fetch project title" }
+  }
+}

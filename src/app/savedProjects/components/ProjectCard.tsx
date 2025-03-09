@@ -2,6 +2,9 @@ import { Badge } from "~/components/ui/badge";
 import Link from "next/link";
 import UpdateRankButton from "./UpdateRankButton"; // Import the UpdateRankButton
 import PinButton from "./PinButton"; // Import the PinButton
+import { getTitleByProjectId } from '~/server/api/routers/project'; // Import the 
+import { useEffect, useState } from "react";
+
 
 const defaultImgUrl = "https://eecs.engineering.oregonstate.edu/capstone/submission/assets/img/capstone_test.jpg";
 
@@ -17,7 +20,22 @@ type ProjectCardProps = {
 };
 
 const ProjectCard = ({ saveId, preferenceDescription, projectId, saveIndex, onDelete, onMoveUp, onMoveDown }: ProjectCardProps) => {
-  
+  const [projectTitle, setProjectTitle] = useState<string | null>(null);
+
+  // Fetch the project title based on projectId
+  useEffect(() => {
+    const fetchProjectTitle = async () => {
+      const result = await getTitleByProjectId(projectId);
+      if (!result.error) {
+        setProjectTitle(result.title);
+      } else {
+        setProjectTitle("Project not found");
+      }
+    };
+    
+    fetchProjectTitle();
+  }, [projectId]);
+
   const handleButtonClick = (event: React.MouseEvent) => {
     event.stopPropagation();
   };
@@ -32,7 +50,7 @@ const ProjectCard = ({ saveId, preferenceDescription, projectId, saveIndex, onDe
         </div>
         <div className="w-full space-y-1.5 leading-none tracking-tight">
           <div className="flex justify-between">
-            <div className="text-lg font-semibold">{projectId}</div>
+            <div className="text-lg font-semibold">{projectTitle || "Loading..."}</div> {/* Display project title */}
             <PinButton saveId={saveId} onDelete={onDelete} /> {/* Pass the onDelete prop */}
           </div>
           <div className="text-sm text-muted-foreground overflow-hidden text-ellipsis line-clamp-2">
