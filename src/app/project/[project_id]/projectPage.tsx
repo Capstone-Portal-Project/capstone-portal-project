@@ -81,13 +81,6 @@ export default function ProjectPageClient({
             </>
           )}
         </Button>
-        <Button
-          variant="outline"
-          className="border-[#DC4405]"
-        >
-          <Pin />
-          <p>Save Project</p>
-        </Button>
       </div>
     </>
   );

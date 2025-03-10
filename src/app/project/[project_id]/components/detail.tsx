@@ -19,13 +19,14 @@ export default function Detail({
   keywords,
 }: InfoCard) {
   return (
-    <div className="flex flex-col gap-4 p-4 text-copy border border-copy rounded-sm">
+    <div className="flex flex-col gap-4 p-4 text-copy border border-copy rounded-sm max-w-1/4">
       {/* Thumbnail */}
       <img
         src={img}
         alt="Project thumbnail"
         className="w-full h-auto object-cover rounded"
       />
+
 
       {/* Description */}
       <p>{desc}</p>
