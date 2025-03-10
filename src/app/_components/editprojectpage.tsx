@@ -269,22 +269,22 @@ export function ProjectEditForm({ project, refreshPage }: { project: ProjectSche
               />
 
               <FormField
-                  control={form.control}
-                  name="programsId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Program</FormLabel>
-                      <FormControl>
-                        <Input 
-                        
+                control={form.control}
+                name="programsId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Program</FormLabel>
+                    <FormControl>
+                      <Input 
                         type="number"
-                        {...field} />
-                      </FormControl>
-                      
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
