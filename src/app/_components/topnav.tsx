@@ -21,7 +21,7 @@ export function TopNav() {
 
   const adminLinks: { title: string; href: string; }[] = [
     {
-      title: "Upadate Home",
+      title: "Update Home",
       href: "/admin/update-home",
     },
   ]
