@@ -3,7 +3,7 @@
 import { db } from "~/server/db"
 import { savedProjects } from "~/server/db/schema"
 import { z } from "zod"
-import { eq, and } from "drizzle-orm"
+import { eq, and, gt, sql} from "drizzle-orm"
 
 /**
  * Schema for validating saved project data.
@@ -24,24 +24,33 @@ const savedProjectSchema = z.object({
 export async function createSavedProject(
   unsafeData: z.infer<typeof savedProjectSchema>
 ): Promise<{ error: boolean; message?: string; saveId?: number }> {
-  const { success, data } = savedProjectSchema.safeParse(unsafeData)
+  const { success, data } = savedProjectSchema.safeParse(unsafeData);
 
   if (!success) {
-    return { error: true, message: "Invalid data" }
+    return { error: true, message: "Invalid data" };
   }
 
   try {
+    // Check if the project already exists for the user
+    const existingProject = await db
+      .select()
+      .from(savedProjects)
+      .where(and(eq(savedProjects.userId, data.userId), eq(savedProjects.projectId, data.projectId)));
+
+    if (existingProject.length > 0) {
+      return { error: true, message: "Project already saved for this user" };
+    }
     const result = await db.insert(savedProjects)
       .values(data)
       .returning({ saveId: savedProjects.saveId })
-      .execute()
+      .execute();
 
     return { 
       error: false, 
       saveId: result[0]?.saveId 
-    }
+    };
   } catch (error) {
-    return { error: true, message: "Failed to save project" }
+    return { error: true, message: "Failed to save project" };
   }
 }
 
@@ -94,21 +103,48 @@ export async function getSavedProjectsByUser(userId: number) {
 }
 
 /**
- * Deletes a saved project.
+ * Deletes a saved project and updates the saveIndex for remaining projects.
  * 
  * @param {number} saveId - The ID of the saved project to delete.
  * @returns {Promise<{ error: boolean; message?: string }>} The result of the deletion operation.
  */
 export async function deleteSavedProject(saveId: number) {
   try {
-    await db.delete(savedProjects)
+    // Get the project to be deleted
+    const projectToDelete = await db
+      .select()
+      .from(savedProjects)
+      .where(eq(savedProjects.saveId, saveId));
+
+    if (!projectToDelete || projectToDelete.length === 0) {
+      return { error: true, message: "Project not found" };
+    }
+
+    const  saveIndex  = projectToDelete[0]?.saveIndex;
+    const  userId  = projectToDelete[0]?.userId;
+    if (saveIndex === undefined || userId === undefined) {
+      return { error: true, message: "Invalid project data" };
+    }
+    // Delete the selected project
+    await db
+      .update(savedProjects)
+      .set({ saveIndex: sql`${savedProjects.saveIndex} - 1` })
+      .where(and(eq(savedProjects.userId, userId), gt(savedProjects.saveIndex, saveIndex)))
+      .execute();
+      
+    await db
+      .delete(savedProjects)
       .where(eq(savedProjects.saveId, saveId))
-      .execute()
-    return { error: false }
+      .execute();
+
+    return { error: false };
   } catch (error) {
-    return { error: true, message: "Failed to delete saved project" }
+    console.error("Error deleting saved project:", error);
+    return { error: true, message: "Failed to delete saved project" };
   }
 }
+
+
 
 /**
  * Fetches the highest saveIndex for a specific user.

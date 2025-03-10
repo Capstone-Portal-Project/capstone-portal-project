@@ -2,8 +2,8 @@
 
 import clsx from "clsx";
 import { Pin } from "lucide-react";
-import { useState } from "react";
-import { createSavedProject, getHighestSaveIndex } from "~/server/api/routers/savedProjects";
+import { useState, useEffect } from "react";
+import { createSavedProject, deleteSavedProject, getHighestSaveIndex, getSavedProjectsByUser } from "~/server/api/routers/savedProjects";
 
 type PinButtonProps = {
     projectId: number;
@@ -12,20 +12,58 @@ type PinButtonProps = {
 
 const PinButton = ({ projectId, userId }: PinButtonProps) => {
     const [isActive, setIsActive] = useState(false);
-    const clickHandler = async (event: React.MouseEvent) => {
-        event.preventDefault();
-        setIsActive(!isActive);
 
-        const saveIndex= await getHighestSaveIndex(userId);
-
-        const savedProjectData = {
-            userId,
-            projectId,
-            saveIndex,
+    // Fetch saved projects when the component mounts
+    useEffect(() => {
+        const fetchSavedStatus = async () => {
+            try {
+                const savedProjectsResult = await getSavedProjectsByUser(userId);
+                const isProjectSaved = savedProjectsResult.savedProjects.some(
+                    (project) => project.projectId === projectId
+                );
+                setIsActive(isProjectSaved);  // Set the button state based on whether the project is saved
+            } catch (error) {
+                console.error("Failed to fetch saved projects:", error);
+            }
         };
 
-        const response = await createSavedProject(savedProjectData);
-        console.log(response);
+        fetchSavedStatus();
+    }, [userId, projectId]);
+
+    const clickHandler = async (event: React.MouseEvent) => {
+        event.preventDefault();
+
+        if (isActive) {
+            const savedProjectsResult = await getSavedProjectsByUser(userId);
+            const projectToDelete = savedProjectsResult.savedProjects.find(
+                (project) => project.projectId === projectId
+            );
+
+            if (projectToDelete) {
+                const deleteResult = await deleteSavedProject(projectToDelete.saveId);
+                if (deleteResult.error) {
+                    console.log(deleteResult.message);
+                } else {
+                    setIsActive(false);  // Set the button to inactive once deleted
+                }
+            }
+        } else {
+            // If the project is not saved, save it
+            const saveIndex = await getHighestSaveIndex(userId);
+
+            const savedProjectData = {
+                userId,
+                projectId,
+                saveIndex,
+            };
+
+            const response = await createSavedProject(savedProjectData);
+            if (response.error) {
+                console.log(response.message);
+            } else {
+                setIsActive(true);  // Set the button to active once saved
+            }
+        }
     };
 
     return (

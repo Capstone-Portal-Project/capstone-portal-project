@@ -73,100 +73,81 @@ const SavedProjectsPage = () => {
 
   // Handle project deletion by removing it from the state
   // Inside SavedProjectsPage
-
   const handleDelete = async (saveId: number) => {
-  // Find the project to delete
-  const projectToDelete = savedProjects.find(project => project.saveId === saveId);
-  if (!projectToDelete) return;
+    // Find the project to delete
+    const projectToDelete = savedProjects.find(project => project.saveId === saveId);
+    if (!projectToDelete) return;
 
-  // Delete the project
-  await deleteSavedProject(saveId); // Assuming this is your delete function
-  setProjects(prevProjects => prevProjects.filter(project => project.saveId !== saveId));
-
-  // Get the index of the deleted project
-  const deletedIndex = projectToDelete.saveIndex;
-
-  // Update the saveIndex for projects with a higher rank
-  setProjects(prevProjects => 
-    prevProjects.map(project => {
-      if (project.saveIndex > deletedIndex) {
-        return {
-          ...project,
-          saveIndex: project.saveIndex - 1, // Decrease the rank of projects after the deleted one
-        };
-      }
-      return project;
-    })
-  );
-};
-
+    // Delete the project
+    await deleteSavedProject(saveId); // Assuming this is your delete function
+    setProjects(prevProjects => prevProjects.filter(project => project.saveId !== saveId));
+  };
 
   // Handle moving project up
-const handleMoveUp = async (saveId: number) => {
-  const currentProject = savedProjects.find(project => project.saveId === saveId);
-  if (!currentProject) return;
+  const handleMoveUp = async (saveId: number) => {
+    const currentProject = savedProjects.find(project => project.saveId === saveId);
+    if (!currentProject) return;
 
-  const nextProject = savedProjects.find(project => project.saveIndex === currentProject.saveIndex - 1);
-  if (!nextProject) return;
+    const nextProject = savedProjects.find(project => project.saveIndex === currentProject.saveIndex - 1);
+    if (!nextProject) return;
 
-  // Swap the saveIndexes between the two projects
-  const updateResult = await updateSavedProject(currentProject.saveId, { saveIndex: currentProject.saveIndex - 1 });
-  const nextUpdateResult = await updateSavedProject(nextProject.saveId, { saveIndex: currentProject.saveIndex });
+    // Swap the saveIndexes between the two projects
+    const updateResult = await updateSavedProject(currentProject.saveId, { saveIndex: currentProject.saveIndex - 1 });
+    const nextUpdateResult = await updateSavedProject(nextProject.saveId, { saveIndex: currentProject.saveIndex });
 
-  if (updateResult.error || nextUpdateResult.error) {
-    console.error("Failed to update project rank");
-    return;
-  }
+    if (updateResult.error || nextUpdateResult.error) {
+      console.error("Failed to update project rank");
+      return;
+    }
 
-  // After the update, reorder the projects based on the updated saveIndex
-  setProjects(prevProjects => {
-    const updatedProjects = prevProjects
-      .map(project => 
-        project.saveId === currentProject.saveId
-          ? { ...project, saveIndex: currentProject.saveIndex - 1 }
-          : project.saveId === nextProject.saveId
-          ? { ...project, saveIndex: currentProject.saveIndex }
-          : project
-      )
-      .sort((a, b) => a.saveIndex - b.saveIndex); // Sort projects by saveIndex to reflect correct order
+    // After the update, reorder the projects based on the updated saveIndex
+    setProjects(prevProjects => {
+      const updatedProjects = prevProjects
+        .map(project => 
+          project.saveId === currentProject.saveId
+            ? { ...project, saveIndex: currentProject.saveIndex - 1 }
+            : project.saveId === nextProject.saveId
+            ? { ...project, saveIndex: currentProject.saveIndex }
+            : project
+        )
+        .sort((a, b) => a.saveIndex - b.saveIndex); // Sort projects by saveIndex to reflect correct order
 
-    return updatedProjects;
-  });
-};
+      return updatedProjects;
+    });
+  };
 
-// Handle moving project down
-const handleMoveDown = async (saveId: number) => {
-  const currentProject = savedProjects.find(project => project.saveId === saveId);
-  if (!currentProject) return;
+  // Handle moving project down
+  const handleMoveDown = async (saveId: number) => {
+    const currentProject = savedProjects.find(project => project.saveId === saveId);
+    if (!currentProject) return;
 
-  const nextProject = savedProjects.find(project => project.saveIndex === currentProject.saveIndex + 1);
-  if (!nextProject) return;
+    const nextProject = savedProjects.find(project => project.saveIndex === currentProject.saveIndex + 1);
+    if (!nextProject) return;
 
-  // Swap the saveIndexes between the two projects
-  const updateResult = await updateSavedProject(currentProject.saveId, { saveIndex: currentProject.saveIndex + 1 });
-  const nextUpdateResult = await updateSavedProject(nextProject.saveId, { saveIndex: currentProject.saveIndex });
+    // Swap the saveIndexes between the two projects
+    const updateResult = await updateSavedProject(currentProject.saveId, { saveIndex: currentProject.saveIndex + 1 });
+    const nextUpdateResult = await updateSavedProject(nextProject.saveId, { saveIndex: currentProject.saveIndex });
 
-  if (updateResult.error || nextUpdateResult.error) {
-    console.error("Failed to update project rank");
-    return;
-  }
+    if (updateResult.error || nextUpdateResult.error) {
+      console.error("Failed to update project rank");
+      return;
+    }
 
-  // After the update, reorder the projects based on the updated saveIndex
-  setProjects(prevProjects => {
-    const updatedProjects = prevProjects
-      .map(project => 
-        project.saveId === currentProject.saveId
-          ? { ...project, saveIndex: currentProject.saveIndex + 1 }
-          : project.saveId === nextProject.saveId
-          ? { ...project, saveIndex: currentProject.saveIndex }
-          : project
-      )
-      .sort((a, b) => a.saveIndex - b.saveIndex); // Sort projects by saveIndex to reflect correct order
+    // After the update, reorder the projects based on the updated saveIndex
+    setProjects(prevProjects => {
+      const updatedProjects = prevProjects
+        .map(project => 
+          project.saveId === currentProject.saveId
+            ? { ...project, saveIndex: currentProject.saveIndex + 1 }
+            : project.saveId === nextProject.saveId
+            ? { ...project, saveIndex: currentProject.saveIndex }
+            : project
+        )
+        .sort((a, b) => a.saveIndex - b.saveIndex); // Sort projects by saveIndex to reflect correct order
 
-    return updatedProjects;
-  });
-};
-
+      return updatedProjects;
+    });
+  };
 
   if (loading) {
     return (

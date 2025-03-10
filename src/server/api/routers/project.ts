@@ -416,3 +416,15 @@ export async function getTitleByProjectId(projectId: number) {
     return { title: null, error: true, message: "Failed to fetch project title" }
   }
 }
+
+const checkIfProjectSaved = async (userId: number, projectId: number): Promise<boolean> => {
+    try {
+        const response = await fetch(`/api/savedProjects?userId=${userId}&projectId=${projectId}`);
+        const data = await response.json();
+        return data.isSaved; // Assuming your API returns `{ isSaved: true/false }`
+    } catch (error) {
+        console.error("Error checking if project is saved:", error);
+        return false;
+    }
+};
+

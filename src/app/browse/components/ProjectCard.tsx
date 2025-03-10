@@ -17,8 +17,6 @@ type ProjectCardProps = {
 
 const ProjectCard = (props: ProjectCardProps) => {
     const { imgUrl = defaultImgUrl, title, description, tags, projectId } = props;
-  
-    // State for userId and username (or any other user data you need)
     const [userId, setUserId] = useState<number | null>(null);
   
     const { userId: clerkUserId, isSignedIn } = useAuth();
@@ -27,20 +25,18 @@ const ProjectCard = (props: ProjectCardProps) => {
       const fetchUserId = async () => {
         if (isSignedIn && clerkUserId) {
           try {
-            // Use Clerk ID from Clerk auth system
+            
             const clerkId = clerkUserId;
   
-            // Call your server-side function to get the user by Clerk ID
+           
             const { user: fetchedUser, error } = await getUserByClerkId(clerkId);
             if (error) {
               console.error("Failed to fetch user by Clerk ID:", error);
               return;
             }
   
-            // Set the userId state after fetching
+           
             setUserId(fetchedUser?.userId ?? null);
-  
-            // Log the updated userId (after state change)
             console.log("Updated userId:", fetchedUser?.userId);
           } catch (error) {
             console.error("Error fetching userId:", error);
