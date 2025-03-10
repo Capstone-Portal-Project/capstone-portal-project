@@ -1,135 +1,192 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import { DndContext, closestCenter } from "@dnd-kit/core";
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Button } from "~/components/ui/button";
-import { useRouter } from "next/navigation";
+import { Toaster } from "~/components/ui/toaster";
+import ProjectCard from "./components/ProjectCard";
+import * as PortalPrimitive from "@radix-ui/react-portal";
+import { getSavedProjectsByUser, updateSavedProject, deleteSavedProject } from "~/server/api/routers/savedProjects";
+import CardGrid from "./components/CardGrid";
+import Sidebar from "./components/Sidebar";
+import { useAuth } from "@clerk/clerk-react";
+import { getUserByClerkId } from '~/server/api/routers/user';
 
-interface Project {
+type SavedProject = {
   saveId: number;
-  studentId: number;
+  userId: number;
   projectId: number;
   saveIndex: number;
-  preferenceDescription?: string;
-}
+  preferenceDescription: string | null;
+};
 
-export default function SavedProjectsPage() {
-  const { user } = useUser();
-  const [projects, setProjects] = useState<Project[]>([]);
+const SavedProjectsPage = () => {
+  const [savedProjects, setProjects] = useState<SavedProject[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [userId, setUserId] = useState<number | null>(null); // State for userId
+
+  const { userId: clerkUserId, isSignedIn } = useAuth(); // Fetch Clerk userId
 
   useEffect(() => {
-    async function fetchProjects() {
-      try {
-        const response = await fetch("/api/savedProjects");
-        const data = await response.json();
-        if (!data.error) {
-          setProjects(data.projects);
-        } else {
-          console.error("Error fetching projects:", data.message);
+    const fetchUserId = async () => {
+      if (isSignedIn && clerkUserId) {
+        try {
+          // Use Clerk ID to fetch user info
+          const { user: fetchedUser, error } = await getUserByClerkId(clerkUserId);
+          if (error) {
+            console.error("Failed to fetch user by Clerk ID:", error);
+            return;
+          }
+
+          // Set the userId after fetching from Clerk
+          setUserId(fetchedUser?.userId ?? null);
+          console.log("Fetched userId:", fetchedUser?.userId);
+        } catch (error) {
+          console.error("Error fetching userId:", error);
         }
-      } catch (error) {
-        console.error("Failed to fetch projects", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProjects();
-  }, []);
-
-  const updateRank = async (saveId: number, newIndex: number) => {
-    try {
-      const response = await fetch("/api/savedProjects/update-rank", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ saveId, saveIndex: newIndex }),
-      });
-
-      if (response.ok) {
-        setProjects((prev) =>
-          prev.map((project) =>
-            project.saveId === saveId ? { ...project, saveIndex: newIndex } : project
-          )
-        );
       } else {
-        console.error("Failed to update rank:", await response.text());
+        console.log("User is not signed in");
       }
-    } catch (error) {
-      console.error("Failed to update rank", error);
-    }
+    };
+
+    fetchUserId();
+  }, [isSignedIn, clerkUserId]); // Re-run when user info changes
+
+  useEffect(() => {
+    const fetchSavedProjects = async () => {
+      if (userId) {
+        try {
+          const result = await getSavedProjectsByUser(userId);
+          if (!result.error) {
+            setProjects(result.savedProjects);
+          } else {
+            console.error(result.message);
+          }
+        } catch (error) {
+          console.error("Failed to fetch saved projects:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchSavedProjects();
+  }, [userId]); // Re-run when userId changes
+
+  // Handle project deletion by removing it from the state
+  // Inside SavedProjectsPage
+  const handleDelete = async (saveId: number) => {
+    // Find the project to delete
+    const projectToDelete = savedProjects.find(project => project.saveId === saveId);
+    if (!projectToDelete) return;
+
+    // Delete the project
+    await deleteSavedProject(saveId); // Assuming this is your delete function
+    setProjects(prevProjects => prevProjects.filter(project => project.saveId !== saveId));
   };
 
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
+  // Handle moving project up
+  const handleMoveUp = async (saveId: number) => {
+    const currentProject = savedProjects.find(project => project.saveId === saveId);
+    if (!currentProject) return;
 
-    const oldIndex = projects.findIndex((project) => project.saveId === active.id);
-    const newIndex = projects.findIndex((project) => project.saveId === over.id);
+    const nextProject = savedProjects.find(project => project.saveIndex === currentProject.saveIndex - 1);
+    if (!nextProject) return;
 
-    if (oldIndex !== newIndex) {
-      const newProjects = arrayMove(projects, oldIndex, newIndex);
-      setProjects(newProjects);
+    // Swap the saveIndexes between the two projects
+    const updateResult = await updateSavedProject(currentProject.saveId, { saveIndex: currentProject.saveIndex - 1 });
+    const nextUpdateResult = await updateSavedProject(nextProject.saveId, { saveIndex: currentProject.saveIndex });
 
-      // Update rankings in the backend
-      newProjects.forEach((project, index) => {
-        updateRank(project.saveId, index + 1); // Assuming index starts from 1
-      });
+    if (updateResult.error || nextUpdateResult.error) {
+      console.error("Failed to update project rank");
+      return;
     }
+
+    // After the update, reorder the projects based on the updated saveIndex
+    setProjects(prevProjects => {
+      const updatedProjects = prevProjects
+        .map(project => 
+          project.saveId === currentProject.saveId
+            ? { ...project, saveIndex: currentProject.saveIndex - 1 }
+            : project.saveId === nextProject.saveId
+            ? { ...project, saveIndex: currentProject.saveIndex }
+            : project
+        )
+        .sort((a, b) => a.saveIndex - b.saveIndex); // Sort projects by saveIndex to reflect correct order
+
+      return updatedProjects;
+    });
   };
 
-  if (loading) return <p>Loading...</p>;
+  // Handle moving project down
+  const handleMoveDown = async (saveId: number) => {
+    const currentProject = savedProjects.find(project => project.saveId === saveId);
+    if (!currentProject) return;
 
-  return (
-    <div className="p-4">
-      
-      <div className="flex justify-between items-center px-4">
-      <h1 className="text-3xl font-bold">Browse Projects</h1>
-      <Button onClick={() => router.push("/browse")}>
-        Return to Projects
-      </Button>
+    const nextProject = savedProjects.find(project => project.saveIndex === currentProject.saveIndex + 1);
+    if (!nextProject) return;
+
+    // Swap the saveIndexes between the two projects
+    const updateResult = await updateSavedProject(currentProject.saveId, { saveIndex: currentProject.saveIndex + 1 });
+    const nextUpdateResult = await updateSavedProject(nextProject.saveId, { saveIndex: currentProject.saveIndex });
+
+    if (updateResult.error || nextUpdateResult.error) {
+      console.error("Failed to update project rank");
+      return;
+    }
+
+    // After the update, reorder the projects based on the updated saveIndex
+    setProjects(prevProjects => {
+      const updatedProjects = prevProjects
+        .map(project => 
+          project.saveId === currentProject.saveId
+            ? { ...project, saveIndex: currentProject.saveIndex + 1 }
+            : project.saveId === nextProject.saveId
+            ? { ...project, saveIndex: currentProject.saveIndex }
+            : project
+        )
+        .sort((a, b) => a.saveIndex - b.saveIndex); // Sort projects by saveIndex to reflect correct order
+
+      return updatedProjects;
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
-
-      <h1 className="text-2xl font-bold mb-4 text-center">Saved Projects</h1> {}
-      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={projects.map((p) => p.saveId)} strategy={verticalListSortingStrategy}>
-          <ul className="flex flex-col items-center"> {}
-            {projects.length > 0 ? (
-              projects.map((project) => <SortableProject key={project.saveId} project={project} />)
-            ) : (
-              <p>No saved projects found.</p>
-            )}
-          </ul>
-        </SortableContext>
-      </DndContext>
-    </div>
-  );
-}
-
-function SortableProject({ project }: { project: Project }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: project.saveId });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+    );
+  }
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="flex items-center justify-between px-4 py-6 border-b bg-white rounded-xl shadow-md cursor-grab active:cursor-grabbing w-3/4"
->
-      <span className="font-semibold text-lg">Project ID: {project.projectId}</span>
-      <span className="text-base text-gray-600">Rank: {project.saveIndex}</span>
-    </li>
+    <main className="flex flex-col bg-[#FFFFFF] w-full place-items-center pb-0 2xl:py-[40px]">
+      <div className="layout grid grid-cols-12 h-[32rem]">
+        <div className="col-span-3 h-full overflow-hidden"></div>
+        <div className="col-span-6 h-full overflow-y-scroll scrollbar-none">
+          <CardGrid>
+            {savedProjects.map((savedProject) => (
+              <ProjectCard
+                key={savedProject.saveId}  // Added key to avoid React warning
+                saveId={savedProject.saveId}
+                userId={savedProject.userId}
+                projectId={savedProject.projectId}
+                saveIndex={savedProject.saveIndex}
+                preferenceDescription={savedProject.preferenceDescription}
+                onDelete={handleDelete}  // Pass the handleDeleteProject function to ProjectCard
+                onMoveUp={handleMoveUp}  // Pass the onMoveUp function
+                onMoveDown={handleMoveDown}  // Pass the onMoveDown function
+              />
+            ))}
+          </CardGrid>
+        </div>
+        <div className="col-span-3">
+          <Sidebar />
+        </div>
+      </div>
+      <PortalPrimitive.Root>
+        <Toaster />
+      </PortalPrimitive.Root>
+    </main>
   );
-}
+};
+
+export default SavedProjectsPage;
