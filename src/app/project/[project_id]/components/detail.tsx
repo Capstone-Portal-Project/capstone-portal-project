@@ -1,5 +1,7 @@
 import React from "react";
 
+const defaultImgUrl = "https://eecs.engineering.oregonstate.edu/capstone/submission/assets/img/capstone_test.jpg";
+
 type InfoCard = {
   img: string;
   desc: string;
@@ -22,11 +24,10 @@ export default function Detail({
     <div className="flex flex-col gap-4 p-4 text-copy border border-copy rounded-sm max-w-1/4">
       {/* Thumbnail */}
       <img
-        src={img}
+        src={img || defaultImgUrl}
         alt="Project thumbnail"
         className="w-full h-auto object-cover rounded"
       />
-
 
       {/* Description */}
       <p>{desc}</p>

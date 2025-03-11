@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Textarea } from "~/components/ui/textarea";
+import Link from "next/link";
 
 type Project = {
   projectId: number;
@@ -21,6 +22,12 @@ type Project = {
   appDescription: string;
   appOrganization: string;
   programsId: number;
+  appObjectives?: string | null;
+  appMotivations?: string | null;
+  appMinQualifications?: string | null;
+  appPrefQualifications?: string | null;
+  appImage?: string | null;
+  projectGithubLink?: string | null;
 };
 
 export default function ProjectSubmissions() {
@@ -128,14 +135,97 @@ export default function ProjectSubmissions() {
                     Review Project
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-xl">{project.projectTitle}</DialogTitle>
                     <DialogDescription className="text-base">{project.appOrganization}</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-6 py-4">
-                    <div className="prose dark:prose-invert">
-                      <p className="text-sm leading-relaxed">{project.appDescription}</p>
+                    <div className="grid gap-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Project Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Project Title</h4>
+                              <p className="text-sm text-muted-foreground">{project.projectTitle}</p>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Organization</h4>
+                              <p className="text-sm text-muted-foreground">{project.appOrganization}</p>
+                            </div>
+                            {project.projectGithubLink && (
+                              <div>
+                                <h4 className="text-sm font-medium mb-1">GitHub Repository</h4>
+                                <Link
+                                  href={project.projectGithubLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:underline"
+                                >
+                                  {project.projectGithubLink}
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium mb-1">Description</h4>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{project.appDescription}</p>
+                          </div>
+                          {project.appImage && (
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Project Image</h4>
+                              <div className="mt-2 max-w-md mx-auto">
+                                <img 
+                                  src={project.appImage} 
+                                  alt={`Image for ${project.projectTitle}`} 
+                                  className="rounded-md shadow-md object-cover w-full"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Additional Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          {project.appObjectives && (
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Project Objectives</h4>
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{project.appObjectives}</p>
+                            </div>
+                          )}
+                          {project.appMotivations && (
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Project Motivations</h4>
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{project.appMotivations}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Qualifications</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          {project.appMinQualifications && (
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Minimum Qualifications</h4>
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{project.appMinQualifications}</p>
+                            </div>
+                          )}
+                          {project.appPrefQualifications && (
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Preferred Qualifications</h4>
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{project.appPrefQualifications}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
                     </div>
                     <div>
                       <label htmlFor="comments" className="text-sm font-medium block mb-2">
