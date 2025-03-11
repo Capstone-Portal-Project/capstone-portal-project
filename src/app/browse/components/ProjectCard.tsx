@@ -16,17 +16,15 @@ const ProjectCard = (props: ProjectCardProps) => {
     const { imgUrl = defaultImgUrl, title, description, tags, projectId } = props;
 
     return (
-        <Link href={`/project/${projectId}`}>
-            <div className="bg-[#FFFFFF] rounded-lg ease-in-out transition-all duration:300 group hover:bg-[#f7f5f5]">
+        <Link href={`/project/${projectId}`} className="h-full">
+            <div className="bg-[#FFFFFF] rounded-lg ease-in-out transition-all h-full duration:300 group hover:bg-[#f7f5f5] relative">
                 <div className="flex space-x-4 p-3">
                     <div className="h-20 w-24 rounded-2xl border-4 shrink-0 overflow-hidden">
                         <img src={imgUrl} className="w-full h-full object-cover" />
                     </div>
-                    <div className="w-full space-y-1.5 leading-none tracking-tight">
-                        <div className="flex justify-between">
-                            <div className="text-lg font-semibold">{title}</div>
-                            <PinButton />
-                        </div>
+                    <div className="w-full mt-1 space-y-1 leading-none tracking-tight">
+                        <div className="text-lg font-semibold">{title}</div>
+                        <PinButton className="absolute top-2 right-2"/>
                         <div className="text-sm text-muted-foreground overflow-hidden text-ellipsis line-clamp-2">{description}</div>
                     </div>
                 </div>
