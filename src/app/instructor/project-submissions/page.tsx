@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { getSubmittedProjects, updateProjectStatus } from '~/server/api/routers/project';
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "~/components/ui/card";
 import { Toaster, useToast } from "~/components/ui/toaster";
@@ -32,8 +31,10 @@ export default function ProjectSubmissions() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const result = await getSubmittedProjects();
-        if (!result.error) {
+        const response = await fetch('/api/projects/submitted');
+        const result = await response.json();
+        
+        if (response.ok) {
           setProjects(result.projects);
         } else {
           toast({
@@ -59,9 +60,17 @@ export default function ProjectSubmissions() {
 
   const handleStatusChange = async (projectId: number, status: 'approved' | 'rejected', comments?: string) => {
     try {
-      const result = await updateProjectStatus(projectId, status, comments);
+      const response = await fetch('/api/projects/status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectId, status, comments }),
+      });
       
-      if (!result.error) {
+      const result = await response.json();
+      
+      if (response.ok) {
         setProjects(projects.filter(project => project.projectId !== projectId));
         setComments("");
         toast({
