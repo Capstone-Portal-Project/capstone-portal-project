@@ -59,8 +59,8 @@ const BrowsePage = () => {
 
 
   return (
-    <main className="flex flex-col bg-[#FFFFFF] w-full  place-items-center pb-0 2xl:py-[40px]">
-        <div className="layout grid grid-cols-12 h-[32rem]">
+    <div className="absolute bottom-0 top-20 bg-[#FFFFFF] w-full place-items-center">
+        <div className="layout grid grid-cols-12 h-full">
           <div className="col-span-3 h-full overflow-hidden">
           </div>
           <div className="col-span-6 h-full overflow-y-scroll scrollbar-none">
@@ -82,7 +82,7 @@ const BrowsePage = () => {
           </div>
         </div>
       <PortalPrimitive.Root><Toaster /></PortalPrimitive.Root>
-    </main>
+    </div>
   );
 };
 

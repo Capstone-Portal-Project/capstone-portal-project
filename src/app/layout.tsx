@@ -29,7 +29,7 @@ export default function RootLayout({
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </head>
-        <body className={inter.className}>
+        <body className={`${inter.className} min-h-dvh relative`}>
           <TopNav />
           <Provider>{children}</Provider>
         </body>

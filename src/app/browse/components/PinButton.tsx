@@ -6,10 +6,11 @@ import { useState } from "react";
 
 type PinButtonProps = {
     onClick?: () => void
+    className?: string; // Further CSS, meant mostly for positioning
 }
 
 const PinButton = (props: PinButtonProps) => {
-    const { onClick } = props;
+    const { onClick, className } = props;
     const [isActive, setIsActive] = useState(false);
 
     const clickHandler = (event: React.MouseEvent) => {
@@ -33,7 +34,8 @@ const PinButton = (props: PinButtonProps) => {
             {
                 '[&_svg]:fill-[#C4D6A4]': isActive,
                 '[&_svg]:fill-[#f7f5f5]': !isActive
-            }
+            },
+            className
         )}>
             <Pin />
         </div>
