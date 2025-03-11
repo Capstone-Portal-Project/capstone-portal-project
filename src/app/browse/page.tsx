@@ -56,8 +56,6 @@ const BrowsePage = () => {
     );
   }
 
-
-
   return (
     <main className="flex flex-col bg-[#FFFFFF] w-full  place-items-center pb-0 2xl:py-[40px]">
         <div className="layout grid grid-cols-12 h-[32rem]">
@@ -72,7 +70,6 @@ const BrowsePage = () => {
                   description: project.appDescription,
                   projectId: project.projectId,
                 };
-
                 return (<ProjectCard key={project.projectId} {...projectInstance}/>);
               })}
             </CardGrid>           

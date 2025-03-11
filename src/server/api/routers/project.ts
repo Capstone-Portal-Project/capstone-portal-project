@@ -256,7 +256,13 @@ export async function getSubmittedProjects() {
         projectTitle: projects.projectTitle,
         appDescription: projects.appDescription,
         appOrganization: projects.appOrganization,
-        programsId: projects.programsId
+        programsId: projects.programsId,
+        appObjectives: projects.appObjectives,
+        appMotivations: projects.appMotivations,
+        appMinQualifications: projects.appMinQualifications,
+        appPrefQualifications: projects.appPrefQualifications,
+        appImage: projects.appImage,
+        projectGithubLink: projects.projectGithubLink
       })
       .from(projects)
       .where(eq(projects.projectStatus, 'submitted'))
