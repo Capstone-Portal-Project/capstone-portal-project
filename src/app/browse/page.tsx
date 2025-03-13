@@ -28,7 +28,6 @@ type ProjectCardProps = {
 const BrowsePage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -59,7 +58,7 @@ const BrowsePage = () => {
 
 
   return (
-    <main className="flex flex-col bg-[#FFFFFF] w-full  place-items-center pb-0 2xl:py-[40px]">
+    <div className="flex flex-col bg-[#FFFFFF] w-full  place-items-center pb-0 2xl:py-[40px]">
         {/* <div className="w-full text-center font-bold text-4xl py-5 bg-[#D73F09] text-[#f7f5f5]">
           <h1>Current Projects</h1>
         </div> */}
@@ -84,23 +83,8 @@ const BrowsePage = () => {
             <Sidebar />
           </div>
         </div>
-        {/* <div className="flex justify-center place-items-center pb-10 w-full">
-          <CardGrid>
-            {projects.map((project: Project) => {
-              const projectInstance: ProjectCardProps = {
-                imgUrl: project.appImage ?? undefined,
-                title: project.projectTitle,
-                description: project.appDescription,
-                projectId: project.projectId,
-              };
-
-              return (<ProjectCard key={project.projectId} {...projectInstance}/>);
-            })}
-          </CardGrid>
-        </div> */}
-      {/* <PortalPrimitive.Root><Sidebar /></PortalPrimitive.Root> */}
       <PortalPrimitive.Root><Toaster /></PortalPrimitive.Root>
-    </main>
+    </div>
   );
 };
 
