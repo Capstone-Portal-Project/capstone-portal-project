@@ -1,8 +1,7 @@
 "use client"
 
-import { Archive, BookOpen, Check, ChevronDown, Pin, Search } from "lucide-react";
+import { Archive, BookOpen, Pin, Search } from "lucide-react";
 import Link from "next/link";
-
 import React from "react";
 import { Command } from "~/components/ui/command";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/select";

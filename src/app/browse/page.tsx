@@ -57,6 +57,7 @@ const BrowsePage = () => {
   }
 
 
+
   return (
     <div className="absolute bottom-0 top-20 bg-[#FFFFFF] w-full place-items-center">
         <div className="layout grid grid-cols-12 h-full">
