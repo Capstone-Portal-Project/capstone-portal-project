@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { OrganizationProfile } from '@clerk/nextjs'
 import {
   Select,
@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from '../../../../components/ui/dialog'
 import { Button } from '../../../../components/ui/button'
-import { Toaster, useToast } from "~/components/ui/toaster";
+import { Toaster, useToast } from '~/components/ui/toaster'
 import { updateProgramStatus, getProgramStatus } from '../../../../server/api/routers/program'
 
 // Define enum values locally for UI logic
@@ -48,6 +48,24 @@ export default function ManageCourse() {
   const { toast } = useToast()
 
   const programId = 5 // TODO: replace with dynamic value when ready
+
+  // Fetch the program's initial status when the component mounts
+  useEffect(() => {
+    async function fetchStatus() {
+      const result = await getProgramStatus(programId)
+      if (!result.error) {
+        setStatus(result.status as ProgramStatus)
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message || 'Failed to fetch program status.',
+          variant: 'destructive',
+        })
+      }
+    }
+
+    fetchStatus()
+  }, [programId, toast])
 
   const handleStatusChange = (value: ProgramStatus) => {
     setPendingStatus(value)
@@ -125,6 +143,8 @@ export default function ManageCourse() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Toast container */}
       <Toaster />
     </div>
   )
