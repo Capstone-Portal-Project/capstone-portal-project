@@ -11,20 +11,23 @@ import {
   navigationMenuTriggerStyle,
 } from "../../components/ui/navigation-menu"
 import { Button } from "../../components/ui/button"
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import Link from "next/link"
 import Image from 'next/image'
 import { cn } from "../../lib/utils"
 
-
 export function TopNav() {
+  const { orgRole } = useAuth();
+
+  const isAdmin = orgRole === "org:admin";
+  const isInstructor = orgRole === "org:instructor" || isAdmin;
 
   const adminLinks: { title: string; href: string; }[] = [
     {
       title: "Update Home",
       href: "/admin/update-home",
     },
-  ]
+  ];
 
   const instructorLinks: { title: string; href: string; }[] = [
     {
@@ -47,7 +50,7 @@ export function TopNav() {
       title: "Project Assignments",
       href: "/instructor/project-assignments",
     },
-  ]
+  ];
 
   return (
     <nav className="flex w-full items-center justify-between p-2 text-primary-foreground bg-gray-800">
@@ -64,34 +67,32 @@ export function TopNav() {
       </Link>
       <NavigationMenu>
         <NavigationMenuList>
-        <NavigationMenuItem>
-            <NavigationMenuTrigger>Admin Tools</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px] ">
-                {adminLinks.map((link) => (
-                  <ListItem
-                    key={link.title}
-                    title={link.title}
-                    href={link.href}
-                  />
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger>Instructor Tools</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px] ">
-                {instructorLinks.map((link) => (
-                  <ListItem
-                    key={link.title}
-                    title={link.title}
-                    href={link.href}
-                  />
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
+          {isAdmin && (
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Admin Tools</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
+                  {adminLinks.map((link) => (
+                    <ListItem key={link.title} title={link.title} href={link.href} />
+                  ))}
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          )}
+
+          {isInstructor && (
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Instructor Tools</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
+                  {instructorLinks.map((link) => (
+                    <ListItem key={link.title} title={link.title} href={link.href} />
+                  ))}
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          )}
+
           <NavigationMenuItem>
             <Link href="/browse" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
@@ -99,6 +100,7 @@ export function TopNav() {
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
+
           <NavigationMenuItem>
             <Link href="/showcase" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
@@ -106,6 +108,7 @@ export function TopNav() {
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
+
           <NavigationMenuItem>
             <Link href="/submit" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
@@ -113,6 +116,7 @@ export function TopNav() {
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
+
           <NavigationMenuItem>
             <SignedOut>
               <SignInButton>
@@ -153,6 +157,6 @@ const ListItem = React.forwardRef<
         </a>
       </NavigationMenuLink>
     </li>
-  )
-})
-ListItem.displayName = "ListItem"
+  );
+});
+ListItem.displayName = "ListItem";
