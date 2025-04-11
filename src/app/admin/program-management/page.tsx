@@ -58,6 +58,7 @@ interface Program {
   start_term?: Term;
   end_term?: Term;
   instructors?: User[];
+  selected_instructors?: number[];
 }
 
 interface Term {
@@ -191,7 +192,8 @@ export default function ProgramManagementPage() {
         programDescription: newProgram.programDescription || undefined,
         programStatus: newProgram.programStatus,
         startTermId: parseInt(String(newProgram.startTermId)),
-        endTermId: parseInt(String(newProgram.endTermId))
+        endTermId: parseInt(String(newProgram.endTermId)),
+        selected_instructors: newProgram.selected_instructors
       });
 
       if (!result.error) {
@@ -260,7 +262,8 @@ export default function ProgramManagementPage() {
         programDescription: editingProgram.programDescription || undefined,
         programStatus: editingProgram.programStatus,
         startTermId: editingProgram.startTermId,
-        endTermId: editingProgram.endTermId
+        endTermId: editingProgram.endTermId,
+        selected_instructors: editingProgram.selected_instructors || []
       });
 
       if (!result.error) {
@@ -421,24 +424,60 @@ export default function ProgramManagementPage() {
               <div>
                 <label className="block text-sm font-medium mb-1">Instructors</label>
                 <Select
-                  value={newProgram.selected_instructors.join(",")}
-                  onValueChange={(value) =>
-                    setNewProgram({
-                      ...newProgram,
-                      selected_instructors: value ? value.split(",").map(Number) : [],
-                    })
-                  }
+                  value={newProgram.selected_instructors.length > 0 ? 'selected' : undefined}
+                  onValueChange={(value) => {
+                    if (value === 'all') {
+                      setNewProgram({
+                        ...newProgram,
+                        selected_instructors: instructors.map(i => i.user_id),
+                      });
+                    } else if (value === 'none') {
+                      setNewProgram({
+                        ...newProgram,
+                        selected_instructors: [],
+                      });
+                    }
+                  }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select instructors" />
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      {newProgram.selected_instructors.length > 0
+                        ? `${newProgram.selected_instructors.length} instructor${
+                            newProgram.selected_instructors.length === 1 ? "" : "s"
+                          } selected`
+                        : "Select instructors"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">Select All</SelectItem>
+                    <SelectItem value="none">Clear Selection</SelectItem>
                     {instructors.map((instructor) => (
                       <SelectItem
                         key={instructor.user_id}
                         value={instructor.user_id.toString()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const userId = instructor.user_id;
+                          setNewProgram(prev => ({
+                            ...prev,
+                            selected_instructors: prev.selected_instructors.includes(userId)
+                              ? prev.selected_instructors.filter(id => id !== userId)
+                              : [...prev.selected_instructors, userId]
+                          }));
+                        }}
                       >
-                        {instructor.username}
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={newProgram.selected_instructors.includes(instructor.user_id)}
+                            readOnly
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-medium">{instructor.username}</span>
+                            <span className="text-sm text-gray-500">{instructor.email}</span>
+                          </div>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -503,7 +542,11 @@ export default function ProgramManagementPage() {
                       variant="outline" 
                       size="sm"
                       onClick={() => {
-                        setEditingProgram(program);
+                        const programWithInstructors: Program = {
+                          ...program,
+                          selected_instructors: program.instructors?.map(i => i.user_id) || []
+                        };
+                        setEditingProgram(programWithInstructors);
                         setIsEditDialogOpen(true);
                       }}
                     >
@@ -610,6 +653,71 @@ export default function ProgramManagementPage() {
                     {terms.map((term) => (
                       <SelectItem key={term.id} value={term.id.toString()}>
                         {term.season} {term.year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Instructors</label>
+                <Select
+                  value={editingProgram.selected_instructors?.length ? 'selected' : undefined}
+                  onValueChange={(value) => {
+                    if (value === 'all') {
+                      setEditingProgram({
+                        ...editingProgram,
+                        selected_instructors: instructors.map(i => i.user_id),
+                      });
+                    } else if (value === 'none') {
+                      setEditingProgram({
+                        ...editingProgram,
+                        selected_instructors: [],
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      {editingProgram.selected_instructors?.length
+                        ? `${editingProgram.selected_instructors.length} instructor${
+                            editingProgram.selected_instructors.length === 1 ? "" : "s"
+                          } selected`
+                        : "Select instructors"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Select All</SelectItem>
+                    <SelectItem value="none">Clear Selection</SelectItem>
+                    {instructors.map((instructor) => (
+                      <SelectItem
+                        key={instructor.user_id}
+                        value={instructor.user_id.toString()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const userId = instructor.user_id;
+                          setEditingProgram(prev => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              selected_instructors: prev.selected_instructors?.includes(userId)
+                                ? prev.selected_instructors.filter(id => id !== userId)
+                                : [...(prev.selected_instructors || []), userId]
+                            };
+                          });
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={editingProgram.selected_instructors?.includes(instructor.user_id)}
+                            readOnly
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-medium">{instructor.username}</span>
+                            <span className="text-sm text-gray-500">{instructor.email}</span>
+                          </div>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>

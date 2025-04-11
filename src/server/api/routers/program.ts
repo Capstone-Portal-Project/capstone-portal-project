@@ -26,7 +26,7 @@ const programFormSchema = z.object({
  * @returns {Promise<{ error: boolean; message?: string; programId?: number }>} The result of the creation operation.
  */
 export async function createProgram(
-  unsafeData: z.infer<typeof programFormSchema>
+  unsafeData: z.infer<typeof programFormSchema> & { selected_instructors?: number[] }
 ): Promise<{ error: boolean; message?: string; programId?: number }> {
   const { success, data } = programFormSchema.safeParse(unsafeData)
 
@@ -40,9 +40,22 @@ export async function createProgram(
       .returning({ programId: programs.programId })
       .execute()
 
+    const programId = result[0]?.programId;
+
+    if (programId && unsafeData.selected_instructors && unsafeData.selected_instructors.length > 0) {
+      await db.insert(instructors)
+        .values(
+          unsafeData.selected_instructors.map(userId => ({
+            programId: programId,
+            userId: userId
+          }))
+        )
+        .execute()
+    }
+
     return { 
       error: false, 
-      programId: result[0]?.programId 
+      programId: programId 
     }
   } catch (error) {
     return { error: true, message: "Failed to create program" }
@@ -167,15 +180,15 @@ export async function updateProgramStatus(
 }
 
 /**
- * Updates a program with new data.
+ * Updates a program.
  * 
  * @param {number} programId - The ID of the program to update.
- * @param {z.infer<typeof programFormSchema>} unsafeData - The new data for the program.
+ * @param {z.infer<typeof programFormSchema>} unsafeData - The data to update the program with.
  * @returns {Promise<{ error: boolean; message?: string }>} The result of the update operation.
  */
 export async function updateProgram(
   programId: number,
-  unsafeData: z.infer<typeof programFormSchema>
+  unsafeData: z.infer<typeof programFormSchema> & { selected_instructors?: number[] }
 ): Promise<{ error: boolean; message?: string }> {
   const { success, data } = programFormSchema.safeParse(unsafeData)
 
@@ -184,11 +197,32 @@ export async function updateProgram(
   }
 
   try {
+    // Update program
     await db.update(programs)
       .set(data)
       .where(eq(programs.programId, programId))
       .execute()
-    
+
+    // Update instructor assignments
+    if (unsafeData.selected_instructors !== undefined) {
+      // First delete all existing instructor assignments
+      await db.delete(instructors)
+        .where(eq(instructors.programId, programId))
+        .execute()
+
+      // Then insert new instructor assignments if any are selected
+      if (unsafeData.selected_instructors.length > 0) {
+        await db.insert(instructors)
+          .values(
+            unsafeData.selected_instructors.map(userId => ({
+              programId: programId,
+              userId: userId
+            }))
+          )
+          .execute()
+      }
+    }
+
     return { error: false }
   } catch (error) {
     return { error: true, message: "Failed to update program" }
