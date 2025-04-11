@@ -128,6 +128,24 @@ export async function getUsersByProgram(programId: number) {
   }
 }
 
+/**
+ * Fetches all instructors.
+ * 
+ * @returns {Promise<{ users: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getAllInstructors() {
+  try {
+    const programUsers = await db
+      .select()
+      .from(users)
+      .where(
+        eq(users.type, 'instructor')
+      )
+    return { users: programUsers, error: false }
+  } catch (error) {
+    return { users: [], error: true, message: "Failed to fetch instructors" }
+  }
+}
 
 /**
  * Fetches all students for a specific program.
