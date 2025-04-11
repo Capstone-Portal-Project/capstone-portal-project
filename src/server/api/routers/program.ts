@@ -4,6 +4,7 @@ import { db } from "~/server/db"
 import { programs } from "~/server/db/schema"
 import { z } from "zod"
 import { eq } from "drizzle-orm"
+import { term } from "~/server/db/schema"
 
 /**
  * Schema for validating program form data.
@@ -53,7 +54,52 @@ export async function createProgram(
  */
 export async function getAllPrograms() {
   try {
-    const allPrograms = await db.select().from(programs)
+    const allPrograms = await db
+      .select({
+        programId: programs.programId,
+        programName: programs.programName,
+        programDescription: programs.programDescription,
+        programStatus: programs.programStatus,
+        startTermId: programs.startTermId,
+        endTermId: programs.endTermId,
+        start_term: {
+          id: term.id,
+          season: term.season,
+          year: term.year,
+          is_published: term.isPublished
+        }
+      })
+      .from(programs)
+      .leftJoin(term, eq(programs.startTermId, term.id))
+      .then(async (programsWithStartTerm) => {
+        const programsWithEndTerm = await Promise.all(
+          programsWithStartTerm.map(async (program) => {
+            const endTerm = await db
+              .select()
+              .from(term)
+              .where(eq(term.id, program.endTermId))
+              .then((terms) => terms[0]);
+            
+            return {
+              ...program,
+              start_term: program.start_term ? {
+                id: program.start_term.id,
+                season: program.start_term.season,
+                year: program.start_term.year,
+                is_published: program.start_term.is_published
+              } : undefined,
+              end_term: endTerm ? {
+                id: endTerm.id,
+                season: endTerm.season,
+                year: endTerm.year,
+                is_published: endTerm.isPublished
+              } : undefined
+            };
+          })
+        );
+        return programsWithEndTerm;
+      });
+    
     return { programs: allPrograms, error: false }
   } catch (error) {
     return { programs: [], error: true, message: "Failed to fetch programs" }

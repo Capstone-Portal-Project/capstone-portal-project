@@ -32,8 +32,7 @@ import {
   createProgram, 
   getAllPrograms, 
   updateProgramStatus,
-  updateProgram,
-  deleteProgram 
+  updateProgram 
 } from "~/server/api/routers/program";
 import { getAllTerms } from "~/server/api/routers/term";
 import { getAllUsers } from "~/server/api/routers/user";
@@ -69,10 +68,6 @@ export default function ProgramManagementPage() {
   const [terms, setTerms] = useState<Term[]>([]);
   const [instructors, setInstructors] = useState<User[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [editingProgram, setEditingProgram] = useState<Program | null>(null);
-  const [programToDelete, setProgramToDelete] = useState<Program | null>(null);
   const [newProgram, setNewProgram] = useState<{
     programName: string;
     programDescription: string;
@@ -237,80 +232,6 @@ export default function ProgramManagementPage() {
         variant: "destructive",
         title: "Error",
         description: "Failed to update program status",
-      });
-    }
-  };
-
-  const handleEditProgram = async () => {
-    if (!editingProgram) return;
-
-    try {
-      const result = await updateProgram(editingProgram.programId, {
-        programName: editingProgram.programName,
-        programDescription: editingProgram.programDescription || undefined,
-        programStatus: editingProgram.programStatus,
-        startTermId: editingProgram.startTermId,
-        endTermId: editingProgram.endTermId
-      });
-
-      if (!result.error) {
-        toast({
-          title: "Success",
-          description: "Program updated successfully",
-        });
-        setIsEditDialogOpen(false);
-        fetchPrograms();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.message || "Failed to update program",
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update program",
-      });
-    }
-  };
-
-  const handleEditClick = (program: Program) => {
-    setEditingProgram(program);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDeleteClick = (program: Program) => {
-    setProgramToDelete(program);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDeleteProgram = async () => {
-    if (!programToDelete) return;
-
-    try {
-      const result = await deleteProgram(programToDelete.programId);
-
-      if (!result.error) {
-        toast({
-          title: "Success",
-          description: "Program deleted successfully",
-        });
-        setIsDeleteDialogOpen(false);
-        fetchPrograms();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.message || "Failed to delete program",
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete program",
       });
     }
   };
@@ -492,18 +413,9 @@ export default function ProgramManagementPage() {
                   {program.instructors?.map((instructor) => instructor.username).join(", ")}
                 </TableCell>
                 <TableCell>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEditClick(program)}>
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      onClick={() => handleDeleteClick(program)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                  <Button variant="outline" size="sm">
+                    Edit
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -511,111 +423,6 @@ export default function ProgramManagementPage() {
         </Table>
       </div>
       <Toaster />
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Program</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Program Name</label>
-              <Input
-                value={editingProgram?.programName}
-                onChange={(e) => setEditingProgram(prev => prev ? {...prev, programName: e.target.value} : null)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <Textarea
-                value={editingProgram?.programDescription || ""}
-                onChange={(e) => setEditingProgram(prev => prev ? {...prev, programDescription: e.target.value} : null)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Status</label>
-              <Select
-                value={editingProgram?.programStatus}
-                onValueChange={(value) => 
-                  setEditingProgram(prev => prev ? {...prev, programStatus: value as Program["programStatus"]} : null)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="submissions">Submissions</SelectItem>
-                  <SelectItem value="matching">Matching</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="ending">Ending</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                  <SelectItem value="hidden">Hidden</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Start Term</label>
-              <Select
-                value={String(editingProgram?.startTermId)}
-                onValueChange={(value) => 
-                  setEditingProgram(prev => prev ? {...prev, startTermId: parseInt(value)} : null)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select start term" />
-                </SelectTrigger>
-                <SelectContent>
-                  {terms.map((term) => (
-                    <SelectItem key={term.id} value={term.id.toString()}>
-                      {term.season} {term.year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">End Term</label>
-              <Select
-                value={String(editingProgram?.endTermId)}
-                onValueChange={(value) => 
-                  setEditingProgram(prev => prev ? {...prev, endTermId: parseInt(value)} : null)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select end term" />
-                </SelectTrigger>
-                <SelectContent>
-                  {terms.map((term) => (
-                    <SelectItem key={term.id} value={term.id.toString()}>
-                      {term.season} {term.year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button onClick={handleEditProgram}>Save Changes</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Program</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p>Are you sure you want to delete the program "{programToDelete?.programName}"? This action cannot be undone.</p>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteProgram}>
-                Delete
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
