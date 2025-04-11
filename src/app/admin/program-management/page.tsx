@@ -1,41 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "../../../components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../../components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
-import { Input } from "../../../components/ui/input";
-import { Textarea } from "../../../components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../../../components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../../components/ui/alert-dialog";
 import { useToast } from "../../../components/ui/toaster";
 import { Toaster } from "../../../components/ui/toaster";
 import { 
@@ -47,33 +12,11 @@ import {
 } from "~/server/api/routers/program";
 import { getAllTerms } from "~/server/api/routers/term";
 import { getAllUsers } from "~/server/api/routers/user";
-
-interface Program {
-  programId: number;
-  programName: string;
-  programDescription: string | null;
-  programStatus: "submissions" | "matching" | "active" | "ending" | "archived" | "hidden";
-  startTermId: number;
-  endTermId: number;
-  start_term?: Term;
-  end_term?: Term;
-  instructors?: User[];
-  selected_instructors?: number[];
-}
-
-interface Term {
-  id: number;
-  season: "winter" | "spring" | "summer" | "fall";
-  year: number;
-  is_published: boolean;
-}
-
-interface User {
-  user_id: number;
-  username: string;
-  email: string;
-  type: "project_partner" | "student" | "instructor" | "admin";
-}
+import { Program, Term, User } from "./types";
+import { CreateProgramDialog } from "./components/CreateProgramDialog";
+import { EditProgramDialog } from "./components/EditProgramDialog";
+import { DeleteProgramDialog } from "./components/DeleteProgramDialog";
+import { ProgramsTable } from "./components/ProgramsTable";
 
 export default function ProgramManagementPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -328,427 +271,46 @@ export default function ProgramManagementPage() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Program Management</h1>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Create New Program</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Program</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Program Name</label>
-                <Input
-                  value={newProgram.programName}
-                  onChange={(e) => setNewProgram({ ...newProgram, programName: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <Textarea
-                  value={newProgram.programDescription}
-                  onChange={(e) => setNewProgram({ ...newProgram, programDescription: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <Select
-                  value={newProgram.programStatus}
-                  onValueChange={(value) => 
-                    setNewProgram({ 
-                      ...newProgram, 
-                      programStatus: value as Program["programStatus"] 
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="submissions">Submissions</SelectItem>
-                    <SelectItem value="matching">Matching</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="ending">Ending</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                    <SelectItem value="hidden">Hidden</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Start Term</label>
-                <Select
-                  value={String(newProgram.startTermId)}
-                  onValueChange={(value) => 
-                    setNewProgram({ 
-                      ...newProgram, 
-                      startTermId: parseInt(value) 
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select start term" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {terms.map((term) => (
-                      <SelectItem key={term.id} value={term.id.toString()}>
-                        {term.season} {term.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">End Term</label>
-                <Select
-                  value={String(newProgram.endTermId)}
-                  onValueChange={(value) => 
-                    setNewProgram({ 
-                      ...newProgram, 
-                      endTermId: parseInt(value) 
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select end term" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {terms.map((term) => (
-                      <SelectItem key={term.id} value={term.id.toString()}>
-                        {term.season} {term.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Instructors</label>
-                <Select
-                  value={newProgram.selected_instructors.length > 0 ? 'selected' : undefined}
-                  onValueChange={(value) => {
-                    if (value === 'all') {
-                      setNewProgram({
-                        ...newProgram,
-                        selected_instructors: instructors.map(i => i.user_id),
-                      });
-                    } else if (value === 'none') {
-                      setNewProgram({
-                        ...newProgram,
-                        selected_instructors: [],
-                      });
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue>
-                      {newProgram.selected_instructors.length > 0
-                        ? `${newProgram.selected_instructors.length} instructor${
-                            newProgram.selected_instructors.length === 1 ? "" : "s"
-                          } selected`
-                        : "Select instructors"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Select All</SelectItem>
-                    <SelectItem value="none">Clear Selection</SelectItem>
-                    {instructors.map((instructor) => (
-                      <SelectItem
-                        key={instructor.user_id}
-                        value={instructor.user_id.toString()}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const userId = instructor.user_id;
-                          setNewProgram(prev => ({
-                            ...prev,
-                            selected_instructors: prev.selected_instructors.includes(userId)
-                              ? prev.selected_instructors.filter(id => id !== userId)
-                              : [...prev.selected_instructors, userId]
-                          }));
-                        }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={newProgram.selected_instructors.includes(instructor.user_id)}
-                            readOnly
-                            className="h-4 w-4 rounded border-gray-300"
-                          />
-                          <div className="flex flex-col">
-                            <span className="font-medium">{instructor.username}</span>
-                            <span className="text-sm text-gray-500">{instructor.email}</span>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleCreateProgram}>Create Program</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <CreateProgramDialog
+          isOpen={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          newProgram={newProgram}
+          setNewProgram={setNewProgram}
+          handleCreateProgram={handleCreateProgram}
+          terms={terms}
+          instructors={instructors}
+        />
       </div>
 
       <div className="space-y-4">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Program Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Start Term</TableHead>
-              <TableHead>End Term</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Instructors</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {programs.map((program) => (
-              <TableRow key={program.programId}>
-                <TableCell>{program.programName}</TableCell>
-                <TableCell>{program.programDescription}</TableCell>
-                <TableCell>
-                  {program.start_term?.season} {program.start_term?.year}
-                </TableCell>
-                <TableCell>
-                  {program.end_term?.season} {program.end_term?.year}
-                </TableCell>
-                <TableCell>
-                  <Select
-                    value={program.programStatus}
-                    onValueChange={(value) =>
-                      handleUpdateProgramStatus(program.programId, value as Program["programStatus"])
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="submissions">Submissions</SelectItem>
-                      <SelectItem value="matching">Matching</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="ending">Ending</SelectItem>
-                      <SelectItem value="archived">Archived</SelectItem>
-                      <SelectItem value="hidden">Hidden</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  {program.instructors?.map((instructor) => instructor.username).join(", ")}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        const programWithInstructors: Program = {
-                          ...program,
-                          selected_instructors: program.instructors?.map(i => i.user_id) || []
-                        };
-                        setEditingProgram(programWithInstructors);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => handleDeleteClick(program.programId)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ProgramsTable
+          programs={programs}
+          handleUpdateProgramStatus={handleUpdateProgramStatus}
+          onEditClick={(program) => {
+            setEditingProgram(program);
+            setIsEditDialogOpen(true);
+          }}
+          onDeleteClick={handleDeleteClick}
+        />
       </div>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Program</DialogTitle>
-          </DialogHeader>
-          {editingProgram && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Program Name</label>
-                <Input
-                  value={editingProgram.programName}
-                  onChange={(e) => setEditingProgram({ ...editingProgram, programName: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <Textarea
-                  value={editingProgram.programDescription || ""}
-                  onChange={(e) => setEditingProgram({ ...editingProgram, programDescription: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <Select
-                  value={editingProgram.programStatus}
-                  onValueChange={(value) => 
-                    setEditingProgram({ 
-                      ...editingProgram, 
-                      programStatus: value as Program["programStatus"] 
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="submissions">Submissions</SelectItem>
-                    <SelectItem value="matching">Matching</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="ending">Ending</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                    <SelectItem value="hidden">Hidden</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Start Term</label>
-                <Select
-                  value={String(editingProgram.startTermId)}
-                  onValueChange={(value) => 
-                    setEditingProgram({ 
-                      ...editingProgram, 
-                      startTermId: parseInt(value) 
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select start term" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {terms.map((term) => (
-                      <SelectItem key={term.id} value={term.id.toString()}>
-                        {term.season} {term.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">End Term</label>
-                <Select
-                  value={String(editingProgram.endTermId)}
-                  onValueChange={(value) => 
-                    setEditingProgram({ 
-                      ...editingProgram, 
-                      endTermId: parseInt(value) 
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select end term" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {terms.map((term) => (
-                      <SelectItem key={term.id} value={term.id.toString()}>
-                        {term.season} {term.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Instructors</label>
-                <Select
-                  value={editingProgram.selected_instructors?.length ? 'selected' : undefined}
-                  onValueChange={(value) => {
-                    if (value === 'all') {
-                      setEditingProgram({
-                        ...editingProgram,
-                        selected_instructors: instructors.map(i => i.user_id),
-                      });
-                    } else if (value === 'none') {
-                      setEditingProgram({
-                        ...editingProgram,
-                        selected_instructors: [],
-                      });
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue>
-                      {editingProgram.selected_instructors?.length
-                        ? `${editingProgram.selected_instructors.length} instructor${
-                            editingProgram.selected_instructors.length === 1 ? "" : "s"
-                          } selected`
-                        : "Select instructors"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Select All</SelectItem>
-                    <SelectItem value="none">Clear Selection</SelectItem>
-                    {instructors.map((instructor) => (
-                      <SelectItem
-                        key={instructor.user_id}
-                        value={instructor.user_id.toString()}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const userId = instructor.user_id;
-                          setEditingProgram(prev => {
-                            if (!prev) return prev;
-                            return {
-                              ...prev,
-                              selected_instructors: prev.selected_instructors?.includes(userId)
-                                ? prev.selected_instructors.filter(id => id !== userId)
-                                : [...(prev.selected_instructors || []), userId]
-                            };
-                          });
-                        }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={editingProgram.selected_instructors?.includes(instructor.user_id)}
-                            readOnly
-                            className="h-4 w-4 rounded border-gray-300"
-                          />
-                          <div className="flex flex-col">
-                            <span className="font-medium">{instructor.username}</span>
-                            <span className="text-sm text-gray-500">{instructor.email}</span>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end">
-                <Button onClick={handleEditProgram}>
-                  Save Changes
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <EditProgramDialog
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        editingProgram={editingProgram}
+        setEditingProgram={setEditingProgram}
+        handleEditProgram={handleEditProgram}
+        terms={terms}
+        instructors={instructors}
+      />
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Program</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{programs.find(p => p.programId === programToDelete)?.programName}"? This action cannot be undone and will permanently delete the program and all associated data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex gap-2 justify-end">
-            <AlertDialogCancel className="mt-0">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete Program
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteProgramDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        programToDelete={programToDelete}
+        programs={programs}
+        handleConfirmDelete={handleConfirmDelete}
+      />
 
       <Toaster />
     </div>
