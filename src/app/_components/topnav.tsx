@@ -24,9 +24,17 @@ export function TopNav() {
 
   const adminLinks: { title: string; href: string; }[] = [
     {
+      title: "Program Management",
+      href: "/admin/program-management",
+    },
+    {
+      title: "Archived Projects",
+      href: "/admin/archived",
+    },
+    {
       title: "Update Home",
       href: "/admin/update-home",
-    },
+    }
   ];
 
   const instructorLinks: { title: string; href: string; }[] = [
