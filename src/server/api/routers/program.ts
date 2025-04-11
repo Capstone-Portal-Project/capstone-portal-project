@@ -5,6 +5,8 @@ import { programs } from "~/server/db/schema"
 import { z } from "zod"
 import { eq } from "drizzle-orm"
 import { term } from "~/server/db/schema"
+import { users } from "~/server/db/schema"
+import { instructors } from "~/server/db/schema"
 
 /**
  * Schema for validating program form data.
@@ -79,6 +81,23 @@ export async function getAllPrograms() {
               .from(term)
               .where(eq(term.id, program.endTermId))
               .then((terms) => terms[0]);
+
+            const programInstructors = await db
+              .select({
+                user_id: users.userId,
+                username: users.username,
+                email: users.email,
+                type: users.type
+              })
+              .from(instructors)
+              .leftJoin(users, eq(instructors.userId, users.userId))
+              .where(eq(instructors.programId, program.programId))
+              .then(instructors => instructors.map(instructor => ({
+                user_id: instructor.user_id ?? 0,
+                username: instructor.username ?? '',
+                email: instructor.email ?? '',
+                type: instructor.type ?? 'instructor' as const
+              })));
             
             return {
               ...program,
@@ -93,7 +112,8 @@ export async function getAllPrograms() {
                 season: endTerm.season,
                 year: endTerm.year,
                 is_published: endTerm.isPublished
-              } : undefined
+              } : undefined,
+              instructors: programInstructors
             };
           })
         );
@@ -198,14 +218,11 @@ export async function getProgramById(programId: number) {
  * @param {number} programId - The ID of the program to delete.
  * @returns {Promise<{ error: boolean; message?: string }>} The result of the delete operation.
  */
-export async function deleteProgram(
-  programId: number
-): Promise<{ error: boolean; message?: string }> {
+export async function deleteProgram(programId: number) {
   try {
     await db.delete(programs)
       .where(eq(programs.programId, programId))
       .execute()
-    
     return { error: false }
   } catch (error) {
     return { error: true, message: "Failed to delete program" }
