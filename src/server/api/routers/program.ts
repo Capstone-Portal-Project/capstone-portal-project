@@ -101,6 +101,35 @@ export async function updateProgramStatus(
 }
 
 /**
+ * Updates a program with new data.
+ * 
+ * @param {number} programId - The ID of the program to update.
+ * @param {z.infer<typeof programFormSchema>} unsafeData - The new data for the program.
+ * @returns {Promise<{ error: boolean; message?: string }>} The result of the update operation.
+ */
+export async function updateProgram(
+  programId: number,
+  unsafeData: z.infer<typeof programFormSchema>
+): Promise<{ error: boolean; message?: string }> {
+  const { success, data } = programFormSchema.safeParse(unsafeData)
+
+  if (!success) {
+    return { error: true, message: "Invalid data" }
+  }
+
+  try {
+    await db.update(programs)
+      .set(data)
+      .where(eq(programs.programId, programId))
+      .execute()
+    
+    return { error: false }
+  } catch (error) {
+    return { error: true, message: "Failed to update program" }
+  }
+}
+
+/**
  * Get a program by programId
  * 
  * @param {number} programId - The ID of the program to get.
@@ -114,5 +143,25 @@ export async function getProgramById(programId: number) {
     return { program: program[0], error: false }
   } catch (error) {
     return { program: null, error: true, message: "Failed to fetch program" }
+  }
+}
+
+/**
+ * Deletes a program by its ID.
+ * 
+ * @param {number} programId - The ID of the program to delete.
+ * @returns {Promise<{ error: boolean; message?: string }>} The result of the delete operation.
+ */
+export async function deleteProgram(
+  programId: number
+): Promise<{ error: boolean; message?: string }> {
+  try {
+    await db.delete(programs)
+      .where(eq(programs.programId, programId))
+      .execute()
+    
+    return { error: false }
+  } catch (error) {
+    return { error: true, message: "Failed to delete program" }
   }
 }
