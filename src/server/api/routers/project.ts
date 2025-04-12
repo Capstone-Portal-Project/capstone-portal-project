@@ -7,6 +7,7 @@ import { eq, and, sql } from "drizzle-orm"
 import { sendLogEmail, projectLogTypes } from '~/server/mail/sendMail';
 import { users } from "~/server/db/schema"
 import { auth } from "@clerk/nextjs/server";
+import { teams } from "~/server/db/schema"
 
 /**
  * Schema for validating project form data.
@@ -434,3 +435,54 @@ const checkIfProjectSaved = async (userId: number, projectId: number): Promise<b
     }
 };
 
+
+/**
+ * Fetches the project for a specific user.
+ * 
+ * @param {number} userId - The ID of the user to fetch projects for.
+ * @returns {Promise<{ projects: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getProjectByUserId(userId: number) {
+  try {
+    // Step 1: Get the user's teamId
+    const userResult = await db
+      .select({ teamId: users.teamId })
+      .from(users)
+      .where(eq(users.userId, userId))
+      .limit(1)
+      .execute()
+
+    const teamId = userResult[0]?.teamId
+    if (!teamId) {
+      return { project: null, error: true, message: "Team not found for user" }
+    }
+
+    // Step 2: Get the projectId from the team
+    const teamResult = await db
+      .select({ projectId: teams.projectId })
+      .from(teams)
+      .where(eq(teams.teamId, teamId))
+      .limit(1)
+      .execute()
+
+    const projectId = teamResult[0]?.projectId
+    if (!projectId) {
+      return { project: null, error: true, message: "Project not found for team" }
+    }
+
+    // Step 3: Get the project
+    const projectResult = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.projectId, projectId))
+      .limit(1)
+      .execute()
+
+    const project = projectResult[0] ?? null
+
+    return { project, error: false }
+  } catch (error) {
+    console.error("Failed to fetch project by user ID", error)
+    return { project: null, error: true, message: "Failed to fetch project" }
+  }
+}
