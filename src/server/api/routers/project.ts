@@ -444,7 +444,6 @@ const checkIfProjectSaved = async (userId: number, projectId: number): Promise<b
  */
 export async function getProjectByUserId(userId: number) {
   try {
-    // Step 1: Get the user's teamId
     const userResult = await db
       .select({ teamId: users.teamId })
       .from(users)
@@ -457,7 +456,6 @@ export async function getProjectByUserId(userId: number) {
       return { project: null, error: true, message: "Team not found for user" }
     }
 
-    // Step 2: Get the projectId from the team
     const teamResult = await db
       .select({ projectId: teams.projectId })
       .from(teams)
@@ -470,7 +468,6 @@ export async function getProjectByUserId(userId: number) {
       return { project: null, error: true, message: "Project not found for team" }
     }
 
-    // Step 3: Get the project
     const projectResult = await db
       .select()
       .from(projects)

@@ -74,7 +74,7 @@ const Sidebar = () => {
           </TabButton>
         </Link>
 
-          <Link href={`/project/${assignedProjectId}`}>
+          <Link href={`/studentProject/${assignedProjectId}`}>
             <TabButton>
               <Star /> Assigned Project
             </TabButton>
