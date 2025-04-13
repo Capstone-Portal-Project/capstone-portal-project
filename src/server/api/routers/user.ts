@@ -78,6 +78,42 @@ export async function updateUser(
 }
 
 /**
+ * Updates an existing instructor. Same as updateUser but if
+ * the programId can be set to null.
+ * 
+ * @param {number} userId - The ID of the user to update.
+ * @param {Partial<z.infer<typeof userFormSchema>>} unsafeData - The new data for the user.
+ * @returns {Promise<{ error: boolean; message?: string }>} The result of the update operation.
+ */
+export async function updateInstructor(
+  userId: number,
+  unsafeData: Partial<z.infer<typeof userFormSchema>>
+): Promise<{ error: boolean; message?: string }> {
+  const { success, data } = userFormSchema.partial().safeParse(unsafeData)
+
+  if (!success) {
+    return { error: true, message: "Invalid data" }
+  }
+
+  try {
+      // Ensure `programId` is explicitly set to `null` if undefined
+      const sanitizedData = {
+        ...data,
+        programId: data.programId === undefined ? null : data.programId
+      }
+
+    await db.update(users)
+      .set(sanitizedData)
+      .where(eq(users.userId, userId))
+      .execute()
+
+    return { error: false }
+  } catch (error) {
+    return { error: true, message: "Failed to update user" }
+  }
+}
+
+/**
  * Fetches all users.
  * 
  * @returns {Promise<{ users: any[]; error: boolean; message?: string }>} The result of the fetch operation.
@@ -128,6 +164,24 @@ export async function getUsersByProgram(programId: number) {
   }
 }
 
+/**
+ * Fetches all instructors.
+ * 
+ * @returns {Promise<{ users: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getAllInstructors() {
+  try {
+    const programUsers = await db
+      .select()
+      .from(users)
+      .where(
+        eq(users.type, 'instructor')
+      )
+    return { users: programUsers, error: false }
+  } catch (error) {
+    return { users: [], error: true, message: "Failed to fetch instructors" }
+  }
+}
 
 /**
  * Fetches all students for a specific program.

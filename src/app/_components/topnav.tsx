@@ -34,6 +34,10 @@ export function TopNav() {
     {
       title: "Update Home",
       href: "/admin/update-home",
+    },
+    {
+      title: "Assign Instructors",
+      href: "/admin/instructor-assignments",
     }
   ];
 
