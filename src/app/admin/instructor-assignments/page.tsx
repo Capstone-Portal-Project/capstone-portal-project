@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { DataTableUser, columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useUser } from "@clerk/clerk-react";
-import { getAllInstructors } from "~/server/api/routers/user";
+import { getAllInstructors, updateUser } from "~/server/api/routers/user";
 import { getAllPrograms } from "~/server/api/routers/program";
 import DroppableProgramCard from "./_components/DroppableProgramCard";
 import UserCard from "./_components/UserCard";
@@ -88,10 +88,9 @@ export default function ProjectAssignments() {
 
   if (loading) {
     return (
-
         <div className="flex items-center justify-center h-screen text-2xl font-semibold">
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-            <span className="ml-2">Loading submissions...</span>
+            <span className="ml-2">Loading programs...</span>
         </div>
     )
   }
@@ -130,7 +129,8 @@ export default function ProjectAssignments() {
 
     console.log(userData);
 
-    // TODO : Update the Instructor with new Program ID
+    updateUser (userId, { programId: over ? over.data.current!.programId : null });
+    console.log(`User ${userId} updated with program ID ${over ? over.data.current!.programId : null}`);
   }
 
 
