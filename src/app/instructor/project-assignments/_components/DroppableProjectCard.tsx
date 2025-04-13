@@ -1,13 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import Link from "next/link";
 import { useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import { DataTableUser, columns } from "../columns";
 import UserCard from "./UserCard";
 import { useMemo } from "react";
-
+import React from "react";
 
 type ProjectCardProps = {
     imgUrl?: string,
@@ -28,28 +26,25 @@ const DroppableProjectCard = (props: ProjectCardProps) => {
             projectId,
         }
     })
-    // const style = {
-    //     transition,
-    //     transform: CSS.Transform.toString(transform),
-    // }
 
     const userIds = useMemo(() => users.map((user) => user.id), [users]);
 
+
     return (
-        <div ref={setNodeRef} className="w-full">
-            <Card className="min-h-[250px] flex flex-col"> {/* Changed h-[250px] to min-h-[250px] */}
-                <CardHeader className="pt-3 pb-1 hover:underline">
-                    <CardTitle className="text-xl font-semibold line-clamp-2">
-                        {title}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="m-4 p-4 bg-slate-200 rounded-md flex flex-col gap-2 flex-grow">
-                    {users.map((user) => (
-                        <UserCard key={user.id} user={user} />
-                    ))}
-                </CardContent>
-            </Card>
-        </div>
+      <div ref={setNodeRef} className="w-full">
+        <Card className="min-h-[320px] flex flex-col"> {/* Changed h-[250px] to min-h-[250px] */}
+          <CardHeader className="pt-3 pb-1 hover:underline">
+            <CardTitle className="text-sm font-semibold line-clamp-2">
+                {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="mx-2 p-1 mb-3 bg-slate-200 rounded-sm flex flex-col gap-2 flex-grow">
+            {users.map((user) => (
+                <UserCard key={user.id} user={user} />
+            ))}
+          </CardContent>
+        </Card>            
+      </div>
     );
 }
 
