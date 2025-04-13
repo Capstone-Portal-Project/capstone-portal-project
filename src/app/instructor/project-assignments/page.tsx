@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { DataTableUser, columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useUser } from "@clerk/clerk-react";
@@ -14,8 +14,9 @@ import {
     ResizablePanelGroup,
   } from "~/components/ui/resizable"
 
-import { DndContext, DragStartEvent, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragStartEvent, DragEndEvent, PointerSensor, useSensor, useSensors, useDroppable, useDraggable } from "@dnd-kit/core";
 import { users } from "~/server/db/schema";
+import Sidebar from "./_components/SideBar";
 
 type Project = {
     projectId: number;
@@ -26,11 +27,36 @@ type Project = {
     projectStatus: "draft" | "submitted" | "deferred" | "active" | "archived" | "incomplete" | null;
   }
 
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
+import { Pointer } from "lucide-react";
+import { createContext } from "vm";
+
+const ProjectBoard = () => {
+  return (
+    <div>
+
+    </div>
+  );
+}
+
+
+
+
+
 export default function ProjectAssignments() {
   const { user } = useUser();
   const [userData, setUserData] = useState<DataTableUser[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5
+      }
+    }),
+  );
 
   // On page load, fetch students and projects for the program (course)
   useEffect(() => {
@@ -135,50 +161,43 @@ export default function ProjectAssignments() {
     // TODO BELOW - Update the user's project ID in the database
   }
 
-
   return (
-    <div className="container mx-auto py-10 h-full flex gap-2">
-        {/* Students List (Draggable) */}
-        {/* <DataTable columns={columns} data={userData} /> Eventually want to use this since it has a searchable table of users */}
-        {/* map the user data into a column here */}
-        <DndContext 
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}   
-        >
-            <div>
-                <h3 className="text-2xl font-semibold mx-4 mb-4">
-                    Students
-                </h3>
-                {/* <div>
-                    <DataTable columns={columns} data={userData.filter(user => user.projectId === null)} />
-                </div> */}
-                <div className="flex flex-col gap-6">
-                    {/* List all the users that have a null projectId (haven't been assigned to a project yet) */}
-                    {userData.filter(user => user.projectId === null).map((user) => (
-                        <UserCard key={user.id} user={user} />
-                    ))}
-                </div>
+    <div className="absolute bottom-0 top-20 h-full flex flex-col bg-[#FFFFFF] w-full place-items-center pb-0">
+        <div className="layout grid grid-cols-12 h-full">
+          <DndContext 
+          sensors={sensors}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          >          
+            <div className="col-span-2 h-full overflow-hidden">
+              <div className="flex flex-col gap-6">
+                {/* List all the users that have a null projectId (haven't been assigned to a project yet) */}
+                {userData.filter(user => user.projectId === null).map((user) => (
+                    <UserCard key={user.id} user={user} />
+                ))}
+              </div>            
             </div>
-            {/* Projects List (Droppable) */}
-            <div>
-                <h3 className="text-2xl font-semibold mx-4 mb-4">
-                    Projects
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 px-4">
-                        {projects.map((project) => (
-                            <DroppableProjectCard
-                                key={project.projectId}
-                                projectId={project.projectId}
-                                imgUrl={project.appImage || ''}
-                                title={project.projectTitle}
-                                description={project.appDescription}
-                                tags={[project.appOrganization]}
-                                users={userData.filter(user => user.projectId === project.projectId)}
-                            />
-                        ))}
-                </div>
+            <div className="col-span-8 h-full overflow-y-scroll scrollbar-none">
+              {/* Projects List (Droppable) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 px-4">
+                {projects.map((project) => (
+                  <DroppableProjectCard
+                  key={project.projectId}
+                  projectId={project.projectId}
+                  imgUrl={project.appImage || ''}
+                  title={project.projectTitle}
+                  description={project.appDescription}
+                  tags={[project.appOrganization]}
+                  users={userData.filter(user => user.projectId === project.projectId)}
+                  />
+                ))}
+              </div>
             </div>
-        </DndContext>
+            <div className="col-span-2 h-full overflow-hidden">
+              {/* Placeholder for Sidebar */}
+            </div>
+          </DndContext>            
+        </div>
     </div>
   );
 }
