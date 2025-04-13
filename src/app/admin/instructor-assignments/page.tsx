@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { DataTableUser, columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useUser } from "@clerk/clerk-react";
-import { getAllInstructors, updateUser } from "~/server/api/routers/user";
+import { getAllInstructors, updateInstructor } from "~/server/api/routers/user";
 import { getAllPrograms } from "~/server/api/routers/program";
 import DroppableProgramCard from "./_components/DroppableProgramCard";
 import UserCard from "./_components/UserCard";
@@ -109,6 +109,7 @@ export default function ProjectAssignments() {
     if (!over) {
       // Update the user's project ID to null (unassigned)
       console.log(`User ${active.id} dragged to unassigned`);
+      updateInstructor (userId, { programId: undefined });
 
       setUserData((prevState) =>
         prevState.map((user) =>
@@ -129,7 +130,7 @@ export default function ProjectAssignments() {
 
     console.log(userData);
 
-    updateUser (userId, { programId: over ? over.data.current!.programId : null });
+    updateInstructor (userId, { programId: over ? over.data.current!.programId : null });
     console.log(`User ${userId} updated with program ID ${over ? over.data.current!.programId : null}`);
   }
 
