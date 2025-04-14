@@ -18,6 +18,7 @@ export interface ProjectPageClientProps {
   programName: string;
   sequenceName: string;
   projectPartnerNames: string;
+  teammates: string[]; 
   projectTags: { tagId: number; tag: string | null; projectTagId: number; }[];
 }
 
@@ -27,6 +28,7 @@ export default function ProjectPageClient({
   programName,
   sequenceName,
   projectPartnerNames,
+  teammates,
   projectTags,
 }: ProjectPageClientProps) {
   const [pageContent, setPageContent] = useState<ProjectProps>(initialProject);

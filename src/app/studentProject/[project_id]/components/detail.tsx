@@ -1,6 +1,7 @@
 import React from "react";
 
-const defaultImgUrl = "https://eecs.engineering.oregonstate.edu/capstone/submission/assets/img/capstone_test.jpg";
+const defaultImgUrl =
+  "https://eecs.engineering.oregonstate.edu/capstone/submission/assets/img/capstone_test.jpg";
 
 type InfoCard = {
   img: string;
@@ -10,6 +11,7 @@ type InfoCard = {
     "NDA/IPA": boolean;
     "Number of Groups": number;
     "Project Status": boolean;
+    "Teammates": string[];
   };
   keywords: string[];
 };
@@ -20,6 +22,9 @@ export default function Detail({
   details,
   keywords,
 }: InfoCard) {
+//console.log("Teammates Type:", Array.isArray(details["Teammates"])); // true if it's an array
+console.log("First temmate type:", details["Teammates"]); // "string" if it's a string
+
   return (
     <div className="flex flex-col gap-4 p-4 text-copy border border-copy rounded-sm max-w-1/4">
       {/* Thumbnail */}
@@ -54,6 +59,17 @@ export default function Detail({
             {details["Project Status"] ? "Accepting Students" : "Closed"}
           </span>
         </div>
+
+        {/* Teammates Emails */}
+<div className="grid grid-cols-2 items-start">
+  <span className="text-orange-beaver">Teammate Emails:</span>
+  <div className="flex flex-col gap-1">
+    {details["Teammates"].map((email, index) => (
+      <span key={index}>{email}</span>
+    ))}
+  </div>
+</div>
+
       </div>
 
       {/* Tags */}

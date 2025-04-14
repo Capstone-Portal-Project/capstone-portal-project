@@ -7,31 +7,57 @@ import { getProjectPartnerByTeamId } from "~/server/api/routers/user";
 import { getProjectTags } from "~/server/api/routers/tag";
 import { getSequenceById } from "~/server/api/routers/sequence";
 import { getProgramById } from "~/server/api/routers/program";
+import { getTeamUsersExcludingPartner } from "~/server/api/routers/user"; // Adjusted to use userId
 
 export const dynamic = "force-dynamic";
 
-export default async function ProjectPage({ params }: { params: Promise<{project_id: string}> }) {
-
+export default async function ProjectPage({ params }: { params: Promise<{ project_id: string }> }) {
   const projectId = (await params).project_id;
   const projectResponse = await getProjectById(Number(projectId));
   const teamsResponse = await getTeamsByProjectId(Number(projectId));
   const teams = teamsResponse.team;
 
-  const projectPartners = teams && !teamsResponse.error ? await Promise.all(
-      teams.map(async (team) => {
-        const partner = await getProjectPartnerByTeamId(team.teamId);
-        return partner;
-      })
-    ) : [];
+  type ProjectPartner = {
+    userId: number;
+    username: string;
+    email: string;
+    dateCreated: Date;
+    type: string;
+  };
+
+  const projectPartners = teams && !teamsResponse.error
+    ? await Promise.all(
+        teams.map(async (team) => {
+          const partnerResponse = await getProjectPartnerByTeamId(team.teamId);
+          if (!partnerResponse.error && partnerResponse.projectPartners?.length) {
+            return partnerResponse.projectPartners[0]; // assuming only one partner per team
+          }
+          return null;
+        })
+      )
+    : [];
+
+  const filteredPartners = projectPartners;
+
+  const projectPartnerNames = filteredPartners
+    .map((partner) => partner.username)
+    .join(", ");
 
   const projectTags = await getProjectTags(Number(projectId));
 
-  const projectPartnerNames = projectPartners
-  .map((partner) => 'username' in partner ? partner.username : '')
-  .join(", ");
+  const teammateEmails: string[] = teams && !teamsResponse.error
+  ? (
+      await Promise.all(
+        teams.map(async (team) => {
+          const { teammates } = await getTeamUsersExcludingPartner(team.teamId);
+          return teammates.map((t) => t.email); // directly map to email strings
+        })
+      )
+    ).flat()
+  : [];
 
   if (projectResponse?.project) {
-    const projectDetails : ProjectSchema = {
+    const projectDetails: ProjectSchema = {
       projectId: Number(projectId),
       programsId: projectResponse.project.programsId,
       projectTitle: projectResponse.project.projectTitle,
@@ -50,18 +76,15 @@ export default async function ProjectPage({ params }: { params: Promise<{project
       sequenceId: projectResponse.project.sequenceId ?? undefined,
       sequenceReport: projectResponse.project.sequenceReport ?? undefined,
       projectGithubLink: projectResponse.project.projectGithubLink ?? undefined
-    }
+    };
 
     const programResponse = await getProgramById(projectDetails.programsId);
     const programName = programResponse.program?.programName ?? "Unknown Program";
 
-    let sequenceName: string;
-
+    let sequenceName = "";
     if (projectDetails.sequenceId !== undefined) {
       const sequenceResponse = await getSequenceById(projectDetails.sequenceId);
       sequenceName = sequenceResponse.sequence?.type ?? "Unknown Sequence";
-    } else {
-      sequenceName = "";
     }
 
     const pageContent = getProjectProps(
@@ -69,22 +92,22 @@ export default async function ProjectPage({ params }: { params: Promise<{project
       projectTags.tags,
       projectPartnerNames,
       programName,
+      teammateEmails,
       sequenceName
     );
 
-    return <ProjectPageClient 
-      pageContent={pageContent} 
-      project={projectDetails}
-      programName={programName}
-      sequenceName={sequenceName}
-      projectPartnerNames={projectPartnerNames}
-      projectTags={projectTags.tags}
-    />;
+    return (
+      <ProjectPageClient
+        pageContent={pageContent}
+        project={projectDetails}
+        programName={programName}
+        sequenceName={sequenceName}
+        projectPartnerNames={projectPartnerNames}
+        teammates={teammateEmails}
+        projectTags={projectTags.tags}
+      />
+    );
   }
 
-  if (!projectResponse?.project) {
-    return <div>Project not found</div>;
-  }
-
-
+  return <div>Project not found</div>;
 }

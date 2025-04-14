@@ -35,9 +35,9 @@ export default function getProjectProps(
   projectTags?: InfoCard["keywords"],        // optional
   projectPartnerNames?: string,             // optional
   programName?: string,
+  teammates?: string[],
   sequence?: string,
 ): ProjectProps {
-  // Update file-scoped variables if new values are passed in.
   if (projectTags !== undefined) {
     savedProjectTags = projectTags;
     console.log("Saved new project tags:", savedProjectTags);
@@ -55,7 +55,6 @@ export default function getProjectProps(
     console.log("Saved new sequence:", savedSequence);
   }
 
-  // Construct the final object matching ProjectProps
   return {
     header: {
       title: project?.projectTitle ?? ShorterLoremIpsum,
@@ -94,11 +93,13 @@ export default function getProjectProps(
       desc: project?.showcaseDescription ?? "",
       details: {
         "Project Partner": savedProjectPartnerNames,
+        "Teammates": teammates,
         "NDA/IPA": false,
-        "Number of Groups": 0, // or another dynamic value if you have it
+        "Number of Groups": 0,
         "Project Status": project?.isShowcasePublished,
       },
       keywords: savedProjectTags,
     },
   };
 }
+

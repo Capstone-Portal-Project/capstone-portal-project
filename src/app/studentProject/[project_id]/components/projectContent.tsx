@@ -23,17 +23,19 @@ export default function ProjectContent(pageContent: ProjectProps) {
         {/* Right Column: Detail Card */}
         <div className="flex-initial">
           <Detail
-            {...{
-              ...pageContent.infoCard,
-              details: {
-                ...pageContent.infoCard.details,
-                "Project Status":
-                  pageContent.infoCard.details["Project Status"] ?? false,
-              },
-              keywords: pageContent.infoCard.keywords.map(
-                (keyword) => keyword.tag ?? ""
-              ),
+            img={pageContent.infoCard.img}
+            desc={pageContent.infoCard.desc}
+            details={{
+              "Project Partner": pageContent.infoCard.details["Project Partner"],
+              "NDA/IPA": pageContent.infoCard.details["NDA/IPA"],
+              "Number of Groups": pageContent.infoCard.details["Number of Groups"],
+              "Project Status":
+                pageContent.infoCard.details["Project Status"] ?? false,
+              "Teammates": pageContent.infoCard.details.Teammates ?? [],
             }}
+            keywords={pageContent.infoCard.keywords.map(
+              (keyword) => keyword.tag ?? ""
+            )}
           />
         </div>
       </section>

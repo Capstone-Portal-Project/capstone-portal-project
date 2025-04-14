@@ -24,6 +24,7 @@ export interface InfoCard {
     "NDA/IPA": boolean;
     "Number of Groups": number;
     "Project Status": boolean | null | undefined;
+    "Teammates":string[]
   };
   keywords: {
     tagId: number;
