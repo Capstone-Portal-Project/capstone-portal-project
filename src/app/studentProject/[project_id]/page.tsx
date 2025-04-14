@@ -40,7 +40,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
   const filteredPartners = projectPartners;
 
   const projectPartnerNames = filteredPartners
-    .map((partner) => partner.username)
+    .map((partner) => partner.email)
     .join(", ");
 
   const projectTags = await getProjectTags(Number(projectId));

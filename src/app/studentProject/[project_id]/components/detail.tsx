@@ -22,8 +22,7 @@ export default function Detail({
   details,
   keywords,
 }: InfoCard) {
-//console.log("Teammates Type:", Array.isArray(details["Teammates"])); // true if it's an array
-console.log("First temmate type:", details["Teammates"]); // "string" if it's a string
+
 
   return (
     <div className="flex flex-col gap-4 p-4 text-copy border border-copy rounded-sm max-w-1/4">
@@ -40,7 +39,7 @@ console.log("First temmate type:", details["Teammates"]); // "string" if it's a 
       {/* Details */}
       <div className="space-y-2">
         <div className="grid grid-cols-2">
-          <span className="text-orange-beaver">Project Partner:</span>
+          <span className="text-orange-beaver">Project Partner Email:</span>
           <span>{details["Project Partner"]}</span>
         </div>
         <div className="grid grid-cols-2">

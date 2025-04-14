@@ -38,7 +38,7 @@ export default function ProjectPageClient({
   const handleRefresh = (editData: ProjectSchema) => {
     console.log("Refreshing page...");
     setPageContent(() =>
-      getProjectProps(editData, projectTags, projectPartnerNames, programName, sequenceName)
+      getProjectProps(editData, projectTags, projectPartnerNames, programName,teammates, sequenceName)
     );
 
     console.log(pageContent);
