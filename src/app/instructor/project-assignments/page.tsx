@@ -162,42 +162,44 @@ export default function ProjectAssignments() {
   }
 
   return (
-    <div className="absolute bottom-0 top-20 h-full flex flex-col bg-[#FFFFFF] w-full place-items-center pb-0">
-        <div className="layout grid grid-cols-12 h-full">
-          <DndContext 
-          sensors={sensors}
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
-          >          
-            <div className="col-span-2 h-full overflow-hidden">
-              <div className="flex flex-col gap-6">
-                {/* List all the users that have a null projectId (haven't been assigned to a project yet) */}
-                {userData.filter(user => user.projectId === null).map((user) => (
-                    <UserCard key={user.id} user={user} />
-                ))}
-              </div>            
-            </div>
-            <div className="col-span-8 h-full overflow-y-scroll scrollbar-none">
-              {/* Projects List (Droppable) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 px-4">
-                {projects.map((project) => (
-                  <DroppableProjectCard
-                  key={project.projectId}
-                  projectId={project.projectId}
-                  imgUrl={project.appImage || ''}
-                  title={project.projectTitle}
-                  description={project.appDescription}
-                  tags={[project.appOrganization]}
-                  users={userData.filter(user => user.projectId === project.projectId)}
-                  />
-                ))}
+    <div className="min-h-dvh pt-20">
+      <div className="flex flex-col bg-[#FFFFFF] w-full place-items-center pb-0">
+          <div className="layout grid grid-cols-12 h-full">
+            <DndContext 
+            sensors={sensors}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            >          
+              <div className="px-4 col-span-2 h-full overflow-hidden">
+                <div className="flex flex-col gap-2">
+                  {/* List all the users that have a null projectId (haven't been assigned to a project yet) */}
+                  {userData.filter(user => user.projectId === null).map((user) => (
+                      <UserCard key={user.id} user={user} />
+                  ))}
+                </div>            
               </div>
-            </div>
-            <div className="col-span-2 h-full overflow-hidden">
-              {/* Placeholder for Sidebar */}
-            </div>
-          </DndContext>            
-        </div>
+              <div className="col-span-8 h-full overflow-y-scroll scrollbar-none">
+                {/* Projects List (Droppable) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 px-4">
+                  {projects.map((project) => (
+                    <DroppableProjectCard
+                    key={project.projectId}
+                    projectId={project.projectId}
+                    imgUrl={project.appImage || ''}
+                    title={project.projectTitle}
+                    description={project.appDescription}
+                    tags={[project.appOrganization]}
+                    users={userData.filter(user => user.projectId === project.projectId)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="col-span-2 h-full overflow-hidden">
+                {/* Placeholder for Sidebar */}
+              </div>
+            </DndContext>            
+          </div>
+      </div>
     </div>
   );
 }
