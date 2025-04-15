@@ -65,7 +65,7 @@ export function TopNav() {
   ];
 
   return (
-    <nav className="flex w-full items-center justify-between p-2 text-primary-foreground bg-gray-800">
+    <nav className="fixed top-0 flex w-full items-center justify-between p-2 text-primary-foreground bg-gray-800">
       <Link href="/">
         <div className="flex items-center gap-2">
           <Image
