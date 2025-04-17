@@ -44,7 +44,7 @@ export function TopNav() {
   const instructorLinks: { title: string; href: string; }[] = [
     {
       title: "Manage Course",
-      href: "/instructor/manage-courses",
+      href: "/instructor",
     },
     {
       title: "Projects",

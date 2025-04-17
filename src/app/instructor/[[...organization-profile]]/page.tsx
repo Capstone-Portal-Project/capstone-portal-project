@@ -8,17 +8,17 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-} from '../../../../components/ui/select'
+} from '../../../components/ui/select'
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../../../components/ui/dialog'
-import { Button } from '../../../../components/ui/button'
+} from '../../../components/ui/dialog'
+import { Button } from '../../../components/ui/button'
 import { Toaster, useToast } from '~/components/ui/toaster'
-import { updateProgramStatus, getProgramStatus } from '../../../../server/api/routers/program'
+import { updateProgramStatus, getProgramStatus } from '../../../server/api/routers/program'
 
 // Define enum values locally for UI logic
 const programStatuses = [
