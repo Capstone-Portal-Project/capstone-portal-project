@@ -25,7 +25,7 @@ export function TopNav() {
   const adminLinks: { title: string; href: string; }[] = [
     {
       title: "Program Management",
-      href: "/admin/program-management",
+      href: "/admin",
     },
     {
       title: "Archived Projects",
@@ -51,16 +51,16 @@ export function TopNav() {
       href: "/instructor/projects",
     },
     {
-      title: "Add Project",
-      href: "/instructor/add-project",
-    },
-    {
       title: "Project Submissions",
       href: "/instructor/project-submissions",
     },
     {
       title: "Project Assignments",
       href: "/instructor/project-assignments",
+    },
+    {
+      title: "Add Project",
+      href: "/instructor/add-project",
     },
   ];
 
@@ -81,7 +81,17 @@ export function TopNav() {
         <NavigationMenuList>
           {isAdmin && (
             <NavigationMenuItem>
-              <NavigationMenuTrigger>Admin Tools</NavigationMenuTrigger>
+              <Link href="/admin" passHref>
+                <NavigationMenuTrigger
+                  onPointerDown={(e) => e.stopPropagation()} // prevent dropdown toggle override
+                  onClick={(e) => {
+                    // When clicked, it will navigate via the <Link>, and NOT toggle the menu
+                    // If you want it to ALSO open the dropdown on click, remove this
+                  }}
+                >
+                  Admin Tools
+                </NavigationMenuTrigger>
+              </Link>
               <NavigationMenuContent>
                 <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
                   {adminLinks.map((link) => (
@@ -94,7 +104,13 @@ export function TopNav() {
 
           {isInstructor && (
             <NavigationMenuItem>
-              <NavigationMenuTrigger>Instructor Tools</NavigationMenuTrigger>
+              <Link href="/instructor" passHref>
+                <NavigationMenuTrigger
+                  onPointerDown={(e) => e.stopPropagation()} // prevent dropdown toggle override
+                >
+                  Instructor Tools
+                </NavigationMenuTrigger>
+              </Link>
               <NavigationMenuContent>
                 <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
                   {instructorLinks.map((link) => (

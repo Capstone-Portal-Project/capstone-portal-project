@@ -1,7 +1,7 @@
 "use client";
 
 import { Program } from "../types";
-import { Button } from "../../../../components/ui/button";
+import { Button } from "../../../components/ui/button";
 import {
   Table,
   TableBody,
@@ -9,14 +9,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../../components/ui/table";
+} from "../../../components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../../components/ui/select";
+} from "../../../components/ui/select";
 
 interface ProgramsTableProps {
   programs: Program[];

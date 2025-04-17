@@ -6,22 +6,21 @@ import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 
-export default function InstructorLayout({ children }: { children: ReactNode }) {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const links = [
-    { href: "/instructor", label: "Manage Course" },
-    { href: "/instructor/projects", label: "Course Projects" },
-    { href: "/instructor/project-submissions", label: "Project Submissions" },
-    { href: "/instructor/project-assignments", label: "Projects Assignments" },
-    { href: "/instructor/add-project", label: "Add Project" },
+    { href: "/admin", label: "Manage Courses" },
+    { href: "/admin/archived", label: "Archived Courses" },
+    { href: "/admin/update-home", label: "Project Submissions" },
+    { href: "/admin/instructor-assignments", label: "Instructor Assignments" },
   ];
 
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside className="w-64 bg-gray-100 border-r p-4">
-        <h2 className="text-lg font-bold mb-6">Instructor Tools</h2>
+        <h2 className="text-lg font-bold mb-6">Admin Tools</h2>
         <nav className="space-y-2">
           {links.map(({ href, label }) => {
             const isActive = pathname === href;
