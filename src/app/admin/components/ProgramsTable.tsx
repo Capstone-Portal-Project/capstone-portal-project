@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Program } from "../types";
 import { Button } from "../../../components/ui/button";
 import {
@@ -80,15 +81,18 @@ export function ProgramsTable({
             </TableCell>
             <TableCell>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Link href={`/admin-course/${program.programId}`}>
+                  <Button size="sm">Manage</Button>
+                </Link>
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => onEditClick(program)}
                 >
                   Edit
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={() => onDeleteClick(program.programId)}
                 >
@@ -101,4 +105,4 @@ export function ProgramsTable({
       </TableBody>
     </Table>
   );
-} 
+}
