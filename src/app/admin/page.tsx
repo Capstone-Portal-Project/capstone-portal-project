@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useToast } from "../../../components/ui/toaster";
-import { Toaster } from "../../../components/ui/toaster";
+import { useToast } from "../../components/ui/toaster";
+import { Toaster } from "../../components/ui/toaster";
 import { 
   createProgram, 
   getAllPrograms, 

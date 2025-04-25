@@ -1,22 +1,22 @@
 "use client";
 
 import { Program, Term, User } from "../types";
-import { Button } from "../../../../components/ui/button";
+import { Button } from "../../../components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../../components/ui/dialog";
+} from "../../../components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../../components/ui/select";
-import { Input } from "../../../../components/ui/input";
-import { Textarea } from "../../../../components/ui/textarea";
+} from "../../../components/ui/select";
+import { Input } from "../../../components/ui/input";
+import { Textarea } from "../../../components/ui/textarea";
 import { Dispatch, SetStateAction } from "react";
 
 interface EditProgramDialogProps {
