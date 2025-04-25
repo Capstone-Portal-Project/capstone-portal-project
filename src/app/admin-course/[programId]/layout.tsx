@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 export default function InstructorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  const basePath = pathname.split("/").slice(0, 4).join("/"); // /admin/course/[programId]
+  const basePath = pathname.split("/").slice(0, 3).join("/"); // /admin/course/[programId]
 
   const links = [
     { href: "", label: "Manage Course" },
