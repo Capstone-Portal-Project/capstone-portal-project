@@ -229,6 +229,38 @@ export async function getProjectPartnerByTeamId(teamId: number) {
   }
 }
 
+
+/**
+ * Fetches all users on the same team, excluding the project partner for the given teamId.
+ * 
+ * @param {number} teamId - The ID of the team.
+ * @returns {Promise<{ teammates: any[], error: boolean, message?: string }> }
+ */
+export async function getTeamUsersExcludingPartner(teamId: number) {
+  try {
+    // Fetch all users in the given team
+    const teamUsers = await db
+      .select({
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.teamId, teamId)) // Use teamId directly
+      .execute();
+      
+    // Exclude the project partner (if any)
+    const teammates = teamUsers.filter(user => user.type !== "project_partner");
+
+    return {
+      error: false,
+      teammates
+    };
+  } catch (error) {
+    console.error("Failed to fetch team users excluding project partner", error);
+    return { error: true, message: "Failed to fetch team users", teammates: [] };
+  }
+}
+
+
 /**
  * Fetches a user by their Clerk ID.
  * 
