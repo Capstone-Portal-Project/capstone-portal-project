@@ -23,15 +23,15 @@ const projectFormSchema = z.object({
   appMotivations: z.string(),
   appMinQualifications: z.string(),
   appPrefQualifications: z.string(),
-  showcaseDescription: z.string().optional(),
-  showcaseImage: z.string().optional(),
-  showcaseVideo: z.string().optional(),
+  showcaseDescription: z.string().optional().nullable(),  
+  showcaseImage: z.string().optional().nullable(),       
+  showcaseVideo: z.string().optional().nullable(),       
   isShowcasePublished: z.boolean().optional(),
-  sequenceId: z.number().optional(),
-  sequenceReport: z.string().optional(),
-  projectGithubLink: z.string().optional(),
+  sequenceId: z.number().optional().nullable(),           
+  sequenceReport: z.string().optional().nullable(),       
+  projectGithubLink: z.string().optional().nullable(),
   projectStatus: z.enum(['draft', 'submitted', 'deferred', 'active', 'archived', 'incomplete']).optional(),
-})
+});
 
 /**
  * Creates a new project.
