@@ -15,6 +15,7 @@ const userFormSchema = z.object({
   programId: z.number().optional(),
   rankingSubmitted: z.boolean().default(false),
   teamId: z.number().optional(),
+  projectId: z.number().optional(),
   clerk_user_id: z.string().max(256)
 })
 
