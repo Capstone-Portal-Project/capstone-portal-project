@@ -77,14 +77,16 @@ export const columns = ({ onEdit, onDelete }: ColumnActions): ColumnDef<AdminUse
           <Button variant="ghost" size="icon" onClick={() => onEdit(user)}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => onDelete(user.id)}
-            className="text-red-500 hover:text-red-700"
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
+          {user.isAdmin && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => onDelete(user.id)}
+              className="text-red-500 hover:text-red-700"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       )
     },
