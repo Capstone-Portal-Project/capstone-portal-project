@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { useToast } from "~/components/ui/use-toast";
+import { useToast } from "~/components/ui/toaster";
 
 export type ProjectLogType = 'submission' | 'deferment' | 'approval' | 'partner_message' | 'instructor_admin_message' | 'course_transfer';
 
@@ -34,7 +34,6 @@ type AddProjectLogProps = {
   buttonVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 };
 
-// Mapping log types to display names
 const logTypeNames: Record<ProjectLogType, string> = {
   'submission': 'Project Submission',
   'deferment': 'Project Deferment',
@@ -93,13 +92,11 @@ export function AddProjectLog({
           description: "Log entry created successfully.",
         });
 
-        // Reset form
         setContent("");
         setMemo("");
         setLogType(defaultLogType);
         setOpen(false);
         
-        // Call callback if provided
         if (onLogAdded) {
           onLogAdded();
         }
