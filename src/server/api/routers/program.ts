@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm"
 import { term } from "~/server/db/schema"
 import { users } from "~/server/db/schema"
 import { instructors } from "~/server/db/schema"
+import { createClerkOrganization, addAdminsToOrganization } from "../../auth/clerk-admin"
 
 /**
  * Schema for validating program form data.
@@ -20,7 +21,7 @@ const programFormSchema = z.object({
 })
 
 /**
- * Creates a new program.
+ * Creates a new program/course and a corresponding Clerk organization.
  * 
  * @param {z.infer<typeof programFormSchema>} unsafeData - The data to create the program with.
  * @returns {Promise<{ error: boolean; message?: string; programId?: number }>} The result of the creation operation.
@@ -35,6 +36,7 @@ export async function createProgram(
   }
 
   try {
+    // Insert the program into the database
     const result = await db.insert(programs)
       .values(data)
       .returning({ programId: programs.programId })
@@ -42,23 +44,34 @@ export async function createProgram(
 
     const programId = result[0]?.programId;
 
-    if (programId && unsafeData.selected_instructors && unsafeData.selected_instructors.length > 0) {
-      await db.insert(instructors)
-        .values(
-          unsafeData.selected_instructors.map(userId => ({
-            programId: programId,
-            userId: userId
-          }))
-        )
-        .execute()
+    if (programId) {
+      // Create a Clerk organization for this program
+      const orgName = `${data.programName} (${programId})`;
+      const organizationId = await createClerkOrganization(orgName);
+      
+      if (organizationId) {
+        // Add all admin users to the new organization
+        await addAdminsToOrganization(organizationId);
+        
+        if (unsafeData.selected_instructors && unsafeData.selected_instructors.length > 0) {
+          await db.insert(instructors)
+            .values(
+              unsafeData.selected_instructors.map(userId => ({
+                programId: programId,
+                userId: userId
+              }))
+            )
+            .execute()
+        }
+      }
+      
+      return { error: false, programId };
     }
-
-    return { 
-      error: false, 
-      programId: programId 
-    }
+    
+    return { error: true, message: "Failed to create program" };
   } catch (error) {
-    return { error: true, message: "Failed to create program" }
+    console.error("Error creating program:", error);
+    return { error: true, message: "Failed to create program" };
   }
 }
 

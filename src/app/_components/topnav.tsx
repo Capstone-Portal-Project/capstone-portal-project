@@ -24,8 +24,16 @@ export function TopNav() {
 
   const adminLinks: { title: string; href: string; }[] = [
     {
+      title: "Account Management",
+      href: "/admin/accounts",
+    },
+    {
       title: "Program Management",
       href: "/admin",
+    },
+    {
+      title: "Instructor Assignments",
+      href: "/admin/instructor-assignments",
     },
     {
       title: "Archived Projects",
@@ -35,10 +43,6 @@ export function TopNav() {
       title: "Update Home",
       href: "/admin/update-home",
     },
-    {
-      title: "Assign Instructors",
-      href: "/admin/instructor-assignments",
-    }
   ];
 
   const instructorLinks: { title: string; href: string; }[] = [
