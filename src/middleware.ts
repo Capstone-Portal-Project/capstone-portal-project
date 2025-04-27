@@ -1,6 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-const isAdminRoute = createRouteMatcher(['/admin(.*)'])
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/admin-course(.*)'])
 const isInstructorRoute = createRouteMatcher(['/instructor(.*)'])
 const isLoggedInRoute = createRouteMatcher(['/saved-projects(.*)'])
 const isAdminRoleChangeRoute = createRouteMatcher(['/api/role/admin(.*)'])
