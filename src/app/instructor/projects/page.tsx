@@ -48,8 +48,7 @@ export default function Projects() {
         const result = await getProgramsByInstructorClerkId(user.id);
         if (!result.error && result.programs.length > 0) {
           setPrograms(result.programs);
-          // Auto-select the first program
-          setSelectedProgramId(result.programs[0].programId);
+          setSelectedProgramId(result.programs[0]?.programId || null);
         }
       } catch (error) {
         console.error("Failed to fetch instructor programs:", error);
@@ -143,11 +142,6 @@ export default function Projects() {
         <>
           <div className="text-lg">
             <span className="font-medium">Current program:</span> {selectedProgram.programName}
-            {selectedProgram.start_term && (
-              <span className="text-muted-foreground ml-2">
-                ({selectedProgram.start_term.season} {selectedProgram.start_term.year})
-              </span>
-            )}
           </div>
           
           {projectsLoading ? (

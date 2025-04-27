@@ -107,11 +107,6 @@ export default function InstructorProjectLogs() {
         <>
           <div className="text-lg">
             <span className="font-medium">Current program:</span> {selectedProgram.programName}
-            {selectedProgram.start_term && (
-              <span className="text-muted-foreground ml-2">
-                ({selectedProgram.start_term.season} {selectedProgram.start_term.year})
-              </span>
-            )}
           </div>
           
           <Tabs defaultValue="all">
