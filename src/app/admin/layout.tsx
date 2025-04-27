@@ -12,8 +12,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const links = [
     { href: "/admin", label: "Manage Courses" },
     { href: "/admin/archived", label: "Archived Courses" },
-    { href: "/admin/update-home", label: "Project Submissions" },
     { href: "/admin/instructor-assignments", label: "Instructor Assignments" },
+    { href: "/admin/update-home", label: "Update Home" },
   ];
 
   return (
