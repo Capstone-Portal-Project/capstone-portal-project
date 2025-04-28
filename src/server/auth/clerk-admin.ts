@@ -13,16 +13,11 @@ import { eq } from "drizzle-orm";
  */
 export async function createClerkOrganization(name: string): Promise<string | null> {
   try {
-    // In a real implementation, we would create a Clerk organization
-    // Example:
-    // const organization = await clerkClient.organizations.createOrganization({
-    //   name: name,
-    // });
-    // return organization.id;
-    
-    // For demonstration purposes, we'll return a mock ID
-    console.log(`[MOCK] Created organization: ${name}`);
-    return `org_${Math.random().toString(36).substring(2, 11)}`;
+    const client = await clerkClient();
+    const organization = await client.organizations.createOrganization({
+      name: name,
+    });
+    return organization.id;
   } catch (error) {
     console.error("Error creating Clerk organization:", error);
     return null;
@@ -37,26 +32,24 @@ export async function createClerkOrganization(name: string): Promise<string | nu
  */
 export async function addAdminsToOrganization(organizationId: string): Promise<boolean> {
   try {
-    // Fetch all admin users from the database
+    const client = await clerkClient();
     const adminUsers = await db
       .select({ clerk_user_id: users.clerk_user_id })
       .from(users)
       .where(eq(users.type, "admin"));
 
-    // In a real implementation, we would add each admin to the organization
-    // Example:
-    // for (const admin of adminUsers) {
-    //   await clerkClient.organizations.createOrganizationMembership({
-    //     organizationId,
-    //     userId: admin.clerk_user_id,
-    //     role: "org:admin"
-    //   });
-    // }
+    for (const admin of adminUsers) {
+      await client.organizations.createOrganizationMembership({
+        organizationId,
+        userId: admin.clerk_user_id,
+        role: "org:admin"
+      });
+    }
     
     // For demonstration purposes, we'll just log
-    console.log(`[MOCK] Added ${adminUsers.length} admins to organization: ${organizationId}`);
+    console.log(`Added ${adminUsers.length} admins to organization: ${organizationId}`);
     adminUsers.forEach(admin => {
-      console.log(`[MOCK] - Added user ${admin.clerk_user_id} as admin`);
+      console.log(`  - user ${admin.clerk_user_id} as admin`);
     });
     
     return true;
@@ -157,4 +150,16 @@ export async function removeUserFromOrganization(
     console.error("Error removing user from organization:", error);
     return false;
   }
-} 
+}
+
+export async function deleteOrganization(organizationId: string) {
+  try {
+    const client = await clerkClient();
+    await client.organizations.deleteOrganization(organizationId);
+    console.log(`Deleted organization: ${organizationId}`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting organization:", error);
+    return false;
+  }
+}

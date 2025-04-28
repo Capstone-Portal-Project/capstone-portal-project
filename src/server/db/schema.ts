@@ -72,6 +72,7 @@ export const programs = createTable(
     programStatus: programStatusEnum("program_status").notNull(),
     startTermId: integer("start_term_id").references(() => term.id).notNull(),
     endTermId: integer("end_term_id").references(() => term.id).notNull(),
+    clerkOrganizationId: varchar("clerk_organization_id", { length: 256 })
   }
 );
 

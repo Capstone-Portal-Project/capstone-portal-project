@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm"
 import { term } from "~/server/db/schema"
 import { users } from "~/server/db/schema"
 import { instructors } from "~/server/db/schema"
-import { createClerkOrganization, addAdminsToOrganization } from "../../auth/clerk-admin"
+import { createClerkOrganization, addAdminsToOrganization, deleteOrganization } from "../../auth/clerk-admin"
 
 /**
  * Schema for validating program form data.
@@ -17,7 +17,8 @@ const programFormSchema = z.object({
   programDescription: z.string().optional(),
   programStatus: z.enum(['submissions', 'matching', 'active', 'ending', 'archived', 'hidden']),
   startTermId: z.number(),
-  endTermId: z.number()
+  endTermId: z.number(),
+  clerkOrganizationId: z.string().optional()
 })
 
 /**
@@ -50,6 +51,13 @@ export async function createProgram(
       const organizationId = await createClerkOrganization(orgName);
       
       if (organizationId) {
+        
+        // Update the program with the Clerk organization ID
+        await db.update(programs)
+          .set({ clerkOrganizationId: organizationId })
+          .where(eq(programs.programId, programId))
+          .execute();
+
         // Add all admin users to the new organization
         await addAdminsToOrganization(organizationId);
         
@@ -298,11 +306,31 @@ export async function getProgramById(programId: number) {
  */
 export async function deleteProgram(programId: number) {
   try {
+    // Get the program first to get its name for the organization
+    const program = await db.select()
+      .from(programs)
+      .where(eq(programs.programId, programId))
+      .then(programs => programs[0]);
+
+    if (!program) {
+      return { error: true, message: "Program not found" };
+    }
+
+    // Delete the program from the database
     await db.delete(programs)
       .where(eq(programs.programId, programId))
-      .execute()
-    return { error: false }
+      .execute();
+
+    // Delete the corresponding Clerk organization
+    if (program.clerkOrganizationId) {
+      await deleteOrganization(program.clerkOrganizationId);
+    } else {
+      console.error("Program has no Clerk organization ID");
+    }
+
+    return { error: false };
   } catch (error) {
-    return { error: true, message: "Failed to delete program" }
+    console.error("Error deleting program:", error);
+    return { error: true, message: "Failed to delete program" };
   }
 }
