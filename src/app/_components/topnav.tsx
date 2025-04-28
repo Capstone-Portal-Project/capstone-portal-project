@@ -32,6 +32,10 @@ export function TopNav() {
       href: "/admin",
     },
     {
+      title: "Course Project Logs",
+      href: "/admin-course/1/project-logs",
+    },
+    {
       title: "Instructor Assignments",
       href: "/admin/instructor-assignments",
     },
@@ -51,8 +55,12 @@ export function TopNav() {
       href: "/instructor",
     },
     {
-      title: "Projects",
+      title: "Course Projects",
       href: "/instructor/projects",
+    },
+    {
+      title: "Project Logs",
+      href: "/instructor/project-logs",
     },
     {
       title: "Project Submissions",

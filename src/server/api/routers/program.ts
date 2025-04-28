@@ -3,7 +3,7 @@
 import { db } from "~/server/db"
 import { programs } from "~/server/db/schema"
 import { z } from "zod"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import { term } from "~/server/db/schema"
 import { users } from "~/server/db/schema"
 import { instructors } from "~/server/db/schema"
@@ -351,5 +351,98 @@ export async function getClerkOrganizationId(programId: number): Promise<string 
   } catch (error) {
     console.error("Error fetching Clerk organization ID:", error);
     return null;
+  }
+}
+
+/**
+ * Gets programs assigned to an instructor by their Clerk user ID.
+ * 
+ * @param {string} clerkUserId - The Clerk user ID of the instructor.
+ * @returns {Promise<{ programs: any[]; error: boolean; message?: string }>} The programs assigned to the instructor.
+ */
+export async function getProgramsByInstructorClerkId(clerkUserId: string) {
+  try {
+    // First, get the internal user ID from the Clerk user ID
+    const userResult = await db
+      .select({
+        userId: users.userId
+      })
+      .from(users)
+      .where(and(
+        eq(users.clerk_user_id, clerkUserId),
+        eq(users.type, 'instructor')
+      ))
+      .limit(1);
+    
+    if (userResult.length === 0) {
+      return { programs: [], error: true, message: "Instructor not found" };
+    }
+    
+    const userId = userResult[0].userId;
+    
+    // Get the programs this instructor is assigned to
+    const instructorPrograms = await db
+      .select({
+        programId: instructors.programId
+      })
+      .from(instructors)
+      .where(eq(instructors.userId, userId));
+    
+    if (instructorPrograms.length === 0) {
+      return { programs: [], error: false, message: "No programs assigned to this instructor" };
+    }
+    
+    // Get the full program details
+    const programIds = instructorPrograms.map(ip => ip.programId);
+    const programsWithStartTerm = await Promise.all(
+      programIds.map(async (programId) => {
+        const program = await db
+          .select()
+          .from(programs)
+          .where(eq(programs.programId, programId))
+          .limit(1)
+          .then(programs => programs[0]);
+        
+        if (!program) {
+          return null;
+        }
+        
+        const startTerm = await db
+          .select()
+          .from(term)
+          .where(eq(term.id, program.startTermId))
+          .then(terms => terms[0]);
+        
+        const endTerm = await db
+          .select()
+          .from(term)
+          .where(eq(term.id, program.endTermId))
+          .then(terms => terms[0]);
+        
+        return {
+          ...program,
+          start_term: startTerm ? {
+            id: startTerm.id,
+            season: startTerm.season,
+            year: startTerm.year,
+            is_published: startTerm.isPublished
+          } : undefined,
+          end_term: endTerm ? {
+            id: endTerm.id,
+            season: endTerm.season,
+            year: endTerm.year,
+            is_published: endTerm.isPublished
+          } : undefined
+        };
+      })
+    );
+    
+    // Filter out any null values (programs that couldn't be found)
+    const validPrograms = programsWithStartTerm.filter(p => p !== null);
+    
+    return { programs: validPrograms, error: false };
+  } catch (error) {
+    console.error("Failed to fetch instructor programs:", error);
+    return { programs: [], error: true, message: "Failed to fetch instructor programs" };
   }
 }
