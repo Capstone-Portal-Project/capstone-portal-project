@@ -24,6 +24,7 @@ interface ProgramsTableProps {
   handleUpdateProgramStatus: (programId: number, newStatus: Program["programStatus"]) => Promise<void>;
   onEditClick: (program: Program) => void;
   onDeleteClick: (programId: number) => void;
+  onManageClick: (programId: number) => void;
 }
 
 export function ProgramsTable({
@@ -31,6 +32,7 @@ export function ProgramsTable({
   handleUpdateProgramStatus,
   onEditClick,
   onDeleteClick,
+  onManageClick,
 }: ProgramsTableProps) {
   return (
     <Table>
@@ -81,9 +83,12 @@ export function ProgramsTable({
             </TableCell>
             <TableCell>
               <div className="flex gap-2">
-                <Link href={`/admin-course/${program.programId}`}>
-                  <Button size="sm">Manage</Button>
-                </Link>
+                <Button 
+                  size="sm"
+                  onClick={() => onManageClick(program.programId)}
+                >
+                  Manage
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

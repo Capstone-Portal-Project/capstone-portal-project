@@ -334,3 +334,22 @@ export async function deleteProgram(programId: number) {
     return { error: true, message: "Failed to delete program" };
   }
 }
+
+/**
+ * Fetches the Clerk organization ID for a given program.
+ * @param programId - The ID of the program to get the Clerk organization ID for.
+ * @returns {Promise<string | null>} The Clerk organization ID if found, otherwise null.
+ */
+export async function getClerkOrganizationId(programId: number): Promise<string | null> {
+  try {
+    const program = await db.select({ clerkOrganizationId: programs.clerkOrganizationId })
+      .from(programs)
+      .where(eq(programs.programId, programId))
+      .then(programs => programs[0]);
+
+    return program?.clerkOrganizationId || null;
+  } catch (error) {
+    console.error("Error fetching Clerk organization ID:", error);
+    return null;
+  }
+}
