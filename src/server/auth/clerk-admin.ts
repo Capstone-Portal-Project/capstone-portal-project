@@ -4,6 +4,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { db } from "../db";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { getClerkOrganizationId } from "../api/routers/program";
 
 /**
  * Creates a new Clerk organization for a program.
@@ -62,27 +63,33 @@ export async function addAdminsToOrganization(organizationId: string): Promise<b
 /**
  * Adds a user to a Clerk organization with a specific role.
  * 
- * @param {string} organizationId - The ID of the organization.
+ * @param {number} programId - The ID of the program.
  * @param {string} clerkUserId - The ID of the user.
  * @param {string} role - The role to assign (e.g., "org:admin", "org:instructor", "org:student").
  * @returns {Promise<boolean>} Whether the operation was successful.
  */
 export async function addUserToOrganization(
-  organizationId: string,
+  programId: number,
   clerkUserId: string,
   role: string
 ): Promise<boolean> {
   try {
-    // In a real implementation, we would add the user to the organization
-    // Example:
-    // await clerkClient.organizations.createOrganizationMembership({
-    //   organizationId,
-    //   userId: clerkUserId,
-    //   role
-    // });
+    const organizationId = await getClerkOrganizationId(programId);
+
+    if (!organizationId) {
+      console.error("Organization ID not found for program:", programId);
+      return false;
+    }
+
+    const client = await clerkClient();
+
+    await client.organizations.createOrganizationMembership({
+      organizationId,
+      userId: clerkUserId,
+      role
+    });
     
-    // For demonstration purposes, we'll just log
-    console.log(`[MOCK] Added user ${clerkUserId} to organization ${organizationId} with role ${role}`);
+    console.log(`Added user ${clerkUserId} to organization ${organizationId} with role ${role}`);
     
     return true;
   } catch (error) {
@@ -126,24 +133,31 @@ export async function changeUserRoleInOrganization(
 /**
  * Removes a user from a Clerk organization.
  * 
- * @param {string} organizationId - The ID of the organization.
+ * @param {number} programId - The ID of the program.
  * @param {string} clerkUserId - The ID of the user.
  * @returns {Promise<boolean>} Whether the operation was successful.
  */
 export async function removeUserFromOrganization(
-  organizationId: string,
+  programId: number,
   clerkUserId: string
 ): Promise<boolean> {
   try {
-    // In a real implementation, we would remove the user from the organization
-    // Example:
-    // await clerkClient.organizations.deleteOrganizationMembership({
-    //   organizationId,
-    //   userId: clerkUserId
-    // });
+
+    const organizationId = await getClerkOrganizationId(programId);
+
+    if (!organizationId) {
+      console.error("Organization ID not found for program:", programId);
+      return false;
+    }
+
+    const client = await clerkClient();
+
+    await client.organizations.deleteOrganizationMembership({
+      organizationId,
+      userId: clerkUserId
+    });
     
-    // For demonstration purposes, we'll just log
-    console.log(`[MOCK] Removed user ${clerkUserId} from organization ${organizationId}`);
+    console.log(`Removed user ${clerkUserId} from organization ${organizationId}`);
     
     return true;
   } catch (error) {
