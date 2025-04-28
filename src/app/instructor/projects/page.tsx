@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
+
 import { getProgramsByInstructorClerkId, getActivePrograms } from "~/server/api/routers/program";
 import { updateProject, getProjectsByProgram, getProjectById } from "~/server/api/routers/project";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { InfoIcon } from "lucide-react";
@@ -11,6 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { useToast } from "~/components/ui/toaster";
+
 
 // Type definitions for better type safety
 type Program = {
@@ -42,6 +45,7 @@ export default function Projects() {
   const { isSignedIn, user } = useUser();
 
    const { toast } = useToast();
+
   
   // Fetch instructor's programs
   useEffect(() => {
@@ -89,6 +93,7 @@ export default function Projects() {
     fetchProjects();
   }, [selectedProgramId]);
 
+
 //gets all active programs
 useEffect(() => {
   const fetchPrograms = async () => {
@@ -101,6 +106,7 @@ useEffect(() => {
   };
   fetchPrograms();
 }, []);
+
 
 
   if (loading) {
@@ -247,6 +253,7 @@ useEffect(() => {
                       </Select>
                     </div>
 
+
                     {project.projectStatus && (
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         project.projectStatus === 'active' ? 'bg-green-100 text-green-800' :
@@ -256,8 +263,7 @@ useEffect(() => {
                         {project.projectStatus.charAt(0).toUpperCase() + project.projectStatus.slice(1)}
                       </span>
                     )}
-                  </CardFooter>
-
+                    </CardFooter>
                 </Card>
               ))}
             </div>

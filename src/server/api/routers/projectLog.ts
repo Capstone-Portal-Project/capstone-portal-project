@@ -1,9 +1,9 @@
 "use server"
 
 import { db } from "~/server/db"
-import { projectLog } from "~/server/db/schema"
+import { projectLog, users, projects } from "~/server/db/schema"
 import { z } from "zod"
-import { eq, desc, and } from "drizzle-orm"
+import { eq, desc, and, inArray } from "drizzle-orm"
 
 /**
  * Schema for validating project log form data.
@@ -69,6 +69,139 @@ export async function getProjectLogs(projectId: number) {
     return { logs, error: false }
   } catch (error) {
     return { logs: [], error: true, message: "Failed to fetch project logs" }
+  }
+}
+
+/**
+ * Fetches all logs for a specific project with user information.
+ * 
+ * @param {number} projectId - The ID of the project to fetch logs for.
+ * @returns {Promise<{ logs: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getProjectLogsWithUsers(projectId: number) {
+  try {
+    const logs = await db
+      .select({
+        projectLogId: projectLog.projectLogId,
+        projectId: projectLog.projectId,
+        dateCreated: projectLog.dateCreated,
+        content: projectLog.content,
+        memo: projectLog.memo,
+        userId: projectLog.userId,
+        projectLogType: projectLog.projectLogType,
+        username: users.username,
+        email: users.email,
+        userType: users.type
+      })
+      .from(projectLog)
+      .leftJoin(users, eq(projectLog.userId, users.userId))
+      .where(eq(projectLog.projectId, projectId))
+      .orderBy(desc(projectLog.dateCreated))
+
+    // Format the logs to include user object
+    const formattedLogs = logs.map(log => ({
+      projectLogId: log.projectLogId,
+      projectId: log.projectId,
+      dateCreated: log.dateCreated,
+      content: log.content,
+      memo: log.memo,
+      userId: log.userId,
+      projectLogType: log.projectLogType,
+      user: {
+        username: log.username,
+        email: log.email,
+        type: log.userType
+      }
+    }))
+
+    return { logs: formattedLogs, error: false }
+  } catch (error) {
+    console.error("Failed to fetch project logs with users:", error)
+    return { logs: [], error: true, message: "Failed to fetch project logs with users" }
+  }
+}
+
+/**
+ * Fetches all logs for projects in a program with user and project information.
+ * 
+ * @param {number} programId - The ID of the program to fetch logs for.
+ * @param {number} limit - Optional limit on the number of logs to return.
+ * @param {z.infer<typeof projectLogFormSchema>["projectLogType"][]} logTypes - Optional array of log types to filter by.
+ * @returns {Promise<{ logs: any[]; error: boolean; message?: string }>} The result of the fetch operation.
+ */
+export async function getProgramLogsWithDetails(
+  programId: number, 
+  limit?: number,
+  logTypes?: z.infer<typeof projectLogFormSchema>["projectLogType"][]
+) {
+  try {
+    // First, get all projects in this program
+    const programProjects = await db
+      .select({ projectId: projects.projectId })
+      .from(projects)
+      .where(eq(projects.programsId, programId))
+    
+    if (programProjects.length === 0) {
+      return { logs: [], error: false }
+    }
+    
+    // Get the project IDs
+    const projectIds = programProjects.map(p => p.projectId)
+    
+    // Build the query for logs
+    let query = db
+      .select({
+        projectLogId: projectLog.projectLogId,
+        projectId: projectLog.projectId,
+        dateCreated: projectLog.dateCreated,
+        content: projectLog.content,
+        memo: projectLog.memo,
+        userId: projectLog.userId,
+        projectLogType: projectLog.projectLogType,
+        username: users.username,
+        email: users.email,
+        userType: users.type,
+        projectTitle: projects.projectTitle
+      })
+      .from(projectLog)
+      .leftJoin(users, eq(projectLog.userId, users.userId))
+      .leftJoin(projects, eq(projectLog.projectId, projects.projectId))
+      .where(inArray(projectLog.projectId, projectIds))
+    
+    // Apply type filter if provided
+    if (logTypes && logTypes.length > 0) {
+      query = query.where(inArray(projectLog.projectLogType, logTypes))
+    }
+    
+    // Apply limit if provided
+    if (limit) {
+      query = query.limit(limit)
+    }
+    
+    // Execute query with ordering
+    const logs = await query.orderBy(desc(projectLog.dateCreated))
+
+    // Format the logs to include user and project details
+    const formattedLogs = logs.map(log => ({
+      projectLogId: log.projectLogId,
+      projectId: log.projectId,
+      projectTitle: log.projectTitle,
+      dateCreated: log.dateCreated,
+      content: log.content,
+      memo: log.memo,
+      userId: log.userId,
+      projectLogType: log.projectLogType,
+      user: {
+        username: log.username,
+        email: log.email,
+        type: log.userType
+      }
+    }))
+
+    return { logs: formattedLogs, error: false }
+  } catch (error) {
+    console.error("Failed to fetch program logs:", error)
+    return { logs: [], error: true, message: "Failed to fetch program logs" }
   }
 }
 

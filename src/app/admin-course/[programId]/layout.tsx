@@ -12,6 +12,7 @@ export default function InstructorLayout({ children }: { children: ReactNode }) 
   const links = [
     { href: "", label: "Manage Course" },
     { href: "projects", label: "Course Projects" },
+    { href: "project-logs", label: "Project Logs" },
     { href: "project-submissions", label: "Project Submissions" },
     { href: "project-assignments", label: "Project Assignments" },
     { href: "add-project", label: "Add Project" },
