@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { getProgramsByInstructorClerkId } from "~/server/api/routers/program";
-import { getProjectsByProgram } from "~/server/api/routers/project";
+
+import { getProgramsByInstructorClerkId, getActivePrograms } from "~/server/api/routers/program";
+import { updateProject, getProjectsByProgram, getProjectById } from "~/server/api/routers/project";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { InfoIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
+import { useToast } from "~/components/ui/toaster";
+
 
 // Type definitions for better type safety
 type Program = {
@@ -34,10 +38,14 @@ type Project = {
 export default function Projects() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null);
+  const [allPrograms, setAllPrograms] = useState<Program[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [projectsLoading, setProjectsLoading] = useState(false);
   const { isSignedIn, user } = useUser();
+
+   const { toast } = useToast();
+
   
   // Fetch instructor's programs
   useEffect(() => {
@@ -84,7 +92,23 @@ export default function Projects() {
     
     fetchProjects();
   }, [selectedProgramId]);
-  
+
+
+//gets all active programs
+useEffect(() => {
+  const fetchPrograms = async () => {
+    const { programs, error } = await getActivePrograms();
+    if (!error) {
+      setAllPrograms(programs); // ✅ now correct
+    } else {
+      console.error("Failed to load programs");
+    }
+  };
+  fetchPrograms();
+}, []);
+
+
+
   if (loading) {
     return <div className="py-8 text-center">Loading your programs...</div>;
   }
@@ -178,10 +202,58 @@ export default function Projects() {
                       {project.appDescription}
                     </p>
                   </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Link href={`/project/${project.projectId}`}>
-                      <Button variant="outline">View Details</Button>
-                    </Link>
+                 <CardFooter className="flex justify-between items-center">
+                    <div className="flex gap-2">
+                      <Link href={`/project/${project.projectId}`}>
+                        <Button variant="outline">Details</Button>
+                      </Link>
+
+                      <Select
+                        onValueChange={async (value) => {
+                          try {
+                            const { project: fetchedProject, error } = await getProjectById(project.projectId);
+                            if (error || !fetchedProject) {
+                              toast({ title: "Error", description: "Failed to fetch project data." });
+                              return;
+                            }
+
+                            const dataToUpdate = {
+                              ...fetchedProject,
+                              programsId: Number(value), // Now updating programsId!
+                              showcaseDescription: fetchedProject.showcaseDescription ?? "",
+                              showcaseImage: fetchedProject.showcaseImage ?? "",
+                              showcaseVideo: fetchedProject.showcaseVideo ?? "",
+                              projectGithubLink: fetchedProject.projectGithubLink ?? "",
+                              sequenceReport: fetchedProject.sequenceReport ?? "",
+                            };
+
+                            const result = await updateProject(project.projectId, dataToUpdate);
+
+                            if (!result.error) {
+                              toast({ title: "Success", description: `Program updated!` });
+                            } else {
+                              toast({ title: "Error", description: result.message || "Failed to update program." });
+                            }
+                          } catch (error) {
+                            console.error("Error updating program:", error);
+                            toast({ title: "Error", description: "An error occurred while updating." });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="Change Program" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allPrograms.map((program) => (
+                            <SelectItem key={program.programId} value={program.programId.toString()}>
+                              {program.programName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+
                     {project.projectStatus && (
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         project.projectStatus === 'active' ? 'bg-green-100 text-green-800' :
@@ -191,7 +263,7 @@ export default function Projects() {
                         {project.projectStatus.charAt(0).toUpperCase() + project.projectStatus.slice(1)}
                       </span>
                     )}
-                  </CardFooter>
+                    </CardFooter>
                 </Card>
               ))}
             </div>
