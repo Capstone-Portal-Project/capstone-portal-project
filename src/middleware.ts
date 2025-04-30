@@ -2,8 +2,11 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 const isInstructorRoute = createRouteMatcher(['/instructor(.*)'])
-const isLoggedInRoute = createRouteMatcher(['/saved-projects(.*)'])
-
+const isStudentRoute = createRouteMatcher(['/saved-projects(.*)'])
+const isLoggedInRoute = createRouteMatcher([
+  '/submit(.*)',
+  '/browse(.*)',
+])
 export default clerkMiddleware(async (auth, req) => {
 
   // Restrict admin route to users with specific role
@@ -15,5 +18,8 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Restrict saved-projects route to students
-  if (isLoggedInRoute(req)) await auth.protect({ role: 'org:student' });
+  if (isStudentRoute(req)) await auth.protect({ role: 'org:student' });
+
+  // Requires auth for these routes
+  if (isLoggedInRoute(req)) await auth.protect();
 });
