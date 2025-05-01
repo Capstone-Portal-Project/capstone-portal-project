@@ -92,26 +92,35 @@ export function TopNav() {
       <NavigationMenu>
         <NavigationMenuList>
           {isAdmin && (
-            <NavigationMenuItem>
-              <Link href="/admin" passHref>
-                <NavigationMenuTrigger
-                  onPointerDown={(e) => e.stopPropagation()} // prevent dropdown toggle override
-                  onClick={(e) => {
-                    // When clicked, it will navigate via the <Link>, and NOT toggle the menu
-                    // If you want it to ALSO open the dropdown on click, remove this
-                  }}
-                >
-                  Admin Tools
-                </NavigationMenuTrigger>
-              </Link>
-              <NavigationMenuContent>
-                <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
-                  {adminLinks.map((link) => (
-                    <ListItem key={link.title} title={link.title} href={link.href} />
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
+            <>
+              <NavigationMenuItem>
+                <Link href="/organization-switcher" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Select Organization
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/admin" passHref>
+                  <NavigationMenuTrigger
+                    onPointerDown={(e) => e.stopPropagation()} // prevent dropdown toggle override
+                    onClick={(e) => {
+                      // When clicked, it will navigate via the <Link>, and NOT toggle the menu
+                      // If you want it to ALSO open the dropdown on click, remove this
+                    }}
+                  >
+                    Admin Tools
+                  </NavigationMenuTrigger>
+                </Link>
+                <NavigationMenuContent>
+                  <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
+                    {adminLinks.map((link) => (
+                      <ListItem key={link.title} title={link.title} href={link.href} />
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </>
           )}
 
           {isInstructor && (
@@ -166,7 +175,9 @@ export function TopNav() {
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <UserButton />
+              <UserButton 
+                afterSignOutUrl="/"
+              />
             </SignedIn>
           </NavigationMenuItem>
         </NavigationMenuList>

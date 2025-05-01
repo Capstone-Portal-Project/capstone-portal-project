@@ -2,9 +2,14 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isAdminRoute = createRouteMatcher(['/admin(.*)', '/admin-course(.*)'])
 const isInstructorRoute = createRouteMatcher(['/instructor(.*)'])
-const isLoggedInRoute = createRouteMatcher(['/saved-projects(.*)'])
 const isAdminRoleChangeRoute = createRouteMatcher(['/api/role/admin(.*)'])
 const isInstructorRoleChangeRoute = createRouteMatcher(['/api/role/instructor(.*)'])
+
+const isStudentRoute = createRouteMatcher(['/saved-projects(.*)'])
+const isLoggedInRoute = createRouteMatcher([
+  '/submit(.*)',
+  '/browse(.*)',
+])
 
 export default clerkMiddleware(async (auth, req) => {
 
@@ -27,5 +32,8 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Restrict saved-projects route to students
-  if (isLoggedInRoute(req)) await auth.protect({ role: 'org:student' });
+  if (isStudentRoute(req)) await auth.protect({ role: 'org:student' });
+
+  // Requires auth for these routes
+  if (isLoggedInRoute(req)) await auth.protect();
 });
