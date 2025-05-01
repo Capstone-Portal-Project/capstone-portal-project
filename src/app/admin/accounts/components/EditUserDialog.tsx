@@ -88,7 +88,7 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit, organizatio
       organizationId: values.organizationId === "none" ? undefined : values.organizationId,
     }
     
-    await onSubmit(userData)
+    onSubmit(userData)
     onOpenChange(false)
   }
 

@@ -12,6 +12,7 @@ import { columns } from "./columns";
 import { AddUserDialog } from "./components/AddUserDialog";
 import { EditUserDialog } from "./components/EditUserDialog";
 import { DeleteUserDialog } from "./components/DeleteUserDialog";
+import { addAdminToAllOrganization, removeAdminRole } from "~/server/auth/clerk-admin";
 
 export type AdminUser = {
   id: number;
@@ -143,14 +144,30 @@ export default function AccountManagementPage() {
       // Remove organizationId as it's not part of the user schema
       delete apiData.organizationId;
       
+      const user = users.find(u => u.id === userId);
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No matching user not found (This should never happen)",
+        });
+        return;
+      } else if (user.clerk_user_id) {
+        if (updatedUser.type === "admin") {
+          await addAdminToAllOrganizations(user.clerk_user_id);
+        } else if (updatedUser.type === "instructor") {
+          // Demote user in clerk and DB
+          await removeAdminRole(user.clerk_user_id, "org:instructor");
+          const result = await updateUser(userId, { type: "instructor" });
+          if (result.error) {
+            throw new Error(result.message || "Failed to demote user");
+          }
+        }
+      }
+
       const result = await updateUser(userId, apiData);
-      
+
       if (!result.error) {
-        // In a real implementation, we would also:
-        // 1. Update the user's role in Clerk
-        // 2. If the user is now an admin, add them to all organizations
-        // 3. If the user is no longer an admin, handle organization membership accordingly
-        
         toast({
           title: "Success",
           description: "User updated successfully",
@@ -174,44 +191,39 @@ export default function AccountManagementPage() {
 
   const handleDeleteUser = async (userId: number) => {
     try {
-      const result = await updateUser(userId, { type: "instructor" });
-      
-      if (!result.error) {
-        toast({
-          title: "Success",
-          description: "Admin privileges removed successfully",
-        });
-        fetchUsers();
-      } else {
+
+      // Find the selected user
+      const user = users.find(u => u.id === userId);
+      if (!user || !user.clerk_user_id) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: result.message || "Failed to update user",
+          description: "User not found or invalid user ID",
         });
+        return;
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update user",
-      });
     }
   };
 
   // Function to add admin to all organizations
   const addAdminToAllOrganizations = async (clerkUserId: string) => {
-    // This would be implemented to use Clerk's API
-    // For each organization, add the user with admin role
-    // Example pseudo-code:
-    // 
-    // for (const program of organizations) {
-    //   await clerkClient.organizations.createOrganizationMembership({
-    //     organizationId: String(program.programId),
-    //     userId: clerkUserId,
-    //     role: "org:admin"
-    //   });
-    // }
     
+    try {
+      const result = await addAdminToAllOrganization(clerkUserId);
+      
+      if (!result) {
+        throw new Error("Failed to add admin to all organizations");
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to add admin to all organizations",
+      });
+      return;
+    }
+
     toast({
       title: "Admin Access",
       description: "Admin added to all organizations",
@@ -228,7 +240,7 @@ export default function AccountManagementPage() {
           className="bg-black hover:bg-black/90 text-white"
         >
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Admin User
+          Add Privileged User
         </Button>
       </div>
       
@@ -283,16 +295,8 @@ export default function AccountManagementPage() {
           user={editingUser}
           onSubmit={(updatedUser) => {
             handleEditUser(editingUser.id, updatedUser);
-            // If the user was promoted to admin, add them to all organizations
-            if (updatedUser.type === "admin" && !editingUser.isAdmin) {
-              // We would need the clerk user ID here
-              // This is a simplified version - in reality we'd fetch the clerk ID
-              const user = users.find(u => u.id === editingUser.id);
-              if (user) {
-                addAdminToAllOrganizations(user.clerk_user_id || "");
-              }
             }
-          }}
+          }
           organizations={organizations}
         />
       )}

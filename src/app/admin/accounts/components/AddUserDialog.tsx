@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select"
+import { inviteClerkUser } from "~/server/auth/clerk-admin"
 
 interface Organization {
   programId: number;
@@ -80,6 +81,7 @@ export function AddUserDialog({ open, onOpenChange, onSuccess, onError, organiza
         programId: values.organizationId ? parseInt(values.organizationId) : undefined,
       }
       
+      await inviteClerkUser (userData.email)
       await createUser(userData)
       
       onSuccess()
@@ -93,9 +95,9 @@ export function AddUserDialog({ open, onOpenChange, onSuccess, onError, organiza
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Add Admin User</DialogTitle>
+          <DialogTitle>Add Privileged User</DialogTitle>
           <DialogDescription>
-            Create a new admin user account. They will have access to the admin panel.
+            Create a new admin/instructor user account with permissions.
           </DialogDescription>
         </DialogHeader>
         
