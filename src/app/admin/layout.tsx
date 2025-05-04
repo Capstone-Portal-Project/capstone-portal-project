@@ -10,10 +10,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const links = [
-    { href: "/admin", label: "Manage Courses" },
-    { href: "/admin/archived", label: "Archived Courses" },
-    { href: "/admin/update-home", label: "Project Submissions" },
+    { href: "/admin/accounts", label: "Account Management" },
+    { href: "/admin", label: "Program Management" },
     { href: "/admin/instructor-assignments", label: "Instructor Assignments" },
+    { href: "/admin/archived", label: "Archived Projects" },
+    { href: "/admin/update-home", label: "Update Home" },
   ];
 
   return (

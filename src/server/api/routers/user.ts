@@ -4,6 +4,7 @@ import { db } from "~/server/db"
 import { users } from "~/server/db/schema"
 import { z } from "zod"
 import { eq, and } from "drizzle-orm"
+import { addUserToOrganization, removeUserFromOrganization } from "~/server/auth/clerk-admin"
 
 /**
  * Schema for validating user form data.
@@ -101,6 +102,29 @@ export async function updateInstructor(
       const sanitizedData = {
         ...data,
         programId: data.programId === undefined ? null : data.programId
+      }
+
+      // Remove user affiliation from the last ogranization if applicable
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.userId, userId))
+        .limit(1)
+
+      if (user && user.length > 0) {
+        const programId = user[0]?.programId
+        const clerkUserId = user[0]?.clerk_user_id
+        
+        if (clerkUserId && programId) {
+          await removeUserFromOrganization(programId, clerkUserId)
+        }
+
+        // If program ID is not null, add the instructor to the new organization
+        if (sanitizedData.programId !== null && clerkUserId) {
+          await addUserToOrganization(sanitizedData.programId, clerkUserId, 'org:instructor')
+        }
+      } else {
+        console.error(`User with ID ${userId} not found`)
       }
 
     await db.update(users)
