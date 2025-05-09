@@ -8,21 +8,23 @@ total: number // Total students on the team
   return (
     <Tabs.Trigger 
     value={value}
-    className="grid grid-cols-[1fr_3fr_1fr] data-[state=active]:bg-[#e9e5e4]"
+    className="pl-2 py-1 data-[state=active]:bg-[#e9e5e4]"
     >
-      <div className="flex justify-center items-center">
-          <div className="bg-[#f7f5f5] h-[36px] w-[36px] rounded-md" />
-      </div>
-      <div className="tracking-tight pl-2 font-semibold">
-          <div>
-              {name || "Project Name"}
-          </div>
-          <div className="font-semibold text-[#D73F09]">
-              {total || 0} Students
-          </div>
-      </div>
-      <div className="flex justify-center items-center text-lg font-extrabold">
-        #{value.slice(-1) ?? NaN}
+      <div className="grid grid-cols-[1fr_3fr_1fr]">
+        <div className="flex justify-center items-center">
+            <div className="bg-[#f7f5f5] h-[36px] w-[36px] rounded-md" />
+        </div>
+        <div className="tracking-tight pl-2 font-semibold">
+            <div>
+                {name || "Project Name"}
+            </div>
+            <div className="font-semibold text-[#D73F09]">
+                {total || 0} Students
+            </div>
+        </div>
+        <div className="flex justify-center items-center text-lg font-extrabold">
+          #{value.slice(-1) ?? NaN}
+        </div>
       </div>
     </Tabs.Trigger>
   );
@@ -33,7 +35,7 @@ children: React.ReactElement
 }) => {
   return (
     <Tabs.List className="flex flex-col border-[2px] mt-6">
-      <div className="font-bold">Ranks</div>   
+      <div className="font-bold text-lg ml-4 mt-3">Ranks</div>   
       <div className="grid grid-rows-2">
         {children}
       </div>        

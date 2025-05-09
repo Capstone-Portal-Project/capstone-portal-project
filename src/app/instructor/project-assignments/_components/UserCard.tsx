@@ -55,7 +55,7 @@ export default function UserCard({ user }: { user: DataTableUser}) {
                 <p className="text-sm text-gray-500">{user.email}</p>
             </div>
             <StudentViewContent>
-                <Tabs.Root className="grid gap-6 md:grid-cols-[1fr_240px]">
+                <Tabs.Root className="grid gap-6 md:grid-cols-[1fr_280px]">
                     <div className="flex flex-col">
                         <div className="text-lg font-bold ml-2 mb-3">John Smith</div>
                         <div className="ml-2 text-[#8E9089]">Assigned to</div>

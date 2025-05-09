@@ -57,8 +57,7 @@ const BrowsePage = () => {
   }
 
   return (
-    <main className="flex flex-col bg-[#FFFFFF] w-full  place-items-center pb-0 2xl:py-[40px]">
-        <div className="layout grid grid-cols-12 h-[32rem]">
+    <div className="h-screen grid grid-cols-12 w-full place-items-center pb-0 pt-20">
           <div className="col-span-3 h-full overflow-hidden">
           </div>
           <div className="col-span-6 h-full overflow-y-scroll scrollbar-none">
@@ -74,12 +73,11 @@ const BrowsePage = () => {
               })}
             </CardGrid>           
           </div>
-          <div className="col-span-3">
+          <div className="col-span-3 h-full w-full">
             <Sidebar />
           </div>
-        </div>
       <PortalPrimitive.Root><Toaster /></PortalPrimitive.Root>
-    </main>
+    </div>
   );
 };
 
