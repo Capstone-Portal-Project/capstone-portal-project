@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation';
 import { OrganizationProfile } from '@clerk/nextjs'
 import {
   Select,
@@ -47,7 +48,8 @@ export default function ManageCourse() {
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
 
-  const programId = 5 // TODO: replace with dynamic value when ready
+  const params = useParams();
+  const programId = Number(params?.programId); // Assumes URL is /admin-course/[programId]
 
   // Fetch the program's initial status when the component mounts
   useEffect(() => {

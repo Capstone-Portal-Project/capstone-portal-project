@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Program } from "../types";
-import { Button } from "../../../../components/ui/button";
+import { Button } from "../../../components/ui/button";
 import {
   Table,
   TableBody,
@@ -9,20 +10,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../../components/ui/table";
+} from "../../../components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../../components/ui/select";
+} from "../../../components/ui/select";
 
 interface ProgramsTableProps {
   programs: Program[];
   handleUpdateProgramStatus: (programId: number, newStatus: Program["programStatus"]) => Promise<void>;
   onEditClick: (program: Program) => void;
   onDeleteClick: (programId: number) => void;
+  onManageClick: (programId: number) => void;
 }
 
 export function ProgramsTable({
@@ -30,6 +32,7 @@ export function ProgramsTable({
   handleUpdateProgramStatus,
   onEditClick,
   onDeleteClick,
+  onManageClick,
 }: ProgramsTableProps) {
   return (
     <Table>
@@ -81,14 +84,20 @@ export function ProgramsTable({
             <TableCell>
               <div className="flex gap-2">
                 <Button 
-                  variant="outline" 
+                  size="sm"
+                  onClick={() => onManageClick(program.programId)}
+                >
+                  Manage
+                </Button>
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => onEditClick(program)}
                 >
                   Edit
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={() => onDeleteClick(program.programId)}
                 >
@@ -101,4 +110,4 @@ export function ProgramsTable({
       </TableBody>
     </Table>
   );
-} 
+}

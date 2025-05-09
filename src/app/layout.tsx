@@ -2,13 +2,11 @@ import "~/styles/globals.css";
 import "@uploadthing/react/styles.css";
 
 import { ClerkProvider } from "@clerk/nextjs";
-import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { TopNav } from "./_components/topnav";
-import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
-import { extractRouterConfig } from "uploadthing/server";
 import { Inter } from "next/font/google";
 import { Provider } from "./providers";
+import CheckActiveOrganization from './_components/CheckActiveOrganization';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,7 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider afterSignOutUrl={"/"}>
+      <CheckActiveOrganization />
       <html lang="en">
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />

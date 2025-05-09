@@ -43,6 +43,7 @@ export const users = createTable(
     programId: integer("program_id").references(() => programs.programId),
     rankingSubmitted: boolean("ranking_submitted").notNull(),
     teamId: integer("team_id").references(() => teams.teamId),
+    projectId: integer("project_id").references(() => projects.projectId)
   }
 );
 
@@ -71,6 +72,7 @@ export const programs = createTable(
     programStatus: programStatusEnum("program_status").notNull(),
     startTermId: integer("start_term_id").references(() => term.id).notNull(),
     endTermId: integer("end_term_id").references(() => term.id).notNull(),
+    clerkOrganizationId: varchar("clerk_organization_id", { length: 256 })
   }
 );
 
