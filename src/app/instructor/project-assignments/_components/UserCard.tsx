@@ -19,7 +19,6 @@ export default function UserCard({ user }: { user: DataTableUser}) {
         setNodeRef, 
         attributes, 
         listeners, 
-        transform, 
         // transition 
     } = useDraggable({
         id: user.id.toString(),
@@ -32,12 +31,6 @@ export default function UserCard({ user }: { user: DataTableUser}) {
     //     transition,
     //     transform: CSS.Transform.toString(transform),
     // }
-
-    const style = transform
-    ? {
-        transform: `translate(${transform.x}px, ${transform.y}px)`,
-      }
-    : undefined;
     
     return (
         <StudentView open={open} onOpenChange={setOpen}>
@@ -47,7 +40,6 @@ export default function UserCard({ user }: { user: DataTableUser}) {
                 onClick={() => setOpen(true)} // Controls the attached modal, StudentView. Preferred to "reuse dialog" https://github.com/radix-ui/primitives/discussions/1532
                 {...attributes}
                 {...listeners}
-                style={style}
                 onMouseEnter={() => setMouseIsOver(true)}
                 onMouseLeave={() => setMouseIsOver(false)}
             >

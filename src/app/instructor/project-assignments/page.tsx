@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useContext, useEffect, useState } from "react";
 import { DataTableUser, columns } from "./columns";
@@ -9,52 +9,69 @@ import { getProjectsByProgram } from "~/server/api/routers/project";
 import DroppableProjectCard from "./_components/DroppableProjectCard";
 import UserCard from "./_components/UserCard";
 import {
-    ResizableHandle,
-    ResizablePanel,
-    ResizablePanelGroup,
-  } from "~/components/ui/resizable"
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "~/components/ui/resizable";
 
-import { DndContext, DragStartEvent, DragEndEvent, PointerSensor, useSensor, useSensors, useDroppable, useDraggable } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragStartEvent,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  useDraggable,
+  DragOverlay,
+  UniqueIdentifier,
+} from "@dnd-kit/core";
 import { users } from "~/server/db/schema";
 import Sidebar from "./_components/SideBar";
 
 type Project = {
-    projectId: number;
-    projectTitle: string;
-    appDescription: string;
-    appImage: string | null;
-    appOrganization: string;
-    projectStatus: "draft" | "submitted" | "deferred" | "active" | "archived" | "incomplete" | null;
-  }
+  projectId: number;
+  projectTitle: string;
+  appDescription: string;
+  appImage: string | null;
+  appOrganization: string;
+  projectStatus:
+    | "draft"
+    | "submitted"
+    | "deferred"
+    | "active"
+    | "archived"
+    | "incomplete"
+    | null;
+};
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Pointer } from "lucide-react";
 import { createContext } from "vm";
 
 const ProjectBoard = () => {
-  return (
-    <div>
-
-    </div>
-  );
-}
-
-
-
-
+  return <div></div>;
+};
 
 export default function ProjectAssignments() {
   const { user } = useUser();
   const [userData, setUserData] = useState<DataTableUser[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [activeId, setActiveId] = useState<string|number|null>(null); // Id of UserCard currently being dragged
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5
-      }
+        distance: 5,
+      },
     }),
   );
 
@@ -65,7 +82,7 @@ export default function ProjectAssignments() {
 
       try {
         const clerkId = user.id; // Eventually we will use this to get the program ID
-        
+
         // Simulating getting program ID
         const programId = 5;
 
@@ -93,22 +110,22 @@ export default function ProjectAssignments() {
     }
 
     async function fetchProjects() {
-        try {
-          // Simulating getting program ID
-          const programId = 5;
+      try {
+        // Simulating getting program ID
+        const programId = 5;
 
-          const result = await getProjectsByProgram(programId);
-          if (!result.error) {
-            setProjects(result.projects);
-          } else {
-            console.error(result.message);
-          }
-        } catch (error) {
-          console.error("Failed to fetch projects:", error);
-        } finally {
-          setLoading(false);
+        const result = await getProjectsByProgram(programId);
+        if (!result.error) {
+          setProjects(result.projects);
+        } else {
+          console.error(result.message);
         }
-      };
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
     fetchUserData();
     fetchProjects();
@@ -116,24 +133,21 @@ export default function ProjectAssignments() {
 
   if (loading) {
     return (
-
-        <div className="flex items-center justify-center h-screen text-2xl font-semibold">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-            <span className="ml-2">Loading submissions...</span>
-        </div>
-    )
+      <div className="flex h-screen items-center justify-center text-2xl font-semibold">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        <span className="ml-2">Loading submissions...</span>
+      </div>
+    );
   }
 
-
   function onDragStart(event: DragStartEvent) {
-    const { active } = event;
-    console.log(`User ${active.id} started dragging`);
+    setActiveId(event.active.id);
   }
 
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     const userId = active.data.current!.userId as number;
-    
+
     // If dropped back into the unassigned list, set projectId to null
     if (!over) {
       // Update the user's project ID to null (unassigned)
@@ -141,18 +155,18 @@ export default function ProjectAssignments() {
 
       setUserData((prevState) =>
         prevState.map((user) =>
-          user.id === userId ? { ...user, projectId: null } : user
-    )
-  );
-} else {
-  // Otherwise, assign the user to the new project
+          user.id === userId ? { ...user, projectId: null } : user,
+        ),
+      );
+    } else {
+      // Otherwise, assign the user to the new project
       console.log(`User ${active.id} dragged to project ${over.id}`);
 
       const newProject = over.data.current!.projectId as number;
       setUserData((prevState) =>
         prevState.map((user) =>
-          user.id === userId ? { ...user, projectId: newProject } : user
-        )
+          user.id === userId ? { ...user, projectId: newProject } : user,
+        ),
       );
     }
 
@@ -162,43 +176,57 @@ export default function ProjectAssignments() {
   }
 
   return (
-    <div className="min-h-dvh pt-20">
-      <div className="flex flex-col bg-[#FFFFFF] w-full place-items-center pb-0">
-          <div className="layout grid grid-cols-12 h-full">
-            <DndContext 
+    <div className="h-screen pt-20">
+      <div className="flex h-full w-full flex-col place-items-center bg-[#FFFFFF] pb-0">
+        <div className="layout grid h-full grid-cols-12">
+          <DndContext
             sensors={sensors}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
-            >          
-              <div className="px-4 col-span-2 h-full overflow-hidden">
-                <div className="flex flex-col gap-2">
-                  {/* List all the users that have a null projectId (haven't been assigned to a project yet) */}
-                  {userData.filter(user => user.projectId === null).map((user) => (
-                      <UserCard key={user.id} user={user} />
+          >
+            <div className="col-span-2 h-full overflow-hidden px-4">
+              <div className="flex flex-col gap-2">
+                {/* List all the users that have a null projectId (haven't been assigned to a project yet) */}
+                {userData
+                  .filter((user) => user.projectId === null)
+                  .map((user) => (
+                    <UserCard key={user.id} user={user} />
                   ))}
-                </div>            
               </div>
-              <div className="col-span-8 h-full overflow-y-scroll scrollbar-none">
-                {/* Projects List (Droppable) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 px-4">
-                  {projects.map((project) => (
-                    <DroppableProjectCard
+            </div>
+
+            <DragOverlay>
+              { // https://stackoverflow.com/a/66693905
+                (() => {
+                  const dataTableUser = userData.find((value) => value.id == activeId);
+                  return dataTableUser ? <UserCard user={dataTableUser} /> : null
+                })()
+              }
+            </DragOverlay>
+
+            <div className="scrollbar-none col-span-8 h-full overflow-y-scroll">
+              {/* Projects List (Droppable) */}
+              <div className="grid grid-cols-1 gap-3 px-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
+                {projects.map((project) => (
+                  <DroppableProjectCard
                     key={project.projectId}
                     projectId={project.projectId}
-                    imgUrl={project.appImage || ''}
+                    imgUrl={project.appImage || ""}
                     title={project.projectTitle}
                     description={project.appDescription}
                     tags={[project.appOrganization]}
-                    users={userData.filter(user => user.projectId === project.projectId)}
-                    />
-                  ))}
-                </div>
+                    users={userData.filter(
+                      (user) => user.projectId === project.projectId,
+                    )}
+                  />
+                ))}
               </div>
-              <div className="col-span-2 h-full overflow-hidden">
-                {/* Placeholder for Sidebar */}
-              </div>
-            </DndContext>            
-          </div>
+            </div>
+            <div className="col-span-2 h-full overflow-hidden">
+              {/* Placeholder for Sidebar */}
+            </div>
+          </DndContext>
+        </div>
       </div>
     </div>
   );
