@@ -24,8 +24,20 @@ export function TopNav() {
 
   const adminLinks: { title: string; href: string; }[] = [
     {
+      title: "Account Management",
+      href: "/admin/accounts",
+    },
+    {
       title: "Program Management",
-      href: "/admin/program-management",
+      href: "/admin",
+    },
+    {
+      title: "Course Project Logs",
+      href: "/admin-course/1/project-logs",
+    },
+    {
+      title: "Instructor Assignments",
+      href: "/admin/instructor-assignments",
     },
     {
       title: "Archived Projects",
@@ -35,24 +47,20 @@ export function TopNav() {
       title: "Update Home",
       href: "/admin/update-home",
     },
-    {
-      title: "Assign Instructors",
-      href: "/admin/instructor-assignments",
-    }
   ];
 
   const instructorLinks: { title: string; href: string; }[] = [
     {
       title: "Manage Course",
-      href: "/instructor/manage-courses",
+      href: "/instructor",
     },
     {
-      title: "Projects",
+      title: "Course Projects",
       href: "/instructor/projects",
     },
     {
-      title: "Add Project",
-      href: "/instructor/add-project",
+      title: "Project Logs",
+      href: "/instructor/project-logs",
     },
     {
       title: "Project Submissions",
@@ -61,6 +69,10 @@ export function TopNav() {
     {
       title: "Project Assignments",
       href: "/instructor/project-assignments",
+    },
+    {
+      title: "Add Project",
+      href: "/instructor/add-project",
     },
   ];
 
@@ -80,21 +92,46 @@ export function TopNav() {
       <NavigationMenu>
         <NavigationMenuList>
           {isAdmin && (
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Admin Tools</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
-                  {adminLinks.map((link) => (
-                    <ListItem key={link.title} title={link.title} href={link.href} />
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
+            <>
+              <NavigationMenuItem>
+                <Link href="/organization-switcher" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Select Organization
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/admin" passHref>
+                  <NavigationMenuTrigger
+                    onPointerDown={(e) => e.stopPropagation()} // prevent dropdown toggle override
+                    onClick={(e) => {
+                      // When clicked, it will navigate via the <Link>, and NOT toggle the menu
+                      // If you want it to ALSO open the dropdown on click, remove this
+                    }}
+                  >
+                    Admin Tools
+                  </NavigationMenuTrigger>
+                </Link>
+                <NavigationMenuContent>
+                  <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
+                    {adminLinks.map((link) => (
+                      <ListItem key={link.title} title={link.title} href={link.href} />
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </>
           )}
 
           {isInstructor && (
             <NavigationMenuItem>
-              <NavigationMenuTrigger>Instructor Tools</NavigationMenuTrigger>
+              <Link href="/instructor" passHref>
+                <NavigationMenuTrigger
+                  onPointerDown={(e) => e.stopPropagation()} // prevent dropdown toggle override
+                >
+                  Instructor Tools
+                </NavigationMenuTrigger>
+              </Link>
               <NavigationMenuContent>
                 <ul className="grid w-[150px] gap-3 p-2 md:w-[200px] md:grid-cols-1 lg:w-[300px]">
                   {instructorLinks.map((link) => (
@@ -138,7 +175,9 @@ export function TopNav() {
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <UserButton />
+              <UserButton 
+                afterSignOutUrl="/"
+              />
             </SignedIn>
           </NavigationMenuItem>
         </NavigationMenuList>

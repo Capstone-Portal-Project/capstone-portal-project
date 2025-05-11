@@ -4,6 +4,7 @@ import { db } from "~/server/db"
 import { users } from "~/server/db/schema"
 import { z } from "zod"
 import { eq, and } from "drizzle-orm"
+import { addUserToOrganization, removeUserFromOrganization } from "~/server/auth/clerk-admin"
 
 /**
  * Schema for validating user form data.
@@ -15,6 +16,7 @@ const userFormSchema = z.object({
   programId: z.number().optional(),
   rankingSubmitted: z.boolean().default(false),
   teamId: z.number().optional(),
+  projectId: z.number().optional(),
   clerk_user_id: z.string().max(256)
 })
 
@@ -100,6 +102,29 @@ export async function updateInstructor(
       const sanitizedData = {
         ...data,
         programId: data.programId === undefined ? null : data.programId
+      }
+
+      // Remove user affiliation from the last ogranization if applicable
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.userId, userId))
+        .limit(1)
+
+      if (user && user.length > 0) {
+        const programId = user[0]?.programId
+        const clerkUserId = user[0]?.clerk_user_id
+        
+        if (clerkUserId && programId) {
+          await removeUserFromOrganization(programId, clerkUserId)
+        }
+
+        // If program ID is not null, add the instructor to the new organization
+        if (sanitizedData.programId !== null && clerkUserId) {
+          await addUserToOrganization(sanitizedData.programId, clerkUserId, 'org:instructor')
+        }
+      } else {
+        console.error(`User with ID ${userId} not found`)
       }
 
     await db.update(users)
@@ -228,6 +253,38 @@ export async function getProjectPartnerByTeamId(teamId: number) {
     return { user: null, error: true, message: "Failed to fetch project partner" }
   }
 }
+
+
+/**
+ * Fetches all users on the same team, excluding the project partner for the given teamId.
+ * 
+ * @param {number} teamId - The ID of the team.
+ * @returns {Promise<{ teammates: any[], error: boolean, message?: string }> }
+ */
+export async function getTeamUsersExcludingPartner(teamId: number) {
+  try {
+    // Fetch all users in the given team
+    const teamUsers = await db
+      .select({
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.teamId, teamId)) // Use teamId directly
+      .execute();
+      
+    // Exclude the project partner (if any)
+    const teammates = teamUsers.filter(user => user.type !== "project_partner");
+
+    return {
+      error: false,
+      teammates
+    };
+  } catch (error) {
+    console.error("Failed to fetch team users excluding project partner", error);
+    return { error: true, message: "Failed to fetch team users", teammates: [] };
+  }
+}
+
 
 /**
  * Fetches a user by their Clerk ID.

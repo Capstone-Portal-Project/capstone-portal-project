@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useToast } from "../../../components/ui/toaster";
-import { Toaster } from "../../../components/ui/toaster";
+import { useToast } from "../../components/ui/toaster";
+import { Toaster } from "../../components/ui/toaster";
 import { 
   createProgram, 
   getAllPrograms, 
   updateProgramStatus,
   updateProgram,
-  deleteProgram 
+  deleteProgram,
+  getClerkOrganizationId
 } from "~/server/api/routers/program";
 import { getAllTerms } from "~/server/api/routers/term";
 import { getAllUsers } from "~/server/api/routers/user";
@@ -17,6 +18,7 @@ import { CreateProgramDialog } from "./components/CreateProgramDialog";
 import { EditProgramDialog } from "./components/EditProgramDialog";
 import { DeleteProgramDialog } from "./components/DeleteProgramDialog";
 import { ProgramsTable } from "./components/ProgramsTable";
+import { useOrganizationList, useAuth } from "@clerk/nextjs";
 
 export default function ProgramManagementPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -42,6 +44,8 @@ export default function ProgramManagementPage() {
   });
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [programToDelete, setProgramToDelete] = useState<number | null>(null);
+  const { setActive, isLoaded } = useOrganizationList();
+  const { orgId } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -237,6 +241,27 @@ export default function ProgramManagementPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleManageClick = async (programId: number) => {
+    const organizationId = await getClerkOrganizationId(programId);
+  
+    if (!isLoaded) {
+      return;
+    }
+  
+    if (orgId === organizationId) {
+      console.log(`Organization ${organizationId} is already active.`);
+    } else {
+      try {
+        await setActive({ organization: organizationId });
+        console.log(`Set active organization to: ${organizationId}`);
+      } catch (error) {
+        console.error("Error setting active organization:", error);
+      }  
+    }
+
+    window.location.href = `/admin-course/${programId}`;
+  };
+
   const handleConfirmDelete = async () => {
     if (programToDelete === null) return;
     
@@ -291,6 +316,7 @@ export default function ProgramManagementPage() {
             setIsEditDialogOpen(true);
           }}
           onDeleteClick={handleDeleteClick}
+          onManageClick={handleManageClick}
         />
       </div>
 

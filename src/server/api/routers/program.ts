@@ -3,10 +3,11 @@
 import { db } from "~/server/db"
 import { programs } from "~/server/db/schema"
 import { z } from "zod"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import { term } from "~/server/db/schema"
 import { users } from "~/server/db/schema"
 import { instructors } from "~/server/db/schema"
+import { createClerkOrganization, addAdminsToOrganization, deleteOrganization } from "../../auth/clerk-admin"
 
 /**
  * Schema for validating program form data.
@@ -16,11 +17,12 @@ const programFormSchema = z.object({
   programDescription: z.string().optional(),
   programStatus: z.enum(['submissions', 'matching', 'active', 'ending', 'archived', 'hidden']),
   startTermId: z.number(),
-  endTermId: z.number()
+  endTermId: z.number(),
+  clerkOrganizationId: z.string().optional()
 })
 
 /**
- * Creates a new program.
+ * Creates a new program/course and a corresponding Clerk organization.
  * 
  * @param {z.infer<typeof programFormSchema>} unsafeData - The data to create the program with.
  * @returns {Promise<{ error: boolean; message?: string; programId?: number }>} The result of the creation operation.
@@ -35,6 +37,7 @@ export async function createProgram(
   }
 
   try {
+    // Insert the program into the database
     const result = await db.insert(programs)
       .values(data)
       .returning({ programId: programs.programId })
@@ -42,23 +45,41 @@ export async function createProgram(
 
     const programId = result[0]?.programId;
 
-    if (programId && unsafeData.selected_instructors && unsafeData.selected_instructors.length > 0) {
-      await db.insert(instructors)
-        .values(
-          unsafeData.selected_instructors.map(userId => ({
-            programId: programId,
-            userId: userId
-          }))
-        )
-        .execute()
-    }
+    if (programId) {
+      // Create a Clerk organization for this program
+      const orgName = `${data.programName} (${programId})`;
+      const organizationId = await createClerkOrganization(orgName);
+      
+      if (organizationId) {
+        
+        // Update the program with the Clerk organization ID
+        await db.update(programs)
+          .set({ clerkOrganizationId: organizationId })
+          .where(eq(programs.programId, programId))
+          .execute();
 
-    return { 
-      error: false, 
-      programId: programId 
+        // Add all admin users to the new organization
+        await addAdminsToOrganization(organizationId);
+        
+        if (unsafeData.selected_instructors && unsafeData.selected_instructors.length > 0) {
+          await db.insert(instructors)
+            .values(
+              unsafeData.selected_instructors.map(userId => ({
+                programId: programId,
+                userId: userId
+              }))
+            )
+            .execute()
+        }
+      }
+      
+      return { error: false, programId };
     }
+    
+    return { error: true, message: "Failed to create program" };
   } catch (error) {
-    return { error: true, message: "Failed to create program" }
+    console.error("Error creating program:", error);
+    return { error: true, message: "Failed to create program" };
   }
 }
 
@@ -285,11 +306,143 @@ export async function getProgramById(programId: number) {
  */
 export async function deleteProgram(programId: number) {
   try {
+    // Get the program first to get its name for the organization
+    const program = await db.select()
+      .from(programs)
+      .where(eq(programs.programId, programId))
+      .then(programs => programs[0]);
+
+    if (!program) {
+      return { error: true, message: "Program not found" };
+    }
+
+    // Delete the program from the database
     await db.delete(programs)
       .where(eq(programs.programId, programId))
-      .execute()
-    return { error: false }
+      .execute();
+
+    // Delete the corresponding Clerk organization
+    if (program.clerkOrganizationId) {
+      await deleteOrganization(program.clerkOrganizationId);
+    } else {
+      console.error("Program has no Clerk organization ID");
+    }
+
+    return { error: false };
   } catch (error) {
-    return { error: true, message: "Failed to delete program" }
+    console.error("Error deleting program:", error);
+    return { error: true, message: "Failed to delete program" };
+  }
+}
+
+/**
+ * Fetches the Clerk organization ID for a given program.
+ * @param programId - The ID of the program to get the Clerk organization ID for.
+ * @returns {Promise<string | null>} The Clerk organization ID if found, otherwise null.
+ */
+export async function getClerkOrganizationId(programId: number): Promise<string | null> {
+  try {
+    const program = await db.select({ clerkOrganizationId: programs.clerkOrganizationId })
+      .from(programs)
+      .where(eq(programs.programId, programId))
+      .then(programs => programs[0]);
+
+    return program?.clerkOrganizationId || null;
+  } catch (error) {
+    console.error("Error fetching Clerk organization ID:", error);
+    return null;
+  }
+}
+
+/**
+ * Gets programs assigned to an instructor by their Clerk user ID.
+ * 
+ * @param {string} clerkUserId - The Clerk user ID of the instructor.
+ * @returns {Promise<{ programs: any[]; error: boolean; message?: string }>} The programs assigned to the instructor.
+ */
+export async function getProgramsByInstructorClerkId(clerkUserId: string) {
+  try {
+    // First, get the internal user ID from the Clerk user ID
+    const userResult = await db
+      .select({
+        userId: users.userId
+      })
+      .from(users)
+      .where(and(
+        eq(users.clerk_user_id, clerkUserId),
+        eq(users.type, 'instructor')
+      ))
+      .limit(1);
+    
+    if (userResult.length === 0) {
+      return { programs: [], error: true, message: "Instructor not found" };
+    }
+    
+    const userId = userResult[0].userId;
+    
+    // Get the programs this instructor is assigned to
+    const instructorPrograms = await db
+      .select({
+        programId: instructors.programId
+      })
+      .from(instructors)
+      .where(eq(instructors.userId, userId));
+    
+    if (instructorPrograms.length === 0) {
+      return { programs: [], error: false, message: "No programs assigned to this instructor" };
+    }
+    
+    // Get the full program details
+    const programIds = instructorPrograms.map(ip => ip.programId);
+    const programsWithStartTerm = await Promise.all(
+      programIds.map(async (programId) => {
+        const program = await db
+          .select()
+          .from(programs)
+          .where(eq(programs.programId, programId))
+          .limit(1)
+          .then(programs => programs[0]);
+        
+        if (!program) {
+          return null;
+        }
+        
+        const startTerm = await db
+          .select()
+          .from(term)
+          .where(eq(term.id, program.startTermId))
+          .then(terms => terms[0]);
+        
+        const endTerm = await db
+          .select()
+          .from(term)
+          .where(eq(term.id, program.endTermId))
+          .then(terms => terms[0]);
+        
+        return {
+          ...program,
+          start_term: startTerm ? {
+            id: startTerm.id,
+            season: startTerm.season,
+            year: startTerm.year,
+            is_published: startTerm.isPublished
+          } : undefined,
+          end_term: endTerm ? {
+            id: endTerm.id,
+            season: endTerm.season,
+            year: endTerm.year,
+            is_published: endTerm.isPublished
+          } : undefined
+        };
+      })
+    );
+    
+    // Filter out any null values (programs that couldn't be found)
+    const validPrograms = programsWithStartTerm.filter(p => p !== null);
+    
+    return { programs: validPrograms, error: false };
+  } catch (error) {
+    console.error("Failed to fetch instructor programs:", error);
+    return { programs: [], error: true, message: "Failed to fetch instructor programs" };
   }
 }
