@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { checkUserRole } from "~/app/utils/checkUserRole";
 import { useUser } from "@clerk/nextjs";
+import { getUserByClerkId } from "~/server/api/routers/user";
 
 type ProjectManagementProps = {
   projectId: number;
@@ -30,10 +31,14 @@ export function ProjectManagement({ projectId }: ProjectManagementProps) {
         membership.role === "org:admin" || membership.role === "org:instructor"
       );
       
-      // Set the visibility and user ID based on the user's role
       setIsVisible(isAdminOrInstructor);
+      
+      // Set the user ID based on the user's role
       if (isAdminOrInstructor) {
-        setUserId(parseInt(user.id));
+        const { user: dbUser, error } = await getUserByClerkId(user.id);
+        if (!error && dbUser) {
+          setUserId(dbUser.userId);
+        }
       }
     };
     
