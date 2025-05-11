@@ -30,10 +30,10 @@ export function ProjectManagement({ projectId }: ProjectManagementProps) {
         membership.role === "org:admin" || membership.role === "org:instructor"
       );
       
+      // Set the visibility and user ID based on the user's role
       setIsVisible(isAdminOrInstructor);
-      
       if (isAdminOrInstructor) {
-        setUserId(1);
+        setUserId(parseInt(user.id));
       }
     };
     
