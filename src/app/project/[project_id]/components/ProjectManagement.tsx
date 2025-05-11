@@ -33,7 +33,6 @@ export function ProjectManagement({ projectId }: ProjectManagementProps) {
       setIsVisible(isAdminOrInstructor);
       
       if (isAdminOrInstructor) {
-        // For now, we'll use a placeholder user ID
         setUserId(1);
       }
     };
@@ -46,10 +45,8 @@ export function ProjectManagement({ projectId }: ProjectManagementProps) {
     return null;
   }
   
-  // When a new log is added, we'd refresh the logs
+  // When a new log is added, refresh the logs
   const handleLogAdded = () => {
-    // Force a refresh of the logs component (you might want to implement this differently)
-    // For now, we'll just force a page refresh
     window.location.reload();
   };
 
