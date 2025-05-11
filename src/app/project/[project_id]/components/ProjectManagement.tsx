@@ -22,21 +22,24 @@ export function ProjectManagement({ projectId }: ProjectManagementProps) {
     const checkPermissions = async () => {
       if (!user?.id) return;
       
-      // Only admins and instructors should see this component
-      const role = await checkUserRole();
-      const isAdminOrInstructor = role === "admin" || role === "instructor";
+      // Get the user's organization memberships
+      const memberships = user.organizationMemberships || [];
+      
+      // Check if user has admin or instructor role in any organization
+      const isAdminOrInstructor = memberships.some(membership => 
+        membership.role === "org:admin" || membership.role === "org:instructor"
+      );
+      
       setIsVisible(isAdminOrInstructor);
       
-      // Get the numerical user ID for the current user (from server)
-      // This is a placeholder - you'll need to implement this function
       if (isAdminOrInstructor) {
-        // Placeholder - replace with actual implementation
-        setUserId(1); // Temporary hardcoded value
+        // For now, we'll use a placeholder user ID
+        setUserId(1);
       }
     };
     
     checkPermissions();
-  }, [user?.id]);
+  }, [user]);
   
   // If not admin or instructor, don't render anything
   if (!isVisible || userId === null) {

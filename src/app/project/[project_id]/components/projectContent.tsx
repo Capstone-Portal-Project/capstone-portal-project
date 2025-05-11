@@ -23,16 +23,13 @@ export default function ProjectContent(pageContent: ProjectProps) {
         {/* Left Column: Text Content */}
         <div className="flex-1">
           <Content {...pageContent.content} />
-          
-          {/* Project Management Section (only visible to admins/instructors) */}
-          {projectId && <ProjectManagement projectId={projectId} />}
         </div>
 
         {/* Divider */}
         <div className="w-px bg-copy" />
 
-        {/* Right Column: Detail Card */}
-        <div className="flex-initial">
+        {/* Right Column: Detail Card and Project Management */}
+        <div className="flex-initial space-y-8">
           <Detail
             {...{
               ...pageContent.infoCard,
@@ -46,6 +43,9 @@ export default function ProjectContent(pageContent: ProjectProps) {
               ),
             }}
           />
+          
+          {/* Project Management Section (only visible to admins/instructors) */}
+          {projectId && <ProjectManagement projectId={projectId} />}
         </div>
       </section>
     </main>
