@@ -56,14 +56,14 @@ const ProjectCard = ({ saveId, preferenceDescription, projectId, saveIndex, onDe
           <div className="text-sm text-muted-foreground overflow-hidden text-ellipsis line-clamp-2">
             {preferenceDescription}
           </div>
-          <div className="text-xs text-gray-500 mt-1">{`Save Index: ${saveIndex}`}</div>
+          <div className="text-xs text-gray-500 mt-1">{`Ranking: ${saveIndex}`}</div>
           <div className="flex space-x-2 mt-2">
             {/* Prevent Link navigation when clicking the buttons */}
-            <button onClick={(e) => { handleButtonClick(e); onMoveUp(saveId); }} className="px-2 py-1 bg-blue-500 text-white rounded">
-              Up
+            <button onClick={(e) => { handleButtonClick(e); onMoveUp(saveId); }} className="px-2 py-1 bg-[#D73F09] text-white rounded">
+              ↑
             </button>
-            <button onClick={(e) => { handleButtonClick(e); onMoveDown(saveId); }} className="px-2 py-1 bg-blue-500 text-white rounded">
-              Down
+            <button onClick={(e) => { handleButtonClick(e); onMoveDown(saveId); }} className="px-2 py-1 bg-[#D73F09] text-white rounded">
+              ↓
             </button>
           </div>
         </div>
