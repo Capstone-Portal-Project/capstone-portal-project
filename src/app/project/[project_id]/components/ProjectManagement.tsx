@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { checkUserRole } from "~/app/utils/checkUserRole";
 import { useUser } from "@clerk/nextjs";
+import { getUserByClerkId } from "~/server/api/routers/user";
 
 type ProjectManagementProps = {
   projectId: number;
@@ -22,31 +23,35 @@ export function ProjectManagement({ projectId }: ProjectManagementProps) {
     const checkPermissions = async () => {
       if (!user?.id) return;
       
-      // Only admins and instructors should see this component
-      const role = await checkUserRole();
-      const isAdminOrInstructor = role === "admin" || role === "instructor";
+      // Get the user's organization memberships
+      const memberships = user.organizationMemberships || [];
+      
+      // Check if user has admin or instructor role in any organization
+      const isAdminOrInstructor = memberships.some(membership => 
+        membership.role === "org:admin" || membership.role === "org:instructor"
+      );
+      
       setIsVisible(isAdminOrInstructor);
       
-      // Get the numerical user ID for the current user (from server)
-      // This is a placeholder - you'll need to implement this function
+      // Set the user ID based on the user's role
       if (isAdminOrInstructor) {
-        // Placeholder - replace with actual implementation
-        setUserId(1); // Temporary hardcoded value
+        const { user: dbUser, error } = await getUserByClerkId(user.id);
+        if (!error && dbUser) {
+          setUserId(dbUser.userId);
+        }
       }
     };
     
     checkPermissions();
-  }, [user?.id]);
+  }, [user]);
   
   // If not admin or instructor, don't render anything
   if (!isVisible || userId === null) {
     return null;
   }
   
-  // When a new log is added, we'd refresh the logs
+  // When a new log is added, refresh the logs
   const handleLogAdded = () => {
-    // Force a refresh of the logs component (you might want to implement this differently)
-    // For now, we'll just force a page refresh
     window.location.reload();
   };
 
