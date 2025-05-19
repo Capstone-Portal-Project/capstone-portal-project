@@ -1,33 +1,137 @@
-# Capstone Portal Project 
+![image](https://github.com/user-attachments/assets/a99943fa-57ae-48dd-ba2c-557137ff1070)# UNIFIED CAPSTONE PORTAL
+Welcome the unified capstone portal, a one-stop-shop capstone project portal for school programs. Oregon State University's College of Engineering have several versions of a senior capstone project in different academic programs, where groups of students develop a project submitted by an employee of a company or an instructor at OSU. However, information and project management between all of these is variable. This project is a proposed solution to the current issues of capstone project management. It aims to act as a proof of concept for a more approchable, robust, and future-proof capstone project management system.
 
-## Notes for the Capstone Team
-- `npm run dev` - starts the project in dev mode
-- `npm run start` - starts the project in production mode
-- `npm run db:push` - pushes updates to the schema (This can temporarily break prod)
-- `npm run db:studio` - opens drizzle studio
+## About 
+### The Issues We Aim to Address
+* The College of Engineering has a variety of capstone programs, across its diverse fields of study. However, the web presence for all of these is spread out between several websites and portals.​
+* Potential project partners struggle to understand all of the options available to them. User interface design is inconsistent between these programs, leading to challenges in submitting projects, and potentially preventing greater participation.​
+* There is no way for marketing officials for the College of Engineering to message a unified brand identity around its capstone projects. This has cascading effects, like introducing difficulty for program managers in ​
+* Capstone program instructors are forced to coordinate externally, leading to inefficiency in managing hundreds of students and a greater chance of management mistakes.​
+* Students have to navigate a mix of information and often unintuitive UI's for selecting their project.​
 
-Watch [this video](https://www.youtube.com/watch?v=d5x0JCZbAJs&t=6s) to see how the setup was done and get a crash course of how to develop in this environment.
+### Key Features
+- Enhanced Student-Project Matching – Students can rank the projects available to them. Through our student-matching tools, instructors can create project groups with ease.​
+- Project Submission Management – Instructors have easy-to-use project approval features, including seamless communication with project partners. Our project management log feature allow for multiple instructors to track communication and approval of projects.​
+- Program Collaboration – Projects can be transferred between any capstone programs, allowing instructors from around the college to share projects.
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+### Benefits and Target Audeince
+Our design centers approachability for project partners, potential OSU students, and other members of the public. Our UI is easy to navigate and includes hints for those without a technical background.​ Interested members of the public can now browse past capstone projects in the project showcase. This allows for potential project partners to see past projects similar to theirs and for recruiters to see the great work of potential employees from OSU.​
 
-## What's next? How do I make an app with this?
+​## Technical Implementation
+### Key Technologies Used
+Having the freedom to start from scratch gave us the flexibility to choose a tech stack that balanced performance, developer productivity, and ease of deployment. We chose to base our stack on the T3 Stack, a modern full-stack framework known for rapid prototyping, strong type safety, and first-class developer experience. Our implementation included:
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- Next.js (Frontend Framework)
+- React (Component Library)
+- Drizzle ORM (Type-safe SQL ORM)
+- Clerk (Authentication and User Management)
+- NeonDB (PostgreSQL-compatible serverless database)
+- ShadCN UI (Accessible UI components)
+- TailwindCSS (Utility-first styling)
+- Vercel (Hosting and deployment)
+  
+At the core of our application, we used Next.js, which served as both our frontend framework and backend API layer. Its static generation and server-side rendering made it ideal for building a performant, SEO-friendly web application. We used React to construct a componentized front end, which simplified development and improved consistency across pages. We also opted to use Typescript for its strong typing which helped reduce bugs.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+To manage data persistence, we used Drizzle ORM alongside NeonDB hosted on Vercel, a serverless PostgreSQL-compatible database. Drizzle stood out for its type-safe approach to querying and schema management, giving us full control over our SQL. We chose NeonDB for its relational structure which aligned with the schema we adapted from the original capstone website. This combination enabled a smooth and reliable data layer that integrated well with our api.
 
-- [Next.js](https://nextjs.org)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
+We used Clerk for out of the box authentication, user management, and building a multi-tenant application. Clerk’s integration with Next.js middleware and API routes allowed us to specify protected resources with minimal boilerplate. We also specified admin, instructor, and student roles, each with their own permissions across different courses.
+Finally, we deployed our application using Vercel, which was a huge part of 
+our testing and CI/CD. It seamlessly integrates with Next.js, enabling us to ship code when pushing to main, and preview environments before merging it into production. This greatly improved collaboration and gave us continuous delivery capabilities with minimal setup.
 
-## Learn More
+### Architecture Overview
+![image](https://github.com/user-attachments/assets/3776d894-080f-4884-a0c9-b9e3ab2b9f0b)
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+### Development Challenges 
+One of our early challenges was onboarding team members who were new to React and Next.js. Getting everyone comfortable with the codebase and modern development patterns within a short timeframe required communication and a willingness for everyone to learn. To aid this process, we shared documentation, posted helpful resources, and pair programmed to accelerate learning. We also used Jira to manage tasks and track progress, which helped keep development focused and aligned even during our busiest weeks of the term.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Another major challenge was adapting the existing database schema to support the new features we were building. Deciding what to keep, refactor, or remove led to several mid-project revisions that occasionally caused disruptions. Implementing multi-tenant authentication with Clerk was also new territory for everyone. We spent significant time reviewing Clerk's documentation—particularly around user management and organizations—and worked closely with our project lead to clarify role-based access and permissions.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## Getting Started
+### Prerequisites
+* [Node.js](https://nodejs.org/en)
+* npm
+    ```sh
+    npm install -g npm
+    ```
+### Services
+Our project utilizes several third-party providers and services, each will require their own separate accounts. 
+* [Uploadthing](https://uploadthing.com/) &mdash; Placeholder Image Hosting
+
+Description
+* [Clerk](https://clerk.com/) &mdash; Authentification Provider
+
+Description
+* [Vercel](https://vercel.com/) &mdash; Placeholder
+  
+Description
+
+### Installation
+1. Clone the repo
+    ```sh
+    git clone https://github.com/Capstone-Portal-Project/capstone-portal-project.git
+    ```
+2. Install NPM packages
+    ```sh
+    npm install
+    ```
+3. Create a `.env` with your configuration
+    ```dotenv
+    DATABASE_URL='postgres://<username>:<password>@localhost:3000/'
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY='y0ur_s3cr3t_k3y'
+    CLERK_SECRET_KEY='y0ur_s3cr3t_k3y'
+    UPLOADTHING_TOKEN='yOuRtOkEn'
+    ```
+4. Migrate the database
+    ```sh
+    npm run db:push
+    ```
+5. Start the server
+    ```sh
+    # development
+    npm run dev
+
+    # production
+    npm run build
+    npm start
+    ```
+## Usage
+Different roles have different management tools through the application.
+
+### Administrator
+* Assign instructors to different programs
+![image](Insert Image Here)
+
+* Invite people into the system (through their emails) as students and instructors
+![image](Insert Image Here)
+
+* Audit logs as they become available 
+![image](Insert Image Here)
+
+### Instructor
+* Assign students to different projects
+![image](Insert Image Here)
+
+* View and manage projects through each phase of its lifecycle
+![image](Insert Image Here)
+
+### Student
+* Compact view of available projects
+![image](Insert Image Here)
+
+* Save projects for easier access later
+![image](Insert Image Here)
+
+* Submit requests to work available projects
+![image](Insert Image Here)
+
+
+## Contact the Team
+Dani Zahariev - Project Lead - zaharied@oregonstate.edu
+Sankalp Patil - Frontend lead - patilsa@oregonstate.edu
+Muhammad Faks - Backend lead - faksm@oregonstate.edu
+Joel Angus - Developer - angusjo@oregonstate.edu
+Hanhua Zhu - Developer - zhuhanh@oregonstate.edu
+Justin Pham - Developer - phamjus@oregonstate.edu
 
 
 
