@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/a99943fa-57ae-48dd-ba2c-557137ff1070)# UNIFIED CAPSTONE PORTAL
+# UNIFIED CAPSTONE PORTAL
 Welcome the unified capstone portal, a one-stop-shop capstone project portal for school programs. Oregon State University's College of Engineering have several versions of a senior capstone project in different academic programs, where groups of students develop a project submitted by an employee of a company or an instructor at OSU. However, information and project management between all of these is variable. This project is a proposed solution to the current issues of capstone project management. It aims to act as a proof of concept for a more approchable, robust, and future-proof capstone project management system.
 
 ## About 
@@ -61,7 +61,7 @@ Description
 * [Clerk](https://clerk.com/) &mdash; Authentification Provider
 
 Description
-* [Vercel](https://vercel.com/) &mdash; Placeholder
+* [Vercel](https://vercel.com/) &mdash; Placeholder Host
   
 Description
 
@@ -99,30 +99,37 @@ Different roles have different management tools through the application.
 
 ### Administrator
 * Assign instructors to different programs
-![image](Insert Image Here)
+
+![image](https://github.com/user-attachments/assets/7aba8126-cd9c-4a6f-8498-c51edfd362b2)
 
 * Invite people into the system (through their emails) as students and instructors
-![image](Insert Image Here)
 
-* Audit logs as they become available 
-![image](Insert Image Here)
+![image](https://github.com/user-attachments/assets/0295c61f-9da9-4c36-8196-ae3ecff993ce)
+
+* Audit logs as they become available
+  
+![image](https://github.com/user-attachments/assets/4f2e8862-ba55-4bc7-b069-907f73008258)
 
 ### Instructor
 * Assign students to different projects
-![image](Insert Image Here)
+
+![image](https://github.com/user-attachments/assets/aa5b6f45-c7f5-4975-9cb1-9a1047f975be)
+
 
 * View and manage projects through each phase of its lifecycle
-![image](Insert Image Here)
+  
+![image](https://github.com/user-attachments/assets/76898fae-e835-426c-9bff-b94e4df3c2d0)
 
 ### Student
 * Compact view of available projects
-![image](Insert Image Here)
+  
+![image](https://github.com/user-attachments/assets/02d73249-45d9-40f0-a040-42f56a3c216c)
 
 * Save projects for easier access later
-![image](Insert Image Here)
+  
+![image](https://github.com/user-attachments/assets/60e350b2-e1cd-4b92-8921-2c069c0edc82)
 
 * Submit requests to work available projects
-![image](Insert Image Here)
 
 
 ## Contact the Team
@@ -132,6 +139,5 @@ Muhammad Faks - Backend lead - faksm@oregonstate.edu
 Joel Angus - Developer - angusjo@oregonstate.edu
 Hanhua Zhu - Developer - zhuhanh@oregonstate.edu
 Justin Pham - Developer - phamjus@oregonstate.edu
-
 
 
