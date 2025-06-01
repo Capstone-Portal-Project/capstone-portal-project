@@ -39,7 +39,7 @@ Finally, we deployed our application using Vercel, which was a huge part of
 our testing and CI/CD. It seamlessly integrates with Next.js, enabling us to ship code when pushing to main, and preview environments before merging it into production. This greatly improved collaboration and gave us continuous delivery capabilities with minimal setup.
 
 ### Architecture Overview
-![image](https://github.com/user-attachments/assets/3776d894-080f-4884-a0c9-b9e3ab2b9f0b)
+![Capstone](https://github.com/user-attachments/assets/4bc34a9f-f40a-4426-a5e5-41a5f19b16a8)
 
 ### Development Challenges 
 One of our early challenges was onboarding team members who were new to React and Next.js. Getting everyone comfortable with the codebase and modern development patterns within a short timeframe required communication and a willingness for everyone to learn. To aid this process, we shared documentation, posted helpful resources, and pair programmed to accelerate learning. We also used Jira to manage tasks and track progress, which helped keep development focused and aligned even during our busiest weeks of the term.
