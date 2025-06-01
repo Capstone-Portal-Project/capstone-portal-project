@@ -424,7 +424,7 @@ export async function getTitleByProjectId(projectId: number) {
   }
 }
 
-const checkIfProjectSaved = async (userId: number, projectId: number): Promise<boolean> => {
+export const checkIfProjectSaved = async (userId: number, projectId: number): Promise<boolean> => {
     try {
         const response = await fetch(`/api/savedProjects?userId=${userId}&projectId=${projectId}`);
         const data = await response.json();
