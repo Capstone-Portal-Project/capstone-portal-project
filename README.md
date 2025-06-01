@@ -1,5 +1,26 @@
 # UNIFIED CAPSTONE PORTAL
+
 Welcome the unified capstone portal, a one-stop-shop capstone project portal for school programs. Oregon State University's College of Engineering have several versions of a senior capstone project in different academic programs, where groups of students develop a project submitted by an employee of a company or an instructor at OSU. However, information and project management between all of these is variable. This project is a proposed solution to the current issues of capstone project management. It aims to act as a proof of concept for a more approchable, robust, and future-proof capstone project management system.
+
+## Table of Contents
+- [About](#about)
+  - [The Issues We Aim to Address](#the-issues-we-aim-to-address)
+  - [Key Features](#key-features)
+  - [Benefits and Target Audeince](#benefits-and-target-audeince)
+  - [Key Technologies Used](#key-technologies-used)
+  - [Architecture Overview](#architecture-overview)
+  - [Development Challenges](#development-challenges)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Services](#services)
+  - [Installation](#installation)
+  - [Deployment](#deployment)
+- [Usage](#usage)
+  - [User Roles](#user-roles)
+    - [Administrator](#administrator)
+    - [Instructor](#instructor)
+    - [Student](#student)
+- [Contact the Team](#contact-the-team)
 
 ## About 
 ### The Issues We Aim to Address
@@ -17,7 +38,6 @@ Welcome the unified capstone portal, a one-stop-shop capstone project portal for
 ### Benefits and Target Audeince
 Our design centers approachability for project partners, potential OSU students, and other members of the public. Our UI is easy to navigate and includes hints for those without a technical background.​ Interested members of the public can now browse past capstone projects in the project showcase. This allows for potential project partners to see past projects similar to theirs and for recruiters to see the great work of potential employees from OSU.​
 
-​## Technical Implementation
 ### Key Technologies Used
 Having the freedom to start from scratch gave us the flexibility to choose a tech stack that balanced performance, developer productivity, and ease of deployment. We chose to base our stack on the T3 Stack, a modern full-stack framework known for rapid prototyping, strong type safety, and first-class developer experience. Our implementation included:
 
@@ -55,15 +75,22 @@ Another major challenge was adapting the existing database schema to support the
     ```
 ### Services
 Our project utilizes several third-party providers and services, each will require their own separate accounts. 
-* [Uploadthing](https://uploadthing.com/) &mdash; Placeholder Image Hosting
 
-Description
-* [Clerk](https://clerk.com/) &mdash; Authentification Provider
-
-Description
-* [Vercel](https://vercel.com/) &mdash; Placeholder Host
+#### [Uploadthing](https://uploadthing.com/) &mdash; Placeholder Image Hosting
   
-Description
+  Used for uploading and hosting images and files within the portal, such as project images or user-uploaded documents. Simplifies file management and integration with the frontend.
+
+#### [Clerk](https://clerk.com/) &mdash; Authentication Provider
+
+  Provides authentication, user management, and multi-tenant organization support. Enables secure sign-in, role-based access, and user invitations for students, instructors, and admins. 
+
+  [🔗 Official Documentation](https://clerk.com/docs/)
+
+#### [Vercel](https://vercel.com/) &mdash; Hosting Platform
+  
+  Hosts and deploys the web application and serverless backend. Offers seamless integration with Next.js for continuous deployment, preview environments, and production hosting.
+
+  [🔗 Official Documentation](https://vercel.com/docs)
 
 ### Installation
 1. Clone the repo
@@ -94,6 +121,13 @@ Description
     npm run build
     npm start
     ```
+
+### Deployment
+
+[Vercel](#vercel--hosting-platform) automatically builds and deploys the project on every push to the main branch or pull request. Each update triggers a new build and live deployment, with preview links for pull requests and instant production updates after merging. No manual setup is needed as Vercel manages the process for you.
+
+See the [🔗 Official Documentation](https://vercel.com/docs/deployments) to manage and troubleshoot deployments.
+
 ## Usage
 Different roles have different management tools through the application.
 
