@@ -20,6 +20,11 @@ Welcome the unified capstone portal, a one-stop-shop capstone project portal for
     - [Administrator](#administrator)
     - [Instructor](#instructor)
     - [Student](#student)
+- [Maintenance](#maintenance)
+  - [Style](#style)
+  - [Contribution](#contribution)
+  - [List of features or use cases implemented](#list-of-features-or-use-cases-implemented-wrt-requirements)
+  - [Known Issues and Future Enhancements list](#known-issues-and-future-enhancements)
 - [Contact the Team](#contact-the-team)
 
 ## About 
@@ -283,6 +288,68 @@ Different roles have different management tools through the application.
 3. **Result:** Students can now view their saved projects that they are interested in.
 
 ![image](https://github.com/user-attachments/assets/60e350b2-e1cd-4b92-8921-2c069c0edc82)
+
+## Maintenance
+### Style
+ In order to ensure our project is stylistically coherent for ease of development between everyone 
+ on the team, we recommend these guides.
+
+* [Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+* [React Frontend](https://airbnb.io/javascript/react/)
+
+### Contribution
+Our project follows the [Github Flow](https://docs.github.com/en/get-started/using-github/github-flow) workflow, where the main branch is longstanding and protected, and development occurs on individual feature branches. These features are then then "pulled" 
+into the main branch after being reviewed by at least one person. While anyone can make a pull request, to approve them and manage
+other aspects of the project, you must be [added](#contacts) to the repository with the necessary permissions. 
+
+Otherwise, to quickly get started with contributing to the project, simply clone down the repository locally and create a pull request.
+
+1. Fork/Clone the Project
+2. Create a Feature Branch `git checkout -b feature/my-feature`
+3. Commit your Changes `git commit -m "feat: add my new feature"`
+4. Push to the Branch `git push origin feature/my-feature`
+5. Open a new Pull Request 
+
+### List of features or use cases implemented (wrt requirements)
+#### Admin Features
+* Assign instructors to programs
+* Add a new program
+* Edit program
+* Delete program
+* Manage program
+* Update Home Page
+#### Instructor Features
+* Assign students to projects
+* View project details
+* Transfer projects to a different program
+* View project/program logs
+* View Program Students and Instructors
+* Invite Students to join a course
+#### Project Partner Features 
+* Submit a project
+#### Student Features
+* Save projects
+* Rank saved projects
+* View assigned project
+#### User Features
+* View Active Projects
+* View Archived Projects
+* Project Showcase
+### Known Issues and Future Enhancements
+#### Issues
+* General bugs with CRUD, including updating and creating projects.
+* Browse project page UI
+* Project partner portal doesn't display projects correctly
+* Program stage inconsisency
+* Project archive has inconsistency
+#### Future Enhancements
+* More Marketing features - This includes creating new elements, and allowing for more advanced control of the projectd showcase
+* Multi-program projects - This was a feature we had to remove from our requirements due to time constraints — add a system where multiple projects can be a part of the same "track," both for repeated projects as well as projects
+* More student/ta features - This would include tracking for certain capstone milestones and coordination featurse for TAs. The course timeline would be editable by course instructors
+* Integrate course documentation - An example of this for the eecs would [be this handbook](https://capstone.alexulbrich.com/), made by Alex Ulbrich, a capstone instructor 
+
+### Database Schema and Data Directory
+![image](https://github.com/user-attachments/assets/1e87586a-a37f-48b8-b12e-866d866f1da6)
 
 
 ## Contact the Team
